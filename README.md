@@ -13,4 +13,8 @@ git clone git@github.com:huggingface/inference-toolkit.git
 
 3. Activate the venv e.g. `source ./venv/bin/activate`
 
+<<<<<<< HEAD
 4. Use the toolkit CLI `huggingface-inference-toolkit --help`
+=======
+4. Use the toolkit CLI `huggingface-inference-toolkit --help`
+>>>>>>> a1f06ff (almost working fill-mask example)

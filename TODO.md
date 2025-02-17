@@ -3,6 +3,7 @@
 - [ ] use the warmup example to fill the openAPI spec
 - [ ] maybe use the get get_available_tasks() in the server for the match case
 
+<<<<<<< HEAD
 Supported tasks in endpoints atm:
 
 - [ ] Audio classification
@@ -27,3 +28,5 @@ Supported tasks in endpoints atm:
 - [ ] Translation 
 - [ ] Zero Shot Classification 
 
+=======
+>>>>>>> a1f06ff (almost working fill-mask example)
