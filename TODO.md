@@ -5,6 +5,7 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 >>>>>>> c8b3f6f (working example of fill mask)
 Supported tasks in endpoints atm:
@@ -40,3 +41,5 @@ Supported tasks in endpoints atm:
 >>>>>>> a1f06ff (almost working fill-mask example)
 =======
 >>>>>>> c8b3f6f (working example of fill mask)
+=======
+>>>>>>> a1f06ff (almost working fill-mask example)

@@ -103,6 +103,16 @@ def launch(
             predictor = Summarization(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = SummarizationInput, SummarizationOutput
 
+
+        case "fill-mask":
+            from huggingface_inference_toolkit.tasks.transformers.fill_mask import (
+                FillMask,
+                FillMaskInput,
+                FillMaskOutput,
+            )
+            predictor = FillMask(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = FillMaskInput, FillMaskOutput
+
         case _:
             raise ValueError(f"{task=} not supported!")
 
