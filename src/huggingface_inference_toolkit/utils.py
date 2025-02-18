@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def get_available_tasks():
     """
     Small hack to retrieve available tasks by scanning the tasks directory.
