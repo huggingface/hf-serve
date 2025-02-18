@@ -69,10 +69,24 @@ def launch(
 
             predictor = SentenceSimilarity(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = SentenceSimilarityInput, SentenceSimilarityOutput
-        # case "sentence-embeddings":
-        #     ...
-        # case "sentence-ranking":
-        #     ...
+        case "sentence-embeddings":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_embeddings import (
+                SentenceEmbeddings,
+                SentenceEmbeddingsInput,
+                SentenceEmbeddingsOutput,
+            )
+
+            predictor = SentenceEmbeddings(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = SentenceEmbeddingsInput, SentenceEmbeddingsOutput
+        case "sentence-ranking":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_ranking import (
+                SentenceRanking,
+                SentenceRankingInput,
+                SentenceRankingOutput,
+            )
+
+            predictor = SentenceRanking(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = SentenceRankingInput, SentenceRankingOutput
         # transformers
         case "text-classification":
             from huggingface_inference_toolkit.tasks.transformers.text_classification import (
@@ -89,8 +103,11 @@ def launch(
     app.include_router(
         router=predict_router(
             predictor=predictor,
-            input_schema=input_schema,
-            output_schema=output_schema,
+            # TODO: maybe not now, but would be nice to run `mypy` to double check types,
+            # for now just adding `# type: ignore` to prevent random warnings that are false
+            # negatives in most of the cases as e.g. below due to the Union
+            input_schema=input_schema,  # type: ignore
+            output_schema=output_schema,  # type: ignore
         )
     )
 

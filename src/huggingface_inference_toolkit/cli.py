@@ -16,7 +16,16 @@ parser.add_argument(
     "--task",
     type=str,
     default=os.getenv("TASK", None),
-    choices=["text-to-image", "text-classification", "sentence-similarity"],
+    choices=[
+        # diffusers
+        "text-to-image",
+        # sentence-transformers
+        "sentence-similarity",
+        "sentence-embeddings",
+        "sentence-ranking",
+        # transformers
+        "text-classification",
+    ],
 )
 parser.add_argument(
     "--device",
