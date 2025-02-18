@@ -76,7 +76,6 @@ class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
     def __call__(self, input: SummarizationInput) -> SummarizationOutput:
         payload = input.model_dump(exclude_none=True)
 
-        # If parameters exist, flatten them.
         if "parameters" in payload:
             parameters = payload.pop("parameters") or {}
             # Extract nested generate_parameters.
@@ -88,11 +87,7 @@ class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
             if generate_params:
                 payload.update(generate_params)
 
-        # Extract the input text and pass it as the first positional argument.
         inputs = payload.pop("inputs")
-
-        print(inputs)
-        print(payload)
 
         pipeline_results = self.pipeline(inputs, **payload)  # type: ignore
         return SummarizationOutput(root=pipeline_results)
