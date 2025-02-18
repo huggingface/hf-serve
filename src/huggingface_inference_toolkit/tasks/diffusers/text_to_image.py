@@ -60,6 +60,3 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             image.save(buffered, format="PNG")
             buffered_images.append(base64.b64encode(buffered.getvalue()).decode())
         return TextToImageOutput(images=buffered_images)
-
-
-registry.add_task(...)
