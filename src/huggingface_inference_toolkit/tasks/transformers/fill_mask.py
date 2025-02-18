@@ -69,8 +69,7 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = json.loads(json.dumps(FillMaskInput.model_json_schema().get("examples")))
-        warmup_input = FillMaskInput.model_validate(warmup_input[0])
+        warmup_input = FillMaskInput(**FillMaskInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
     def __call__(self, input: FillMaskInput) -> FillMaskOutput:
