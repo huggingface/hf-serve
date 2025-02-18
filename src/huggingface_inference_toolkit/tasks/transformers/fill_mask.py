@@ -5,9 +5,11 @@ from pydantic import AliasChoices, AliasPath, BaseModel, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
+
 class FillMaskParameters(BaseModel):
     targets: Optional[List[str]] = None
     top_k: Optional[int] = None
+
 
 class FillMaskInput(BaseModel):
     inputs: str = Field(
@@ -15,15 +17,18 @@ class FillMaskInput(BaseModel):
     )
     parameters: Optional[FillMaskParameters] = None
 
+
 class FillMaskOutputValue(BaseModel):
     score: float
     sequence: str
     token: int
-    token_str: str # This was marked as any in the HF library, but pretty sure it's str
+    token_str: str  # This was marked as any in the HF library, but pretty sure it's str
     fill_mask_output_token_str: Optional[str] = None
+
 
 class FillMaskOutput(RootModel):
     root: List[FillMaskOutputValue]
+
 
 class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
@@ -56,18 +61,16 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
     def __call__(self, input: FillMaskInput) -> FillMaskOutput:
         payload = input.model_dump(exclude_none=True)
 
-        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened 
+        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
         if "parameters" in payload:
             parameters = payload.pop("parameters") or {}
             payload.update(parameters)
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return FillMaskOutput(root=pipeline_results)
-    
+
     def _example(self) -> FillMaskInput:
         return FillMaskInput(
             inputs="Mona Lisa is located in the [MASK], which is where I was it for the first time",
-            parameters=FillMaskParameters(
-                top_k=3
-            )
+            parameters=FillMaskParameters(top_k=3),
         )

@@ -79,6 +79,7 @@ def launch(
                 FillMaskInput,
                 FillMaskOutput,
             )
+
             predictor = FillMask(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = FillMaskInput, FillMaskOutput
 
