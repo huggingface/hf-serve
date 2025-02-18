@@ -562,7 +562,7 @@ requires-dist = [
     { name = "prometheus-client", specifier = ">=0.21.1" },
     { name = "pydantic", specifier = ">=2.10.5" },
     { name = "sentence-transformers", extras = ["onnx"], specifier = ">=3.4.1" },
-    { name = "sentencepiece" },
+    { name = "sentencepiece", specifier = ">=0.2.0" },
     { name = "torch", specifier = ">=2.5.1" },
     { name = "transformers", specifier = ">=4.47.1" },
     { name = "uvicorn", specifier = ">=0.34.0" },
