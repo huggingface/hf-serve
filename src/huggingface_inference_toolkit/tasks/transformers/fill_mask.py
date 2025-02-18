@@ -1,7 +1,8 @@
 from typing import List, Optional
 
 import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, Field, RootModel
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
+import json
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
@@ -17,7 +18,17 @@ class FillMaskInput(BaseModel):
     )
     parameters: Optional[FillMaskParameters] = None
 
-
+    model_config = ConfigDict(json_schema_extra={
+        "examples": [
+            {
+                "inputs": "Mona Lisa is located in the [MASK], which is where I was it for the first time",
+                "parameters": {
+                    "top_k": 3,
+                },
+            }
+        ]
+    })
+    
 class FillMaskOutputValue(BaseModel):
     score: float
     sequence: str
@@ -55,7 +66,8 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = self._example()
+        warmup_input = json.loads(json.dumps(FillMaskInput.model_json_schema().get("examples")))
+        warmup_input = FillMaskInput.model_validate(warmup_input[0]) 
         _ = self(warmup_input)
 
     def __call__(self, input: FillMaskInput) -> FillMaskOutput:
@@ -69,8 +81,3 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return FillMaskOutput(root=pipeline_results)
 
-    def _example(self) -> FillMaskInput:
-        return FillMaskInput(
-            inputs="Mona Lisa is located in the [MASK], which is where I was it for the first time",
-            parameters=FillMaskParameters(top_k=3),
-        )
