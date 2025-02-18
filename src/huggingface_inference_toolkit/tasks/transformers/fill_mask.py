@@ -91,4 +91,3 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return FillMaskOutput(root=pipeline_results)
-
