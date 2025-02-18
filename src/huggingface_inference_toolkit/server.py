@@ -80,6 +80,7 @@ def launch(
                 FillMaskOutput,
             )
 
+<<<<<<< HEAD
             predictor = FillMask(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = FillMaskInput, FillMaskOutput
 
@@ -110,6 +111,8 @@ def launch(
                 FillMaskInput,
                 FillMaskOutput,
             )
+=======
+>>>>>>> 939a4c1 (run ruff format)
             predictor = FillMask(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = FillMaskInput, FillMaskOutput
 
