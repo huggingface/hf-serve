@@ -2,13 +2,14 @@ from typing import List, Optional
 
 import torch
 from pydantic import BaseModel, ConfigDict, RootModel
-import json
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
+
 
 class QuestionAnsweringInputData(BaseModel):
     context: str
     question: str
+
 
 class QuestionAnsweringParameters(BaseModel):
     align_to_words: Optional[bool] = None
@@ -18,6 +19,7 @@ class QuestionAnsweringParameters(BaseModel):
     max_question_len: Optional[int] = None
     max_seq_len: Optional[int] = None
     top_k: Optional[int] = None
+
 
 class QuestionAnsweringInput(BaseModel):
     inputs: QuestionAnsweringInputData
@@ -40,11 +42,13 @@ class QuestionAnsweringInput(BaseModel):
         }
     )
 
+
 class QuestionAnsweringOutputValue(BaseModel):
     answer: str
     end: int
     score: float
     start: int
+
 
 class QuestionAnsweringOutput(RootModel):
     root: List[QuestionAnsweringOutputValue]
@@ -75,7 +79,7 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = QuestionAnsweringInput(**QuestionAnsweringInput.model_json_schema().get("examples")[0])  
+        warmup_input = QuestionAnsweringInput(**QuestionAnsweringInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
     def __call__(self, input: QuestionAnsweringInput) -> QuestionAnsweringOutput:
