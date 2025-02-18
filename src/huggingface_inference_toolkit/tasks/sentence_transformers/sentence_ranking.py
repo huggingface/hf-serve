@@ -12,7 +12,7 @@ class PredictInput(BaseModel):
 
 
 class PredictOutput(BaseModel):
-    scores: List[List[float]]
+    scores: List[float]
 
 
 class RankInput(BaseModel):
