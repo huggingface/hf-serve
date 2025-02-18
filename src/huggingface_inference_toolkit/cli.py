@@ -1,33 +1,13 @@
 import argparse
 import os
-from pathlib import Path
 
 from huggingface_inference_toolkit.backwards import check_backwards_compatibility
 from huggingface_inference_toolkit.server import launch
+from huggingface_inference_toolkit.utils import get_available_tasks
 
 # NOTE: required in order for the actual values for the environment variables
 # to be set before the defaults are provided to the `argparse` arguments
 check_backwards_compatibility()
-
-def get_available_tasks():
-    """
-    Small hack to retrieve available tasks by scanning the tasks directory.
-    This function assumes that each task is defined in a .py file under
-    the 'tasks/[library]' directory (ignoring '__init__.py').
-    """
-    tasks_dir = Path(__file__).parent / "tasks"
-    
-    available_tasks = []
-    if tasks_dir.exists() and tasks_dir.is_dir():
-        for library_dir in tasks_dir.iterdir():
-            if library_dir.is_dir():
-                # List all .py files (excluding __init__.py) in the library directory.
-                # Replace "_" with "-" in the final strings.
-                available_tasks.extend(
-                    [p.stem.replace("_", "-") for p in library_dir.glob("*.py") if p.name != "__init__.py"]
-                )
-    return available_tasks
-
 
 parser = argparse.ArgumentParser(description="Hugging Face Inference Toolkit")
 parser.add_argument("--host", type=str, default=os.getenv("HOST", "0.0.0.0"), required=False)
