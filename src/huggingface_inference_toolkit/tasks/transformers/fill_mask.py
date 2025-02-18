@@ -17,7 +17,6 @@ class FillMaskInput(BaseModel):
     )
     parameters: Optional[FillMaskParameters] = None
 
-<<<<<<< HEAD
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
@@ -31,8 +30,6 @@ class FillMaskInput(BaseModel):
         }
     )
 
-=======
->>>>>>> 939a4c1 (run ruff format)
 
 class FillMaskOutputValue(BaseModel):
     score: float
@@ -84,12 +81,3 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return FillMaskOutput(root=pipeline_results)
-<<<<<<< HEAD
-=======
-
-    def _example(self) -> FillMaskInput:
-        return FillMaskInput(
-            inputs="Mona Lisa is located in the [MASK], which is where I was it for the first time",
-            parameters=FillMaskParameters(top_k=3),
-        )
->>>>>>> 939a4c1 (run ruff format)
