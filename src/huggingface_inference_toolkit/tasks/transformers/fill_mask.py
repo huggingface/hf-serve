@@ -99,9 +99,4 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
 =======
         return FillMaskOutput(root=pipeline_results)
 
-    def _example(self) -> FillMaskInput:
-        return FillMaskInput(
-            inputs="Mona Lisa is located in the [MASK], which is where I was it for the first time",
-            parameters=FillMaskParameters(top_k=3),
-        )
 >>>>>>> 939a4c1 (run ruff format)
