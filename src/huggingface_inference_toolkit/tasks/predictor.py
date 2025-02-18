@@ -12,3 +12,6 @@ class Predictor(ABC, Generic[InputType, OutputType]):
 
     @abstractmethod
     def __call__(self, input: InputType) -> OutputType: ...
+
+    @abstractmethod
+    def _example(self) -> InputType: ...

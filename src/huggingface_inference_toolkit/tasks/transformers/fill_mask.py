@@ -5,15 +5,15 @@ from pydantic import AliasChoices, AliasPath, BaseModel, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-# class FillMaskParameters(BaseModel):
-#     targets: Optional[List[str]] = None
-#     top_k: Optional[int] = None
+class FillMaskParameters(BaseModel):
+    targets: Optional[List[str]] = None
+    top_k: Optional[int] = None
 
 class FillMaskInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
     )
-    # parameters: Optional[FillMaskParameters]
+    parameters: Optional[FillMaskParameters] = None
 
 class FillMaskOutputValue(BaseModel):
     score: float
@@ -50,9 +50,24 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        _ = self.pipeline(
-            "This was a masterpiece in the [MASK] while I was visiting Paris for the first time in my life"
-        )  # type: ignore
+        warmup_input = self._example()
+        _ = self(warmup_input)
 
     def __call__(self, input: FillMaskInput) -> FillMaskOutput:
-        return FillMaskOutput(root=self.pipeline(**input.model_dump()))  # type: ignore
+        payload = input.model_dump(exclude_none=True)
+
+        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened 
+        if "parameters" in payload:
+            parameters = payload.pop("parameters") or {}
+            payload.update(parameters)
+
+        pipeline_results = self.pipeline(**payload)  # type: ignore
+        return FillMaskOutput(root=pipeline_results)
+    
+    def _example(self) -> FillMaskInput:
+        return FillMaskInput(
+            inputs="Mona Lisa is located in the [MASK], which is where I was it for the first time",
+            parameters=FillMaskParameters(
+                top_k=3
+            )
+        )
