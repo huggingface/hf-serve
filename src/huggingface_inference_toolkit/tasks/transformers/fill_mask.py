@@ -2,7 +2,6 @@ from typing import List, Optional
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
-import json
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
