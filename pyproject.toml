@@ -1,7 +1,7 @@
 [project]
 name = "huggingface-inference-toolkit"
 version = "0.1.0"
-description = "An attempt to refactor the `huggingface-inference-toolkit`"
+description = "An attempt to refactor the former `huggingface-inference-toolkit`"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

@@ -7,6 +7,4 @@ router = APIRouter()
 
 @router.get("/metrics")
 async def metrics() -> Response:
-    return Response(
-        generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST, status_code=200
-    )
+    return Response(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST, status_code=200)

@@ -7,17 +7,13 @@ from prometheus_client import Counter, Histogram, Gauge
 from starlette.types import ASGIApp
 from starlette.middleware.base import BaseHTTPMiddleware
 
-REQUEST_COUNT = Counter(
-    "http_request_total", "Total HTTP Requests", ["method", "status", "path"]
-)
+REQUEST_COUNT = Counter("http_request_total", "Total HTTP Requests", ["method", "status", "path"])
 REQUEST_LATENCY = Histogram(
     "http_request_duration_seconds",
     "HTTP Request Duration",
     ["method", "status", "path"],
 )
-REQUEST_IN_PROGRESS = Gauge(
-    "http_requests_in_progress", "HTTP Requests in progress", ["method", "path"]
-)
+REQUEST_IN_PROGRESS = Gauge("http_requests_in_progress", "HTTP Requests in progress", ["method", "path"])
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
