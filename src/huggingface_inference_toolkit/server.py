@@ -25,7 +25,11 @@ app.include_router(router=metrics_router)
 def launch(
     model_id: str,
     task: str,
+    # TODO: maybe we should include `npu` too as supported by `sentence-transformers`?
     device: Optional[Literal["auto", "balanced", "cuda", "cpu", "mps"]] = "auto",
+    # TODO: maybe the best default is no default, but handling that separately based on the library as it seems
+    # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
+    # `transformers` with some models performing better on `float32` or `float16` too
     dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
@@ -56,8 +60,15 @@ def launch(
             predictor = TextToImage(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = TextToImageInput, TextToImageOutput
         # sentence-transformers
-        # case "sentence-similarity":
-        #     ...
+        case "sentence-similarity":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_similarity import (
+                SentenceSimilarity,
+                SentenceSimilarityInput,
+                SentenceSimilarityOutput,
+            )
+
+            predictor = SentenceSimilarity(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = SentenceSimilarityInput, SentenceSimilarityOutput
         # case "sentence-embeddings":
         #     ...
         # case "sentence-ranking":
