@@ -6,24 +6,25 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
-class FillMaskParameters(BaseModel):
-    targets: Optional[List[str]] = None
-    top_k: Optional[int] = None
+class ZeroShotClassificationParameters(BaseModel):
+    candidate_labels: List[str]
+    hypothesis_template: Optional[str] = None
+    multi_label: Optional[bool] = None
 
 
-class FillMaskInput(BaseModel):
-    inputs: str = Field(
-        validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
+class ZeroShotClassificationInput(BaseModel):
+    sequences: str = Field(
+        validation_alias=AliasChoices("sequences", AliasPath("text"), AliasPath("sequences", "inputs")),
     )
-    parameters: Optional[FillMaskParameters] = None
+    parameters: Optional[ZeroShotClassificationParameters] = None
 
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "Mona Lisa is located in the [MASK], which is where I was it for the first time",
+                    "sequences": "I have a problem with my iphone that needs to be resolved asap!!",
                     "parameters": {
-                        "top_k": 3,
+                        "candidate_labels": ["urgent", "not urgent", "phone", "tablet", "computer"],
                     },
                 }
             ]
@@ -31,19 +32,17 @@ class FillMaskInput(BaseModel):
     )
 
 
-class FillMaskOutputValue(BaseModel):
-    score: float
+class ZeroShotClassificationOutputValue(BaseModel):
     sequence: str
-    token: int
-    token_str: str  # This was marked as any in the HF library, but pretty sure it's str
-    fill_mask_output_token_str: Optional[str] = None
+    labels: List[str]
+    scores: List[float]
 
 
-class FillMaskOutput(RootModel):
-    root: List[FillMaskOutputValue]
+class ZeroShotClassificationOutput(RootModel):
+    root: ZeroShotClassificationOutputValue
 
 
-class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
+class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClassificationOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
@@ -56,7 +55,7 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
         self.pipeline = transformers_pipeline(
-            task="fill-mask",
+            task="zero-shot-classification",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
@@ -68,16 +67,17 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = FillMaskInput(**FillMaskInput.model_json_schema().get("examples")[0])
+        warmup_input = ZeroShotClassificationInput(
+            **ZeroShotClassificationInput.model_json_schema().get("examples")[0]
+        )
         _ = self(warmup_input)
 
-    def __call__(self, input: FillMaskInput) -> FillMaskOutput:
+    def __call__(self, input: ZeroShotClassificationInput) -> ZeroShotClassificationOutput:
         payload = input.model_dump(exclude_none=True)
 
-        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
         if "parameters" in payload:
             parameters = payload.pop("parameters") or {}
             payload.update(parameters)
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
-        return FillMaskOutput(root=pipeline_results)
+        return ZeroShotClassificationOutput(root=pipeline_results)

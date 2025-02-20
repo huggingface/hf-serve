@@ -103,6 +103,16 @@ def launch(
             predictor = Summarization(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = SummarizationInput, SummarizationOutput
 
+        case "zero-shot-classification":
+            from huggingface_inference_toolkit.tasks.transformers.zero_shot_classification import (
+                ZeroShotClassification,
+                ZeroShotClassificationInput,
+                ZeroShotClassificationOutput,
+            )
+
+            predictor = ZeroShotClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = ZeroShotClassificationInput, ZeroShotClassificationOutput
+
         case _:
             raise ValueError(f"{task=} not supported!")
 

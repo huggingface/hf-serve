@@ -5,6 +5,10 @@
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c8b3f6f (working example of fill mask)
 =======
 >>>>>>> c8b3f6f (working example of fill mask)
 Supported tasks in endpoints atm:
@@ -19,7 +23,11 @@ Supported tasks in endpoints atm:
 - [ ] Image-Text-To-Text 
 - [ ] Object Detection 
 <<<<<<< HEAD
+<<<<<<< HEAD
 - [x] Question Answering 
+=======
+- [ ] Questio Answering 
+>>>>>>> c8b3f6f (working example of fill mask)
 =======
 - [ ] Questio Answering 
 >>>>>>> c8b3f6f (working example of fill mask)
@@ -35,7 +43,12 @@ Supported tasks in endpoints atm:
 - [ ] Translation 
 - [ ] Zero Shot Classification 
 <<<<<<< HEAD
+<<<<<<< HEAD
 
+=======
+>>>>>>> a1f06ff (almost working fill-mask example)
+=======
+>>>>>>> c8b3f6f (working example of fill mask)
 =======
 >>>>>>> a1f06ff (almost working fill-mask example)
 =======
