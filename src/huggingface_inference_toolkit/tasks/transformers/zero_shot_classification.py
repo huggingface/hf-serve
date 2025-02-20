@@ -5,10 +5,12 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
+
 class ZeroShotClassificationParameters(BaseModel):
     candidate_labels: List[str]
     hypothesis_template: Optional[str] = None
     multi_label: Optional[bool] = None
+
 
 class ZeroShotClassificationInput(BaseModel):
     sequences: str = Field(
@@ -22,7 +24,7 @@ class ZeroShotClassificationInput(BaseModel):
                 {
                     "sequences": "I have a problem with my iphone that needs to be resolved asap!!",
                     "parameters": {
-                        "candidate_labels":["urgent", "not urgent", "phone", "tablet", "computer"],
+                        "candidate_labels": ["urgent", "not urgent", "phone", "tablet", "computer"],
                     },
                 }
             ]
@@ -65,16 +67,17 @@ class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClas
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = ZeroShotClassificationInput(**ZeroShotClassificationInput.model_json_schema().get("examples")[0])
+        warmup_input = ZeroShotClassificationInput(
+            **ZeroShotClassificationInput.model_json_schema().get("examples")[0]
+        )
         _ = self(warmup_input)
 
     def __call__(self, input: ZeroShotClassificationInput) -> ZeroShotClassificationOutput:
         payload = input.model_dump(exclude_none=True)
-        
+
         if "parameters" in payload:
             parameters = payload.pop("parameters") or {}
             payload.update(parameters)
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return ZeroShotClassificationOutput(root=pipeline_results)
-
