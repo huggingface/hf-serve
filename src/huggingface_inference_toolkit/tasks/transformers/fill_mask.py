@@ -29,7 +29,8 @@ class FillMaskInput(BaseModel):
             ]
         }
     )
-    
+
+
 class FillMaskOutputValue(BaseModel):
     score: float
     sequence: str
