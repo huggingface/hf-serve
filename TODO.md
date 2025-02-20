@@ -14,7 +14,7 @@ Supported tasks in endpoints atm:
 - [ ] Image Segmentation
 - [ ] Image-Text-To-Text 
 - [ ] Object Detection 
-- [ ] Questio Answering 
+- [x] Question Answering 
 - [ ] Sentence Embeddings 
 - [ ] Sentence Similarity 
 - [ ] Sentence Ranking 
@@ -26,3 +26,4 @@ Supported tasks in endpoints atm:
 - [ ] Token Classification 
 - [ ] Translation 
 - [ ] Zero Shot Classification 
+
