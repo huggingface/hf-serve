@@ -57,14 +57,17 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
             default_activation_function=torch.nn.Sigmoid(),
         )
 
-    # TODO: rename `input` to `payload` as `input` is a reserved keyword
-    def __call__(self, input: SentenceRankingInput) -> SentenceRankingOutput:
-        match input:
+    def __call__(self, payload: SentenceRankingInput) -> SentenceRankingOutput:
+        match payload:
             case PredictInput():
-                scores = self.pipeline.predict(input.sentences, convert_to_tensor=True).tolist()
+                scores = self.pipeline.predict(payload.sentences, convert_to_tensor=True).tolist()
                 return PredictOutput(scores=scores)
             case RankInput():
-                scores = self.pipeline.rank(input.query, input.texts, return_documents=input.return_documents)  # type: ignore
+                scores = self.pipeline.rank(
+                    payload.query,
+                    payload.texts,
+                    return_documents=payload.return_documents,  # type: ignore
+                )
                 # NOTE: here we rename "corpus_id" key to "index" for all scores to match TEI
                 for score in scores:
                     score["index"] = score.pop("corpus_id")  # type: ignore

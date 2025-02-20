@@ -52,8 +52,8 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
         _ = self.pipeline("a photo of an astronaut riding a horse on mars", num_inference_steps=1)  # type: ignore
 
-    def __call__(self, input: TextToImageInput) -> TextToImageOutput:
-        images = self.pipeline(**input.model_dump()).images  # type: ignore
+    def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
+        images = self.pipeline(**payload.model_dump()).images  # type: ignore
         buffered_images = []
         for image in images:
             buffered = BytesIO()

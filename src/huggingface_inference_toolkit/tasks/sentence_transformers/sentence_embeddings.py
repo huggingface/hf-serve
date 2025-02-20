@@ -41,7 +41,7 @@ class SentenceEmbeddings(Predictor[SentenceEmbeddingsInput, SentenceEmbeddingsOu
             },
         )
 
-    def __call__(self, input: SentenceEmbeddingsInput) -> SentenceEmbeddingsOutput:
+    def __call__(self, payload: SentenceEmbeddingsInput) -> SentenceEmbeddingsOutput:
         return SentenceEmbeddingsOutput(
-            embeddings=self.pipeline.encode(input.sentences, convert_to_tensor=True).tolist(),
+            embeddings=self.pipeline.encode(payload.sentences, convert_to_tensor=True).tolist(),
         )

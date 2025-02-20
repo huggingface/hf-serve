@@ -47,9 +47,9 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
             similarity_fn_name=similarity_fn_name or "cosine",
         )
 
-    def __call__(self, input: SentenceSimilarityInput) -> SentenceSimilarityOutput:
-        source_sentence_emb = self.pipeline.encode(input.source_sentence, convert_to_tensor=True)
-        sentence_embs = self.pipeline.encode(input.sentences, convert_to_tensor=True)
+    def __call__(self, payload: SentenceSimilarityInput) -> SentenceSimilarityOutput:
+        source_sentence_emb = self.pipeline.encode(payload.source_sentence, convert_to_tensor=True)
+        sentence_embs = self.pipeline.encode(payload.sentences, convert_to_tensor=True)
         return SentenceSimilarityOutput(
             similarities=self.pipeline.similarity(source_sentence_emb, sentence_embs).tolist()
         )
