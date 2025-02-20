@@ -1,59 +1,51 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-
-class FillMaskParameters(BaseModel):
-    targets: Optional[List[str]] = None
-    top_k: Optional[int] = None
+SummarizationTruncationStrategy = Literal["do_not_truncate", "longest_first", "only_first", "only_second"]
 
 
-class FillMaskInput(BaseModel):
+class SummarizationParameters(BaseModel):
+    clean_up_tokenization_spaces: Optional[bool] = None
+    generate_parameters: Optional[Dict[str, Any]] = None
+    truncation: Optional["SummarizationTruncationStrategy"] = None
+
+
+class SummarizationInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
     )
-    parameters: Optional[FillMaskParameters] = None
+    parameters: Optional[SummarizationParameters] = None
 
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "Mona Lisa is located in the [MASK], which is where I was it for the first time",
+                    "inputs": "An apple a day, keeps the doctor away",
                     "parameters": {
-                        "top_k": 3,
+                        "generate_parameters": {
+                            "min_length": 5,
+                            "max_length": 20,
+                        },
                     },
                 }
             ]
         }
     )
 
-    model_config = ConfigDict(json_schema_extra={
-        "examples": [
-            {
-                "inputs": "Mona Lisa is located in the [MASK], which is where I was it for the first time",
-                "parameters": {
-                    "top_k": 3,
-                },
-            }
-        ]
-    })
-    
-class FillMaskOutputValue(BaseModel):
-    score: float
-    sequence: str
-    token: int
-    token_str: str  # This was marked as any in the HF library, but pretty sure it's str
-    fill_mask_output_token_str: Optional[str] = None
+
+class SummarizationOutputValue(BaseModel):
+    summary_text: str
 
 
-class FillMaskOutput(RootModel):
-    root: List[FillMaskOutputValue]
+class SummarizationOutput(RootModel):
+    root: List[SummarizationOutputValue]
 
 
-class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
+class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
@@ -66,7 +58,7 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
         self.pipeline = transformers_pipeline(
-            task="fill-mask",
+            task="summarization",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
@@ -78,16 +70,24 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = FillMaskInput(**FillMaskInput.model_json_schema().get("examples")[0])
+        warmup_input = SummarizationInput(**SummarizationInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
-    def __call__(self, input: FillMaskInput) -> FillMaskOutput:
+    def __call__(self, input: SummarizationInput) -> SummarizationOutput:
         payload = input.model_dump(exclude_none=True)
 
-        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
         if "parameters" in payload:
             parameters = payload.pop("parameters") or {}
+            # Extract nested generate_parameters.
+            generate_params = parameters.pop("generate_parameters", None)
+            # Update payload with other parameters.
             payload.update(parameters)
+            # Merge generation parameters directly into the payload instead
+            # of nested under 'generate_kwargs'.
+            if generate_params:
+                payload.update(generate_params)
 
-        pipeline_results = self.pipeline(**payload)  # type: ignore
-        return FillMaskOutput(root=pipeline_results)
+        inputs = payload.pop("inputs")
+
+        pipeline_results = self.pipeline(inputs, **payload)  # type: ignore
+        return SummarizationOutput(root=pipeline_results)
