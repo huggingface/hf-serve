@@ -36,16 +36,6 @@ def launch(
     from huggingface_inference_toolkit.logging import logger
     from huggingface_inference_toolkit.routers import predict_router
 
-    if device == "auto" and task in {"text-to-image"}:
-        logger.warning(
-            f"{device=} is set, but on `diffusers` only `device_map='balanced'` is supported at the moment,"
-            " meaning that the different pipeline components will be distributed among the available devices."
-        )
-        device = "balanced"
-
-    if not dtype and task in {"text-to-image"}:
-        dtype = "float16"
-
     # Python 3.10 should be the minimum supported version (?)
     match task:
         # diffusers

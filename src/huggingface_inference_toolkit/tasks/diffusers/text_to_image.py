@@ -5,6 +5,7 @@ from typing import List
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
 
+from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -26,6 +27,14 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
+        if device == "auto":
+            logger.warning(
+                f"{device=} is set, but on `diffusers` only `device_map='balanced'` is supported at the moment,"
+                " meaning that the different pipeline components will be distributed among the available devices."
+                " Alternatively, you can directly specify the devide to use instead being either 'cuda', 'mps' or 'cpu'."
+            )
+            device = "balanced"
+
         from diffusers import AutoPipelineForText2Image  # type: ignore
 
         # TODO: maybe add some pre-download checks to prevent downloading all the files but then stumbling
@@ -34,6 +43,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # NOTE: it appears that the `model_id` on Inference Endpoints pre-downloads the files, meaning that in
         # /opt/huggingface/model all the contents for the given model should be downloaded and available
         # meaning that e.g. the fix for `diffusers` should be applied there
+        # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
             torch_dtype=getattr(torch, dtype),
@@ -41,9 +51,9 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             device_map=device if device in {"balanced"} else None,
         )
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and device == "cuda":
             self.pipeline.enable_model_cpu_offload()
-        elif torch.mps.is_available():
+        elif torch.mps.is_available() and device == "mps":
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
