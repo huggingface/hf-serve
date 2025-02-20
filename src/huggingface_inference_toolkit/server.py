@@ -11,7 +11,6 @@ from huggingface_inference_toolkit.routers import (
     health_router,
     metrics_router,
 )
-from huggingface_inference_toolkit.workers import num_workers
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
 
@@ -119,5 +118,7 @@ def launch(
         port=port,  # type: ignore
         log_level=0,
         use_colors=True,
-        workers=num_workers(),
+        # NOTE: temporarily removed to just use one worker per replica
+        # workers=num_workers(),
+        workers=1,
     )

@@ -3,6 +3,8 @@ import os
 import torch
 
 
+# TODO: guessing that this is not quite right, and we should just default to
+# one worker per replica?
 def num_workers() -> int:
     if torch.cuda.is_available():
         # one worker per gpu for cuda devices
