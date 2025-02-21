@@ -22,7 +22,7 @@ ENV VIRTUAL_ENV=/venv \
 WORKDIR /app
 COPY . .
 
-RUN uv pip install --no-cache-dir .
+RUN uv sync --frozen && uv pip install -e .
 ENV HF_HUB_ENABLE_HF_TRANSFER=1
 
 COPY entrypoint.sh /entrypoint.sh
