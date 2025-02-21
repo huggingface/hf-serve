@@ -86,6 +86,47 @@ def launch(
 
             predictor = TextClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = TextClassificationInput, TextClassificationOutput
+
+        case "fill-mask":
+            from huggingface_inference_toolkit.tasks.transformers.fill_mask import (
+                FillMask,
+                FillMaskInput,
+                FillMaskOutput,
+            )
+
+            predictor = FillMask(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = FillMaskInput, FillMaskOutput
+
+        case "question-answering":
+            from huggingface_inference_toolkit.tasks.transformers.question_answering import (
+                QuestionAnswering,
+                QuestionAnsweringInput,
+                QuestionAnsweringOutput,
+            )
+
+            predictor = QuestionAnswering(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = QuestionAnsweringInput, QuestionAnsweringOutput
+
+        case "summarization":
+            from huggingface_inference_toolkit.tasks.transformers.summarization import (
+                Summarization,
+                SummarizationInput,
+                SummarizationOutput,
+            )
+
+            predictor = Summarization(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = SummarizationInput, SummarizationOutput
+
+        case "zero-shot-classification":
+            from huggingface_inference_toolkit.tasks.transformers.zero_shot_classification import (
+                ZeroShotClassification,
+                ZeroShotClassificationInput,
+                ZeroShotClassificationOutput,
+            )
+
+            predictor = ZeroShotClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = ZeroShotClassificationInput, ZeroShotClassificationOutput
+
         case _:
             raise ValueError(f"{task=} not supported!")
 

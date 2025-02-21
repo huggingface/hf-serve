@@ -3,6 +3,7 @@ import os
 
 from huggingface_inference_toolkit.backwards import check_backwards_compatibility
 from huggingface_inference_toolkit.server import launch
+from huggingface_inference_toolkit.utils import get_available_tasks
 
 # NOTE: required in order for the actual values for the environment variables
 # to be set before the defaults are provided to the `argparse` arguments
@@ -16,16 +17,7 @@ parser.add_argument(
     "--task",
     type=str,
     default=os.getenv("TASK", None),
-    choices=[
-        # diffusers
-        "text-to-image",
-        # sentence-transformers
-        "sentence-similarity",
-        "sentence-embeddings",
-        "sentence-ranking",
-        # transformers
-        "text-classification",
-    ],
+    choices=get_available_tasks(),
 )
 parser.add_argument(
     "--device",
