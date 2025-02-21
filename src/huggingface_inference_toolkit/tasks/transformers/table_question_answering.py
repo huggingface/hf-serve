@@ -6,9 +6,6 @@ import pandas as pd
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-Padding = Literal["do_not_pad", "longest", "max_length"]
-
-
 class TableQuestionAnsweringInputData(BaseModel):
     question: str = Field(
         validation_alias=AliasChoices("question", AliasPath("query"), AliasPath("question", "query")),
@@ -17,7 +14,7 @@ class TableQuestionAnsweringInputData(BaseModel):
 
 
 class QuestionAnsweringParameters(BaseModel):
-    padding: Optional["Padding"] = None
+    padding: Optional[Literal["do_not_pad", "longest", "max_length"]] = None
     sequential: Optional[bool] = None
     truncation: Optional[bool] = None
 
