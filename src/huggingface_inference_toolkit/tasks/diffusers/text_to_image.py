@@ -12,9 +12,18 @@ class TextToImageInput(BaseModel):
     prompt: str = Field(
         validation_alias=AliasChoices("prompt", AliasPath("inputs"), AliasPath("inputs", "prompt"))
     )
-    width: int = Field(256, validation_alias=AliasChoices("width", AliasPath("parameters", "width")))
-    height: int = Field(256, validation_alias=AliasChoices("height", AliasPath("parameters", "height")))
-    # TODO: add missing
+    width: int = Field(
+        256,
+        validation_alias=AliasChoices(
+            "width", AliasPath("parameters", "width"), AliasPath("parameters", "target_size", "width")
+        ),
+    )
+    height: int = Field(
+        256,
+        validation_alias=AliasChoices(
+            "height", AliasPath("parameters", "height"), AliasPath("parameters", "target_size", "height")
+        ),
+    )
 
 
 class TextToImageOutput(BaseModel):
@@ -34,16 +43,16 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # NOTE: it appears that the `model_id` on Inference Endpoints pre-downloads the files, meaning that in
         # /opt/huggingface/model all the contents for the given model should be downloaded and available
         # meaning that e.g. the fix for `diffusers` should be applied there
+        device_kwargs = {"device": device} if device not in {"balanced"} else {"device_map": device}
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
             torch_dtype=getattr(torch, dtype),
-            device=device if device not in {"balanced"} else None,
-            device_map=device if device in {"balanced"} else None,
+            **device_kwargs,
         )
 
-        if torch.cuda.is_available():
+        if torch.cuda.is_available() and device == "cuda":
             self.pipeline.enable_model_cpu_offload()
-        elif torch.mps.is_available():
+        elif torch.mps.is_available() and device == "mps":
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
