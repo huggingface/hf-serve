@@ -82,8 +82,6 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
             **TableQuestionAnsweringInput.model_json_schema().get("examples")[0]
         )
 
-        print(warmup_input)
-
         _ = self(warmup_input)
 
     def __call__(self, input: TableQuestionAnsweringInput) -> TableQuestionAnsweringOutput:
