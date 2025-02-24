@@ -48,6 +48,7 @@ def launch(
 
             predictor = TextToImage(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = TextToImageInput, TextToImageOutput
+
         # sentence-transformers
         case "sentence-similarity":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_similarity import (
@@ -58,6 +59,7 @@ def launch(
 
             predictor = SentenceSimilarity(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = SentenceSimilarityInput, SentenceSimilarityOutput
+
         case "sentence-embeddings":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_embeddings import (
                 SentenceEmbeddings,
@@ -67,6 +69,7 @@ def launch(
 
             predictor = SentenceEmbeddings(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = SentenceEmbeddingsInput, SentenceEmbeddingsOutput
+
         case "sentence-ranking":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_ranking import (
                 SentenceRanking,
@@ -76,6 +79,7 @@ def launch(
 
             predictor = SentenceRanking(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = SentenceRankingInput, SentenceRankingOutput
+
         # transformers
         case "text-classification":
             from huggingface_inference_toolkit.tasks.transformers.text_classification import (
