@@ -7,4 +7,9 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
     stream=sys.stdout,
 )
+
+logging.getLogger("uvicorn").handlers.clear()
+logging.getLogger("uvicorn.access").handlers.clear()
+logging.getLogger("uvicorn.error").handlers.clear()
+
 logger = logging.getLogger("huggingface-inference-toolkit")
