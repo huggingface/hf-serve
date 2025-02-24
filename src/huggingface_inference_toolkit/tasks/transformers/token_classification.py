@@ -7,6 +7,7 @@ from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 TokenClassificationAggregationStrategy = Literal["none", "simple", "first", "average", "max"]
 
+
 class TokenClassificationParameters(BaseModel):
     aggregation_strategy: Optional["TokenClassificationAggregationStrategy"] = None
     ignore_labels: Optional[List[str]] = None
@@ -41,6 +42,7 @@ class TokenClassificationOutputValue(BaseModel):
     entity: Optional[str] = None
     entity_group: Optional[str] = None
 
+
 class TokenClassificationOutput(RootModel):
     root: List[TokenClassificationOutputValue]
 
@@ -70,7 +72,9 @@ class TokenClassification(Predictor[TokenClassificationInput, TokenClassificatio
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = TokenClassificationInput(**TokenClassificationInput.model_json_schema().get("examples")[0])
+        warmup_input = TokenClassificationInput(
+            **TokenClassificationInput.model_json_schema().get("examples")[0]
+        )
         _ = self(warmup_input)
 
     def __call__(self, input: TokenClassificationInput) -> TokenClassificationOutput:
