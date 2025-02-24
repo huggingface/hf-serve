@@ -1,12 +1,10 @@
-import logging
 import time
 from typing import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from huggingface_inference_toolkit.logging import logger
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
