@@ -149,7 +149,5 @@ def launch(
         port=port,  # type: ignore
         log_level=0,
         use_colors=True,
-        # NOTE: temporarily removed to just use one worker per replica
-        # workers=num_workers(),
         workers=1,
     )
