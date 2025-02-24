@@ -2,9 +2,9 @@ from typing import Dict, List, Literal, Optional
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
-import pandas as pd
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
+
 
 class TableQuestionAnsweringInputData(BaseModel):
     question: str = Field(
@@ -32,7 +32,6 @@ class TableQuestionAnsweringInput(BaseModel):
                             "Repository": ["Transformers", "Datasets", "Tokenizers"],
                             "Stars": ["36542", "4512", "3934"],
                             "Contributors": ["651", "77", "34"],
-                            "Programming language": ["Python", "Python", "Rust, Python and NodeJS"],
                         },
                         "query": "Which repo has the most contributors?",
                     },
@@ -88,17 +87,9 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
         if "inputs" in payload:
             inputs = payload.pop("inputs") or {}
 
-            # Convert table format using pandas and create the expected format
             if "table" in inputs:
                 table_data = inputs.pop("table")
-                if isinstance(table_data, dict):
-                    df = pd.DataFrame(table_data)
-                    table_data = df.to_dict("records")
-
-                # Get the question/query
                 question = inputs.get("question", "")
-
-                # Create the expected format - a list with a single dict containing table and query
                 payload = [{"table": table_data, "query": question}]
 
         # The parameters should be passed separately

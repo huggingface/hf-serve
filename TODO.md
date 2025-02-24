@@ -22,7 +22,7 @@ Supported tasks in endpoints atm:
 - [x] Table Question Answering 
 - [x] Text Classification 
 - [ ] Text Generation 
-- [x] Text-To-Image 
+- [x] Text-To-Image
 - [ ] Token Classification 
 - [ ] Translation 
 - [x] Zero Shot Classification 
