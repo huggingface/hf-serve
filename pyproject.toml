@@ -16,6 +16,7 @@ dependencies = [
     "huggingface-hub[hf-transfer]>=0.27.1",
     "sentence-transformers[onnx]>=3.4.1",
     "sentencepiece>=0.2.0",
+    "protobuf>=5.29.3",
 ]
 
 [build-system]
