@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-from typing import List
+from typing import Optional
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
@@ -13,22 +13,40 @@ class TextToImageInput(BaseModel):
     prompt: str = Field(
         validation_alias=AliasChoices("prompt", AliasPath("inputs"), AliasPath("inputs", "prompt"))
     )
-    width: int = Field(
-        256,
+    width: Optional[int] = Field(
+        None,
         validation_alias=AliasChoices(
             "width", AliasPath("parameters", "width"), AliasPath("parameters", "target_size", "width")
         ),
     )
-    height: int = Field(
-        256,
+    height: Optional[int] = Field(
+        None,
         validation_alias=AliasChoices(
             "height", AliasPath("parameters", "height"), AliasPath("parameters", "target_size", "height")
         ),
     )
+    guidance_scale: Optional[float] = Field(
+        7.5,
+        validation_alias=AliasChoices("guidance_scale", AliasPath("parameters", "guidance_scale")),
+    )
+    negative_prompt: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("negative_prompt", AliasPath("parameters", "negative_prompt")),
+    )
+    num_inference_steps: Optional[int] = Field(
+        50,
+        validation_alias=AliasChoices("num_inference_steps", AliasPath("parameters", "num_inference_steps")),
+    )
+    seed: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices("seed", AliasPath("parameters", "seed")),
+    )
+    # TODO: unsure about how the scheduler is provided / used
+    # scheduler: Optional[str] = Field()
 
 
 class TextToImageOutput(BaseModel):
-    images: List[str]
+    image: str
 
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
@@ -60,9 +78,9 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             **device_kwargs,
         )
 
-        if torch.cuda.is_available() and device == "cuda":
+        if device == "cuda" and torch.cuda.is_available():
             self.pipeline.enable_model_cpu_offload()
-        elif torch.mps.is_available() and device == "mps":
+        elif device == "mps" and torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
@@ -72,10 +90,13 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         _ = self.pipeline("a photo of an astronaut riding a horse on mars", num_inference_steps=1)  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
-        images = self.pipeline(**payload.model_dump()).images  # type: ignore
-        buffered_images = []
-        for image in images:
-            buffered = BytesIO()
-            image.save(buffered, format="PNG")
-            buffered_images.append(base64.b64encode(buffered.getvalue()).decode())
-        return TextToImageOutput(images=buffered_images)
+        payload_dump = payload.model_dump(exclude_defaults=True)
+
+        if "seed" in payload_dump:
+            payload_dump["generator"] = torch.Generator().manual_seed(int(payload_dump["seed"]))
+            payload_dump.pop("seed")
+
+        image = self.pipeline(**payload_dump).images[0]  # type: ignore
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        return TextToImageOutput(image=base64.b64encode(buffered.getvalue()).decode())
