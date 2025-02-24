@@ -1,0 +1,7 @@
+.venv
+.ruff_cache
+.github
+.git
+__pycache__
+.gitignore
+.pre-commit-config.yaml
