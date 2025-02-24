@@ -93,11 +93,8 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
                 payload = [{"table": table_data, "query": question}]
 
         # The parameters should be passed separately
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            pipeline_results = self.pipeline(payload, **parameters)  # type: ignore
-        else:
-            pipeline_results = self.pipeline(payload)  # type: ignore
+        parameters = payload.pop("parameters") or {}
+        pipeline_results = self.pipeline(payload, **parameters)  # type: ignore
 
         # Make to a list if only outputs one QuestionAnsweringOutputValue
         if not isinstance(pipeline_results, list):
