@@ -62,7 +62,7 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
             device_map=device if device in {"auto"} else None,
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
-        
+
         available_languages = self.model.config.task_specific_params
         self.translation_pairs = {
             key.replace("translation_", ""): params
@@ -92,19 +92,18 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
 
     def __call__(self, input: TranslationInput) -> TranslationOutput:
         parameters = input.parameters
-        
+
         if parameters and parameters.src_lang and parameters.tgt_lang:
             lang_pair = f"{parameters.src_lang}_to_{parameters.tgt_lang}"
         else:
             lang_pair = next(iter(self.pipelines.keys()))
             logger.info(f"No language pair specified, defaulting to {lang_pair}")
-        
+
         if lang_pair not in self.pipelines:
             raise ValueError(
-                f"Unsupported language pair: {lang_pair}. "
-                f"Available pairs are: {list(self.pipelines.keys())}"
+                f"Unsupported language pair: {lang_pair}. Available pairs are: {list(self.pipelines.keys())}"
             )
 
         pipeline_results = self.pipelines[lang_pair](input.inputs)  # type: ignore
-        
+
         return TranslationOutput(root=pipeline_results)
