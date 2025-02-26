@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Literal, Optional
+from huggingface_inference_toolkit.logging import logger
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
@@ -26,9 +27,10 @@ class TranslationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "Mona Lisa is located in the [MASK], which is where I was it for the first time",
+                    "inputs": "How old are you",
                     "parameters": {
-                        "top_k": 3,
+                        "src_lang": "en",
+                        "tgt_lang": "fr",
                     },
                 }
             ]
@@ -48,37 +50,61 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline  # type: ignore
+        from transformers import pipeline as transformers_pipeline, AutoModelForSeq2SeqLM, AutoTokenizer  # type: ignore
 
-        # apparently some (not all) the models do not support the `device_map=auto` so we should probably
-        # either add a check or just default to CUDA instead
         if device == "auto":
-            # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = transformers_pipeline(
-            task="translation",
-            model=model_id,
+        # Load model and tokenizer once
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(
+            model_id,
             torch_dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        
+        available_languages = self.model.config.task_specific_params
+        self.translation_pairs = {
+            key.replace("translation_", ""): params
+            for key, params in available_languages.items()
+            if key.startswith("translation_")
+        }
+        logger.info(f"Available translation pairs: {list(self.translation_pairs.keys())}")
+
+        # Initialize pipelines with shared model and tokenizer
+        self.pipelines = {}
+        for lang_pair in self.translation_pairs.keys():
+            self.pipelines[lang_pair] = transformers_pipeline(
+                task=f"translation_{lang_pair}",
+                model=self.model,
+                tokenizer=self.tokenizer,
+                device=device if device not in {"auto"} else None,
+            )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
+        # Warmup each pipeline
         warmup_input = TranslationInput(**TranslationInput.model_json_schema().get("examples")[0])
-        _ = self(warmup_input)
+        for pipeline in self.pipelines.values():
+            _ = pipeline(warmup_input.inputs)
 
     def __call__(self, input: TranslationInput) -> TranslationOutput:
-        payload = input.model_dump(exclude_none=True)
+        parameters = input.parameters
+        
+        if parameters and parameters.src_lang and parameters.tgt_lang:
+            lang_pair = f"{parameters.src_lang}_to_{parameters.tgt_lang}"
+        else:
+            lang_pair = next(iter(self.pipelines.keys()))
+            logger.info(f"No language pair specified, defaulting to {lang_pair}")
+        
+        if lang_pair not in self.pipelines:
+            raise ValueError(
+                f"Unsupported language pair: {lang_pair}. "
+                f"Available pairs are: {list(self.pipelines.keys())}"
+            )
 
-        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            payload.update(parameters)
-
-        pipeline_results = self.pipeline(**payload)  # type: ignore
+        pipeline_results = self.pipelines[lang_pair](input.inputs)  # type: ignore
+        
         return TranslationOutput(root=pipeline_results)

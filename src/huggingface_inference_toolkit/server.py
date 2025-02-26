@@ -137,6 +137,17 @@ def launch(
             predictor = TableQuestionAnswering(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = TableQuestionAnsweringInput, TableQuestionAnsweringOutput
 
+        case "translation" | "translation_xx_to_yy":
+            from huggingface_inference_toolkit.tasks.transformers.translation import (
+                Translation,
+                TranslationInput,
+                TranslationOutput,
+            )
+
+            predictor = Translation(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = TranslationInput, TranslationOutput
+
+
         case _:
             raise ValueError(f"{task=} not supported!")
 
