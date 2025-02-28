@@ -73,7 +73,7 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
             device_map=device if device in {"auto"} else None,
         )
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
+        # first-time "warmup" pass to ensure that the model is ready to start serving requests
         warmup_input = TableQuestionAnsweringInput(
             **TableQuestionAnsweringInput.model_json_schema().get("examples")[0]
         )
