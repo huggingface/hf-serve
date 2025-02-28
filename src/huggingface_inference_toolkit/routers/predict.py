@@ -14,9 +14,9 @@ def router(
     router = APIRouter()
 
     @router.post("/predict", response_model=output_schema)
-    async def predict(input: input_schema = Body(...)) -> output_schema:  # type: ignore
+    async def predict(payload: input_schema = Body(...)) -> output_schema:  # type: ignore
         try:
-            return predictor(input=input)
+            return predictor(payload=payload)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
