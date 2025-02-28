@@ -6,22 +6,33 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-TranslationTruncationStrategy = Literal["do_not_truncate", "longest_first", "only_first", "only_second"]
-
-
-class TranslationParameters(BaseModel):
-    clean_up_tokenization_spaces: Optional[bool] = None
-    generate_parameters: Optional[Dict[str, Any]] = None
-    src_lang: Optional[str] = None
-    tgt_lang: Optional[str] = None
-    truncation: Optional["TranslationTruncationStrategy"] = None
-
 
 class TranslationInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
     )
-    parameters: Optional[TranslationParameters] = None
+    clean_up_tokenization_spaces: Optional[bool] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "clean_up_tokenization_spaces", AliasPath("parameters", "clean_up_tokenization_spaces")
+        ),
+    )
+    generate_parameters: Optional[Dict[str, Any]] = Field(
+        None,
+        validation_alias=AliasChoices("generate_parameters", AliasPath("parameters", "generate_parameters")),
+    )
+    src_lang: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("src_lang", AliasPath("parameters", "src_lang")),
+    )
+    tgt_lang: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("tgt_lang", AliasPath("parameters", "tgt_lang")),
+    )
+    truncation: Optional[Literal["do_not_truncate", "longest_first", "only_first", "only_second"]] = Field(
+        None,
+        validation_alias=AliasChoices("truncation", AliasPath("parameters", "truncation")),
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -88,13 +99,12 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         # Warmup each pipeline
         warmup_input = TranslationInput(**TranslationInput.model_json_schema().get("examples")[0])
         for pipeline in self.pipelines.values():
-            _ = pipeline(warmup_input.inputs)
+            pipeline(warmup_input.inputs)  # only pass the input str for easiness here
 
     def __call__(self, input: TranslationInput) -> TranslationOutput:
-        parameters = input.parameters
-
-        if parameters and parameters.src_lang and parameters.tgt_lang:
-            lang_pair = f"{parameters.src_lang}_to_{parameters.tgt_lang}"
+        if input.src_lang and input.tgt_lang:
+            lang_pair = f"{input.src_lang}_to_{input.tgt_lang}"
+            logger.info(f"language pair specified {lang_pair}")
         else:
             lang_pair = next(iter(self.pipelines.keys()))
             logger.info(f"No language pair specified, defaulting to {lang_pair}")
@@ -104,6 +114,14 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
                 f"Unsupported language pair: {lang_pair}. Available pairs are: {list(self.pipelines.keys())}"
             )
 
-        pipeline_results = self.pipelines[lang_pair](input.inputs)  # type: ignore
+        optional_params = {
+            k: v
+            for k, v in input.model_dump().items()
+            if k in ["clean_up_tokenization_spaces", "generate_parameters", "truncation"] and v is not None
+        }
+
+        pipeline_results = self.pipelines[lang_pair](
+            input.inputs, src_lang=input.src_lang, tgt_lang=input.tgt_lang, **optional_params
+        )  # type: ignore
 
         return TranslationOutput(root=pipeline_results)
