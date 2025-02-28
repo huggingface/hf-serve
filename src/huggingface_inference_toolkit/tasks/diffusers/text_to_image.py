@@ -3,7 +3,7 @@ from io import BytesIO
 from typing import Optional
 
 import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, Field
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -44,8 +44,23 @@ class TextToImageInput(BaseModel):
     # TODO: unsure about how the scheduler is provided / used
     # scheduler: Optional[str] = Field()
 
+    # NOTE: these examples are prepared in a way so that those appear in the Swagger API docs
+    # with compatibility for Inference Endpoints, but any of the aliases above can be used instead
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "inputs": "a photo of an astronaut riding a horse on mars",
+                    "parameters": {"num_inference_steps": 1, "seed": 42},
+                }
+            ]
+        }
+    )
+
 
 class TextToImageOutput(BaseModel):
+    # NOTE: the output just contains `image` and not e.g. `images` since only one image can be generated
+    # at a time at the moment
     image: str
 
 
@@ -87,7 +102,8 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
                 self.pipeline.enable_attention_slicing()
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        _ = self.pipeline("a photo of an astronaut riding a horse on mars", num_inference_steps=1)  # type: ignore
+        _ = self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))
+        # _ = self.pipeline(TextToImageInput.model_json_schema()["examples"][0])  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
         payload_dump = payload.model_dump(exclude_defaults=True)
