@@ -1,7 +1,7 @@
-from typing import Dict, List, Literal, Optional
+from typing import Annotated, Any, Dict, List, Literal, Optional
 
 import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AliasChoices, AliasPath, BaseModel, BeforeValidator, ConfigDict, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
@@ -47,8 +47,15 @@ class QuestionAnsweringOutputValue(BaseModel):
     aggregator: Optional[str] = None
 
 
+def ensure_list(value: Any) -> Any:
+    if not isinstance(value, list):
+        return [value]
+    else:
+        return value
+
+
 class TableQuestionAnsweringOutput(RootModel):
-    root: List[QuestionAnsweringOutputValue]
+    root: Annotated[List[QuestionAnsweringOutputValue], BeforeValidator(ensure_list)]
 
 
 class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestionAnsweringOutput]):
@@ -85,14 +92,10 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
             if k in ["padding", "sequential", "truncation"] and v is not None
         }
 
-        pipeline_results = self.pipeline(
+        results = self.pipeline(
             query=input.question,
             table=input.table,
             **optional_params,
         )
 
-        # Make to a list if only outputs one QuestionAnsweringOutputValue
-        if not isinstance(pipeline_results, list):
-            pipeline_results = [pipeline_results]
-
-        return TableQuestionAnsweringOutput(root=pipeline_results)
+        return TableQuestionAnsweringOutput(root=results)
