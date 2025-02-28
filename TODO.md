@@ -3,6 +3,7 @@
 - [ ] use the warmup example to fill the openAPI spec
 - [ ] maybe use the get get_available_tasks() in the server for the match case
 
+Supported tasks in endpoints atm:
 
 - [ ] Audio classification
 - [ ] Automatic Speech Recognition 

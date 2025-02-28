@@ -36,7 +36,7 @@ def launch(
     from huggingface_inference_toolkit.logging import logger
     from huggingface_inference_toolkit.routers import predict_router
 
-    logger.info("Starting toolkit server")
+    logger.info(f"Starting toolkit server for model {model_id=} with task {task=} on device {device=}")
 
     # Python 3.10 should be the minimum supported version (?)
     match task:

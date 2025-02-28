@@ -5,20 +5,21 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-TokenClassificationAggregationStrategy = Literal["none", "simple", "first", "average", "max"]
-
-
-class TokenClassificationParameters(BaseModel):
-    aggregation_strategy: Optional["TokenClassificationAggregationStrategy"] = None
-    ignore_labels: Optional[List[str]] = None
-    stride: Optional[int] = None
-
 
 class TokenClassificationInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
     )
-    parameters: Optional[TokenClassificationParameters] = None
+    aggregation_strategy: Optional[Literal["none", "simple", "first", "average", "max"]] = Field(
+        None,
+        validation_alias=AliasChoices("aggregation_strategy", AliasPath("parameters", "aggregation_strategy")),
+    )
+    ignore_labels: Optional[List[str]] = Field(
+        None, validation_alias=AliasChoices("ignore_labels", AliasPath("parameters", "ignore_labels"))
+    )
+    stride: Optional[int] = Field(
+        None, validation_alias=AliasChoices("stride", AliasPath("parameters", "stride"))
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -75,15 +76,10 @@ class TokenClassification(Predictor[TokenClassificationInput, TokenClassificatio
         warmup_input = TokenClassificationInput(
             **TokenClassificationInput.model_json_schema().get("examples")[0]
         )
-        _ = self(warmup_input)
+        self(warmup_input)
 
     def __call__(self, input: TokenClassificationInput) -> TokenClassificationOutput:
         payload = input.model_dump(exclude_none=True)
-
-        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            payload.update(parameters)
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return TokenClassificationOutput(root=pipeline_results)
