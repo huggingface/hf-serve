@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Dict, List, Literal, Optional
+from typing import Annotated, Dict, List, Literal, Optional
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, BeforeValidator, ConfigDict, Field, RootModel
@@ -48,7 +48,10 @@ class QuestionAnsweringOutputValue(BaseModel):
 
 
 class TableQuestionAnsweringOutput(RootModel):
-    root: Annotated[List[QuestionAnsweringOutputValue], BeforeValidator(lambda value: [value] if not isinstance(value, list) else value)]
+    root: Annotated[
+        List[QuestionAnsweringOutputValue],
+        BeforeValidator(lambda value: [value] if not isinstance(value, list) else value),
+    ]
 
 
 class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestionAnsweringOutput]):
