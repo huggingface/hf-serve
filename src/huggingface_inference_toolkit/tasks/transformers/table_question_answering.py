@@ -47,15 +47,8 @@ class QuestionAnsweringOutputValue(BaseModel):
     aggregator: Optional[str] = None
 
 
-def ensure_list(value: Any) -> Any:
-    if not isinstance(value, list):
-        return [value]
-    else:
-        return value
-
-
 class TableQuestionAnsweringOutput(RootModel):
-    root: Annotated[List[QuestionAnsweringOutputValue], BeforeValidator(ensure_list)]
+    root: Annotated[List[QuestionAnsweringOutputValue], BeforeValidator(lambda value: [value] if not isinstance(value, list) else value)]
 
 
 class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestionAnsweringOutput]):
