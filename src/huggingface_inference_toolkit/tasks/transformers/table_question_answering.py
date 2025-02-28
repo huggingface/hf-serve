@@ -8,34 +8,17 @@ from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 class TableQuestionAnsweringInput(BaseModel):
     question: str = Field(
-        validation_alias=AliasChoices(
-            "question",
-            AliasPath("inputs", "question"),
-            AliasPath("inputs", "query")
-        )
+        validation_alias=AliasChoices("question", AliasPath("inputs", "question"), AliasPath("inputs", "query"))
     )
-    table: Dict[str, List[str]] = Field(
-        validation_alias=AliasChoices(
-            "table", AliasPath("inputs", "table")
-        )
-    )
+    table: Dict[str, List[str]] = Field(validation_alias=AliasChoices("table", AliasPath("inputs", "table")))
     padding: Optional[Literal["do_not_pad", "longest", "max_length"]] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "padding", AliasPath("parameters", "padding")
-        )
+        None, validation_alias=AliasChoices("padding", AliasPath("parameters", "padding"))
     )
     sequential: Optional[bool] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "sequential", AliasPath("parameters", "sequential")
-        )
+        None, validation_alias=AliasChoices("sequential", AliasPath("parameters", "sequential"))
     )
     truncation: Optional[bool] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "truncation", AliasPath("parameters", "truncation")
-        )
+        None, validation_alias=AliasChoices("truncation", AliasPath("parameters", "truncation"))
     )
 
     model_config = ConfigDict(
@@ -93,12 +76,13 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
             **TableQuestionAnsweringInput.model_json_schema().get("examples")[0]
         )
 
-        _ = self(warmup_input)
+        self(warmup_input)
 
     def __call__(self, input: TableQuestionAnsweringInput) -> TableQuestionAnsweringOutput:
         optional_params = {
-            k: v for k, v in input.model_dump().items()
-            if k in ['padding', 'sequential', 'truncation'] and v is not None
+            k: v
+            for k, v in input.model_dump().items()
+            if k in ["padding", "sequential", "truncation"] and v is not None
         }
 
         pipeline_results = self.pipeline(
