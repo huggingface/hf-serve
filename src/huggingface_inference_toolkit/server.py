@@ -127,6 +127,16 @@ def launch(
             predictor = ZeroShotClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = ZeroShotClassificationInput, ZeroShotClassificationOutput
 
+        case "table-question-answering":
+            from huggingface_inference_toolkit.tasks.transformers.table_question_answering import (
+                TableQuestionAnswering,
+                TableQuestionAnsweringInput,
+                TableQuestionAnsweringOutput,
+            )
+
+            predictor = TableQuestionAnswering(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = TableQuestionAnsweringInput, TableQuestionAnsweringOutput
+
         case _:
             raise ValueError(f"{task=} not supported!")
 
