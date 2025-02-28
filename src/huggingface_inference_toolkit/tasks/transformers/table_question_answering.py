@@ -6,22 +6,37 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
-class TableQuestionAnsweringInputData(BaseModel):
-    question: str = Field(
-        validation_alias=AliasChoices("question", AliasPath("query"), AliasPath("question", "query")),
-    )
-    table: Dict[str, List[str]]
-
-
-class QuestionAnsweringParameters(BaseModel):
-    padding: Optional[Literal["do_not_pad", "longest", "max_length"]] = None
-    sequential: Optional[bool] = None
-    truncation: Optional[bool] = None
-
-
 class TableQuestionAnsweringInput(BaseModel):
-    inputs: TableQuestionAnsweringInputData
-    parameters: Optional[QuestionAnsweringParameters] = None
+    question: str = Field(
+        validation_alias=AliasChoices(
+            "question",
+            AliasPath("inputs", "question"),
+            AliasPath("inputs", "query")
+        )
+    )
+    table: Dict[str, List[str]] = Field(
+        validation_alias=AliasChoices(
+            "table", AliasPath("inputs", "table")
+        )
+    )
+    padding: Optional[Literal["do_not_pad", "longest", "max_length"]] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "padding", AliasPath("parameters", "padding")
+        )
+    )
+    sequential: Optional[bool] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "sequential", AliasPath("parameters", "sequential")
+        )
+    )
+    truncation: Optional[bool] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "truncation", AliasPath("parameters", "truncation")
+        )
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -81,23 +96,16 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
         _ = self(warmup_input)
 
     def __call__(self, input: TableQuestionAnsweringInput) -> TableQuestionAnsweringOutput:
-        payload = input.model_dump(exclude_none=True)
+        optional_params = {
+            k: v for k, v in input.model_dump().items()
+            if k in ['padding', 'sequential', 'truncation'] and v is not None
+        }
 
-        # Flatten the inputs dictionary into the payload
-        if "inputs" in payload:
-            inputs = payload.pop("inputs") or {}
-
-            if "table" in inputs:
-                table_data = inputs.pop("table")
-                question = inputs.get("question", "")
-                payload = [{"table": table_data, "query": question}]
-
-        # The parameters should be passed separately
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            pipeline_results = self.pipeline(payload, **parameters)  # type: ignore
-        else:
-            pipeline_results = self.pipeline(payload)  # type: ignore
+        pipeline_results = self.pipeline(
+            query=input.question,
+            table=input.table,
+            **optional_params,
+        )
 
         # Make to a list if only outputs one QuestionAnsweringOutputValue
         if not isinstance(pipeline_results, list):
