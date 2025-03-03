@@ -51,7 +51,11 @@ class TextToImageInput(BaseModel):
             "examples": [
                 {
                     "inputs": "a photo of an astronaut riding a horse on mars",
-                    "parameters": {"num_inference_steps": 1, "seed": 42},
+                    "parameters": {
+                        "target_size": {"width": 512, "height": 512},
+                        "num_inference_steps": 1,
+                        "seed": 42,
+                    },
                 }
             ]
         }
@@ -102,17 +106,23 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
                 self.pipeline.enable_attention_slicing()
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        _ = self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))
-        # _ = self.pipeline(TextToImageInput.model_json_schema()["examples"][0])  # type: ignore
+        # TODO: better validation and more meaningful errors on warmup
+        warmup_payload = TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0])  # type: ignore
+        self(**warmup_payload)  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
         payload_dump = payload.model_dump(exclude_defaults=True)
 
+        # TODO: explore if can be integrated within the schema itself
         if "seed" in payload_dump:
             payload_dump["generator"] = torch.Generator().manual_seed(int(payload_dump["seed"]))
             payload_dump.pop("seed")
 
-        image = self.pipeline(**payload_dump).images[0]  # type: ignore
+        # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
+        out = self.pipeline(**payload_dump)
+        image = out.images[0]  # type: ignore
         buffered = BytesIO()
         image.save(buffered, format="PNG")
-        return TextToImageOutput(image=base64.b64encode(buffered.getvalue()).decode())
+        image = base64.b64encode(buffered.getvalue()).decode()
+
+        return TextToImageOutput(image=image)
