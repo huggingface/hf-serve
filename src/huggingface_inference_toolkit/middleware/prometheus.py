@@ -6,8 +6,6 @@ from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp
 
-from huggingface_inference_toolkit.logging import logger
-
 REQUEST_COUNT = Counter("http_request_total", "Total HTTP Requests", ["method", "status", "path"])
 REQUEST_LATENCY = Histogram(
     "http_request_duration_seconds",
@@ -51,9 +49,5 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
                 duration
             )
             REQUEST_IN_PROGRESS.labels(method=method, path=path).dec()
-
-            logger.info(
-                f"Request: {method} {path} - Status: {status} - Duration: {duration:.4f}s"  # type: ignore
-            )
 
         return response

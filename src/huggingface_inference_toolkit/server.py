@@ -184,6 +184,7 @@ def launch(
         host=host,  # type: ignore
         port=port,  # type: ignore
         log_level=0,
+        access_log=False,
         use_colors=True,
         workers=1,
     )
