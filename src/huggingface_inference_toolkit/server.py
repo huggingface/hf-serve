@@ -188,6 +188,9 @@ def launch(
                 predictor = Translation(model_id=model_id, dtype=dtype, device=device)  # type: ignore
                 input_schema, output_schema = TranslationInput, TranslationOutput
 
+            case "custom":
+                raise ValueError(f"{task=} provided but loading the custom handler failed or not supported")
+
             case _:
                 raise ValueError(f"{task=} not supported!")
 
