@@ -107,8 +107,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
         # TODO: better validation and more meaningful errors on warmup
-        warmup_payload = TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0])  # type: ignore
-        self(**warmup_payload)  # type: ignore
+        self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
         payload_dump = payload.model_dump(exclude_defaults=True)
