@@ -1,9 +1,9 @@
 import base64
 from io import BytesIO
-from typing import List
+from typing import Optional
 
 import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, Field
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -13,13 +13,59 @@ class TextToImageInput(BaseModel):
     prompt: str = Field(
         validation_alias=AliasChoices("prompt", AliasPath("inputs"), AliasPath("inputs", "prompt"))
     )
-    width: int = Field(256, validation_alias=AliasChoices("width", AliasPath("parameters", "width")))
-    height: int = Field(256, validation_alias=AliasChoices("height", AliasPath("parameters", "height")))
-    # TODO: add missing
+    width: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "width", AliasPath("parameters", "width"), AliasPath("parameters", "target_size", "width")
+        ),
+    )
+    height: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "height", AliasPath("parameters", "height"), AliasPath("parameters", "target_size", "height")
+        ),
+    )
+    guidance_scale: Optional[float] = Field(
+        7.5,
+        validation_alias=AliasChoices("guidance_scale", AliasPath("parameters", "guidance_scale")),
+    )
+    negative_prompt: Optional[str] = Field(
+        None,
+        validation_alias=AliasChoices("negative_prompt", AliasPath("parameters", "negative_prompt")),
+    )
+    num_inference_steps: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices("num_inference_steps", AliasPath("parameters", "num_inference_steps")),
+    )
+    seed: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices("seed", AliasPath("parameters", "seed")),
+    )
+    # TODO: unsure about how the scheduler is provided / used
+    # scheduler: Optional[str] = Field()
+
+    # NOTE: these examples are prepared in a way so that those appear in the Swagger API docs
+    # with compatibility for Inference Endpoints, but any of the aliases above can be used instead
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "inputs": "a photo of an astronaut riding a horse on mars",
+                    "parameters": {
+                        "target_size": {"width": 512, "height": 512},
+                        "num_inference_steps": 1,
+                        "seed": 42,
+                    },
+                }
+            ]
+        }
+    )
 
 
 class TextToImageOutput(BaseModel):
-    images: List[str]
+    # NOTE: the output just contains `image` and not e.g. `images` since only one image can be generated
+    # at a time at the moment
+    image: str
 
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
@@ -44,29 +90,38 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # /opt/huggingface/model all the contents for the given model should be downloaded and available
         # meaning that e.g. the fix for `diffusers` should be applied there
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
+        device_kwargs = {"device": device} if device not in {"balanced"} else {"device_map": device}
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
             torch_dtype=getattr(torch, dtype),
-            device=device if device not in {"balanced"} else None,
-            device_map=device if device in {"balanced"} else None,
+            **device_kwargs,
         )
 
-        if torch.cuda.is_available() and device == "cuda":
+        if device == "cuda" and torch.cuda.is_available():
             self.pipeline.enable_model_cpu_offload()
-        elif torch.mps.is_available() and device == "mps":
+        elif device == "mps" and torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
                 self.pipeline.enable_attention_slicing()
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        _ = self.pipeline("a photo of an astronaut riding a horse on mars", num_inference_steps=1)  # type: ignore
+        # TODO: better validation and more meaningful errors on warmup
+        self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
-        images = self.pipeline(**payload.model_dump()).images  # type: ignore
-        buffered_images = []
-        for image in images:
-            buffered = BytesIO()
-            image.save(buffered, format="PNG")
-            buffered_images.append(base64.b64encode(buffered.getvalue()).decode())
-        return TextToImageOutput(images=buffered_images)
+        payload_dump = payload.model_dump(exclude_defaults=True)
+
+        # TODO: explore if can be integrated within the schema itself
+        if "seed" in payload_dump:
+            payload_dump["generator"] = torch.Generator().manual_seed(int(payload_dump["seed"]))
+            payload_dump.pop("seed")
+
+        # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
+        out = self.pipeline(**payload_dump)
+        image = out.images[0]  # type: ignore
+        buffered = BytesIO()
+        image.save(buffered, format="PNG")
+        image = base64.b64encode(buffered.getvalue()).decode()
+
+        return TextToImageOutput(image=image)

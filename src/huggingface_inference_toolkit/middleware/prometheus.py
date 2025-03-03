@@ -1,11 +1,10 @@
-import logging
 import time
 from typing import Callable, List, Optional
 
 from fastapi import Request, Response
-from prometheus_client import Counter, Histogram, Gauge
-from starlette.types import ASGIApp
+from prometheus_client import Counter, Gauge, Histogram
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
 REQUEST_COUNT = Counter("http_request_total", "Total HTTP Requests", ["method", "status", "path"])
 REQUEST_LATENCY = Histogram(
@@ -14,9 +13,6 @@ REQUEST_LATENCY = Histogram(
     ["method", "status", "path"],
 )
 REQUEST_IN_PROGRESS = Gauge("http_requests_in_progress", "HTTP Requests in progress", ["method", "path"])
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
@@ -53,9 +49,5 @@ class PrometheusMiddleware(BaseHTTPMiddleware):
                 duration
             )
             REQUEST_IN_PROGRESS.labels(method=method, path=path).dec()
-
-            logger.info(
-                f"Request: {method} {path} - Status: {status} - Duration: {duration:.4f}s"  # type: ignore
-            )
 
         return response
