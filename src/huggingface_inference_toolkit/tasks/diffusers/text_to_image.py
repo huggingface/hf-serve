@@ -34,7 +34,7 @@ class TextToImageInput(BaseModel):
         validation_alias=AliasChoices("negative_prompt", AliasPath("parameters", "negative_prompt")),
     )
     num_inference_steps: Optional[int] = Field(
-        50,
+        None,
         validation_alias=AliasChoices("num_inference_steps", AliasPath("parameters", "num_inference_steps")),
     )
     seed: Optional[int] = Field(
