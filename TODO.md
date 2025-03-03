@@ -25,4 +25,4 @@ Supported tasks in endpoints atm:
 - [x] Text-To-Image
 - [ ] Token Classification 
 - [ ] Translation 
-- [x] Zero Shot Classification 
+- [ ] Zero Shot Classification 

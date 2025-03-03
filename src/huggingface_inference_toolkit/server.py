@@ -36,6 +36,8 @@ def launch(
     from huggingface_inference_toolkit.logging import logger
     from huggingface_inference_toolkit.routers import predict_router
 
+    logger.info(f"Starting toolkit server for model {model_id=} with task {task=} on device {device=}")
+
     # Python 3.10 should be the minimum supported version (?)
     match task:
         # diffusers
@@ -126,6 +128,16 @@ def launch(
 
             predictor = ZeroShotClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = ZeroShotClassificationInput, ZeroShotClassificationOutput
+
+        case "token-classification":
+            from huggingface_inference_toolkit.tasks.transformers.token_classification import (
+                TokenClassification,
+                TokenClassificationInput,
+                TokenClassificationOutput,
+            )
+
+            predictor = TokenClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = TokenClassificationInput, TokenClassificationOutput
 
         case "table-question-answering":
             from huggingface_inference_toolkit.tasks.transformers.table_question_answering import (
