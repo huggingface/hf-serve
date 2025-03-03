@@ -17,4 +17,8 @@ def get_available_tasks():
                 available_tasks.extend(
                     [p.stem.replace("_", "-") for p in library_dir.glob("*.py") if p.name != "__init__.py"]
                 )
+    # NOTE: we add the `custom` task here to make sure that when setting the `HF_TASK` within Inference Endpoints
+    # to `Custom`, everything still works, but the custom task is a dynamic task that depends on the custom handler
+    # implementation if provided i.e. not a real task per se
+    available_tasks += ["custom"]
     return available_tasks
