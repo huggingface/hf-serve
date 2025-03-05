@@ -5,31 +5,38 @@ from pydantic import AliasChoices, AliasPath, BaseModel, BeforeValidator, Config
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
+
 class ASRInput(BaseModel):
     inputs: str = Field()
 
     return_timestamps: Optional[bool] = Field(
         None,
-        validation_alias=AliasChoices("return_timestamps", AliasPath("AutomaticSpeechRecognitionParameters", "return_timestamps")) 
+        validation_alias=AliasChoices(
+            "return_timestamps", AliasPath("AutomaticSpeechRecognitionParameters", "return_timestamps")
+        ),
     )
     do_sample: Optional[bool] = Field(
         None,
-        validation_alias=AliasChoices("do_sample", AliasPath(
-            "AutomaticSpeechRecognitionParameters", 
-            "AutomaticSpeechRecognitionGenerationParameters",     
-            "do_sample"
-        ))  
+        validation_alias=AliasChoices(
+            "do_sample",
+            AliasPath(
+                "AutomaticSpeechRecognitionParameters",
+                "AutomaticSpeechRecognitionGenerationParameters",
+                "do_sample",
+            ),
+        ),
     )
     early_stopping: Optional[Union[bool, Literal["never"]]] = Field(
         None,
-        validation_alias=AliasChoices("early_stopping", AliasPath(
-            "AutomaticSpeechRecognitionParameters", 
-            "AutomaticSpeechRecognitionGenerationParameters",     
-            "early_stopping"
-        ))  
+        validation_alias=AliasChoices(
+            "early_stopping",
+            AliasPath(
+                "AutomaticSpeechRecognitionParameters",
+                "AutomaticSpeechRecognitionGenerationParameters",
+                "early_stopping",
+            ),
+        ),
     )
-
-    
 
     # under AutomaticSpeechRecognitionParameters and AutomaticSpeechRecognitionGenerationParameters
     # do_sample: Optional[bool] = None
@@ -49,7 +56,6 @@ class ASRInput(BaseModel):
     # typical_p: Optional[float] = None
     # use_cache: Optional[bool] = None
 
-
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
@@ -67,19 +73,20 @@ class ASROutputValue(BaseModel):
     # these are under the AutomaticSpeechRecognitionOutputChunk
     # text: Optional[str] = Field(
     #     None,
-    #     validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutputChunk", "text")) 
+    #     validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutputChunk", "text"))
     # )
     # timestamp: List[float] = Field(
     #     None,
-    #     validation_alias=AliasChoices("timestamp", AliasPath("AutomaticSpeechRecognitionOutputChunk", "timestamp")) 
+    #     validation_alias=AliasChoices("timestamp", AliasPath("AutomaticSpeechRecognitionOutputChunk", "timestamp"))
     # )
-    
+
 
 class ASROutput(RootModel):
     root: Annotated[
         List[ASROutputValue],
         BeforeValidator(lambda value: [value] if not isinstance(value, list) else value),
     ]
+
 
 class ASR(Predictor[ASRInput, ASROutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
@@ -114,14 +121,11 @@ class ASR(Predictor[ASRInput, ASROutput]):
 
     def __call__(self, input: ASRInput) -> ASROutput:
         payload = input.model_dump(exclude_none=True)
-        
+
         print(payload)
-        
+
         pipeline_results = self.pipeline(**payload)
 
         print(pipeline_results)
 
         return ASROutput(root=pipeline_results)  # type: ignore
-
-
-

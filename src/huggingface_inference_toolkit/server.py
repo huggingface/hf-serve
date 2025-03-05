@@ -163,7 +163,7 @@ def launch(
             predictor = Translation(model_id=model_id, dtype=dtype, device=device)  # type: ignore
             input_schema, output_schema = TranslationInput, TranslationOutput
 
-        case "automatic-speech-recognition": 
+        case "automatic-speech-recognition":
             from huggingface_inference_toolkit.tasks.transformers.automatic_speech_recognition import (
                 ASR,
                 ASRInput,
