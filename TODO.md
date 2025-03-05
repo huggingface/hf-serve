@@ -6,7 +6,7 @@
 Supported tasks in endpoints atm:
 
 - [ ] Audio classification
-- [ ] Automatic Speech Recognition 
+- [x] Automatic Speech Recognition 
 - [ ] Custom 
 - [ ] Feature Extraction 
 - [x] Fill Mask 
@@ -23,6 +23,6 @@ Supported tasks in endpoints atm:
 - [x] Text Classification 
 - [ ] Text Generation 
 - [x] Text-To-Image
-- [ ] Token Classification 
-- [ ] Translation 
-- [ ] Zero Shot Classification 
+- [x] Token Classification 
+- [x] Translation 
+- [x] Zero Shot Classification 
