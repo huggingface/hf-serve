@@ -1,18 +1,26 @@
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException
+from PIL.Image import Image as PILImage
+from pydantic import ConfigDict, RootModel
+
+from huggingface_inference_toolkit.serde import Image
 
 
 def router(handler: Any) -> APIRouter:
     router = APIRouter()
 
+    class ArbitraryResponse(RootModel):
+        root: Any
+        model_config = ConfigDict(json_encoders={PILImage: Image.serialize}, arbitrary_types_allowed=True)
+
     # NOTE: for Inference Endpoints we also need to route to / for the /predict route, as
     # that's the endpoint being hit within the Inference API widgets
     @router.post("/")
     @router.post("/predict")
-    async def predict(data: Dict[str, Any]) -> Any:
+    async def predict(data: Dict[str, Any]) -> ArbitraryResponse:
         try:
-            return handler(data)
+            return ArbitraryResponse(root=handler(data))
         # TODO(alvarobartt): create better custom exceptions and handle those here with different
         # error codes for I/O validation errors, ser/de errors, or pipeline errors
         except Exception as e:
