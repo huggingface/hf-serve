@@ -24,22 +24,19 @@ parser.add_argument(
     required=False,
     help="The port in which the FastAPI API will listen to, defaults to 8080, can also be set via the environment variable `PORT`",
 )
-
 # NOTE: only one of `--model-id` or `--model-dir` should be provided
-group = parser.add_mutually_exclusive_group(required=True)
-group.add_argument(
+parser.add_argument(
     "--model-id",
     type=str,
     default=os.getenv("MODEL_ID", None),
     help="The model ID on the Hugging Face Hub, can also be set via the environment variable `MODEL_ID`",
 )
-group.add_argument(
+parser.add_argument(
     "--model-dir",
     type=str,
     default=os.getenv("MODEL_DIR", None),
     help="A local directory that contains a Hugging Face compatible model, can also be set via the environment variable `MODEL_DIR`",
 )
-
 parser.add_argument(
     "--task",
     type=str,
@@ -66,7 +63,23 @@ parser.add_argument(
 
 
 def main() -> None:
+    from huggingface_inference_toolkit.logging import logger
+
     args = parser.parse_args()
+
+    # NOTE: tried `group = parser.add_mutually_exclusive_group(required=True)`, but it's not working fine because
+    # it won't capture the values from the environment variables values
+    if args.model_id and args.model_dir:
+        logger.warning(
+            f"Both {args.model_id=} and {args.model_dir=} have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
+        )
+
+        args.model_id = None
+
+    if not args.model_id and not args.model_dir:
+        raise ValueError(
+            "Any of `--model-id` or `--model-dir` should be provided but both cannot be None (alternatively those can be provided via the environment variables `MODEL_ID` or `MODEL_DIR`, respectively."
+        )
 
     launch(
         host=args.host,
