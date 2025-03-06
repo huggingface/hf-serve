@@ -56,9 +56,10 @@ def launch(
             )
 
     if fallback:
-        logger.warning(
-            "Custom handlers not still supported for remote Hugging Face Hub models provided via `model_id` yet, please provide the local directory when willing to run custom handlers."
-        )
+        if model_id is not None:
+            logger.warning(
+                "Custom handlers not still supported for remote Hugging Face Hub models provided via `model_id` yet, please provide the local directory when willing to run custom handlers."
+            )
 
         model_id = model_id or model_dir
         logger.info(f"Starting toolkit server for model {model_id=} with task {task=} on device {device=}")

@@ -7,6 +7,24 @@ from typing import Any
 class Custom:
     @staticmethod
     def load(model_dir: str = "/repository") -> Any:
+        """Loads a custom handler from the given repository if it exists. The custom handler file should follow the
+        following signature (at least).
+
+        ```python
+        from typing import Any, Dict
+
+        class EndpointHandler:
+            def __init__(self, model_dir: str, **kwargs: Any) -> None:
+                ...
+
+            def __call__(self, data: Dict[str, Any]) -> Any:
+                ...
+        ```
+
+        Note that the implementation above, and so on the default custom implementation supported within the `Custom`
+        class is not fully aligned with the current `huggingface-inference-toolkit` leveraging all the features and
+        improvements included here, but rather based on the former `huggingface-inference-toolkit`.
+        """
         model_dir = Path(model_dir)  # type: ignore
 
         # NOTE: `CUSTOM_HANDLER_FILE` will always have a value as handled within `huggingface_inference_toolkit.backwards`
@@ -30,4 +48,8 @@ class Custom:
             raise AttributeError(f"The class `{handler_name}` was not found in `{handler_file}`")
 
         EndpointHandler = getattr(module, handler_name)  # type: ignore
-        return EndpointHandler(model_dir=str(model_dir))
+        # NOTE: AFAIK until the moment we were just ignoring named kwargs meaning that we were supporting "wrong"
+        # implementations for the custom handler (not sure if there's a lot of those out there), but in this case
+        # the ideal next statement should be something like `return EndpointHandler(model_dir=str(model_dir))`, i.e.
+        # including the named kwarg rather than any arbitrary positional argument
+        return EndpointHandler(str(model_dir))
