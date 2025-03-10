@@ -1,7 +1,7 @@
-from typing import Annotated, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Tuple, Union
 
 import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, BeforeValidator, ConfigDict, Field, RootModel
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
@@ -10,18 +10,16 @@ class ASRInput(BaseModel):
     inputs: str = Field()
 
     return_timestamps: Optional[bool] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "return_timestamps", AliasPath("AutomaticSpeechRecognitionParameters", "return_timestamps")
-        ),
+        False,
+        validation_alias=AliasChoices("return_timestamps", AliasPath("parameters", "return_timestamps")),
     )
     do_sample: Optional[bool] = Field(
         None,
         validation_alias=AliasChoices(
             "do_sample",
             AliasPath(
-                "AutomaticSpeechRecognitionParameters",
-                "AutomaticSpeechRecognitionGenerationParameters",
+                "parameters",
+                "generate_kwargs",
                 "do_sample",
             ),
         ),
@@ -31,61 +29,110 @@ class ASRInput(BaseModel):
         validation_alias=AliasChoices(
             "early_stopping",
             AliasPath(
-                "AutomaticSpeechRecognitionParameters",
-                "AutomaticSpeechRecognitionGenerationParameters",
+                "parameters",
+                "generate_kwargs",
                 "early_stopping",
             ),
         ),
     )
-
-    # under AutomaticSpeechRecognitionParameters and AutomaticSpeechRecognitionGenerationParameters
-    # do_sample: Optional[bool] = None
-    # early_stopping: Optional[Union[bool, AutomaticSpeechRecognitionEarlyStoppingEnum]] = None
-    # epsilon_cutoff: Optional[float] = None
-    # eta_cutoff: Optional[float] = None
-    # max_length: Optional[int] = None
-    # max_new_tokens: Optional[int] = None
-    # min_length: Optional[int] = None
-    # min_new_tokens: Optional[int] = None
-    # num_beam_groups: Optional[int] = None
-    # num_beams: Optional[int] = None
-    # penalty_alpha: Optional[float] = None
-    # temperature: Optional[float] = None
-    # top_k: Optional[int] = None
-    # top_p: Optional[float] = None
-    # typical_p: Optional[float] = None
-    # use_cache: Optional[bool] = None
+    epsilon_cutoff: Optional[float] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "epsilon_cutoff", AliasPath("parameters", "generate_kwargs", "epsilon_cutoff")
+        ),
+    )
+    eta_cutoff: Optional[float] = Field(
+        None,
+        validation_alias=AliasChoices("eta_cutoff", AliasPath("parameters", "generate_kwargs", "eta_cutoff")),
+    )
+    max_length: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices("max_length", AliasPath("parameters", "generate_kwargs", "max_length")),
+    )
+    max_new_tokens: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "max_new_tokens", AliasPath("parameters", "generate_kwargs", "max_new_tokens")
+        ),
+    )
+    min_length: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices("min_length", AliasPath("parameters", "generate_kwargs", "min_length")),
+    )
+    min_new_tokens: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "min_new_tokens", AliasPath("parameters", "generate_kwargs", "min_new_tokens")
+        ),
+    )
+    num_beam_groups: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "num_beam_groups", AliasPath("parameters", "generate_kwargs", "num_beam_groups")
+        ),
+    )
+    num_beams: Optional[int] = Field(
+        None,
+        validation_alias=AliasChoices("num_beams", AliasPath("parameters", "generate_kwargs", "num_beams")),
+    )
+    penalty_alpha: Optional[float] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "penalty_alpha", AliasPath("parameters", "generate_kwargs", "penalty_alpha")
+        ),
+    )
+    temperature: Optional[float] = Field(
+        None,
+        validation_alias=AliasChoices("temperature", AliasPath("parameters", "generate_kwargs", "temperature")),
+    )
+    top_k: Optional[int] = Field(
+        None, validation_alias=AliasChoices("top_k", AliasPath("parameters", "generate_kwargs", "top_k"))
+    )
+    top_p: Optional[float] = Field(
+        None, validation_alias=AliasChoices("top_p", AliasPath("parameters", "generate_kwargs", "top_p"))
+    )
+    typical_p: Optional[float] = Field(
+        None,
+        validation_alias=AliasChoices("typical_p", AliasPath("parameters", "generate_kwargs", "typical_p")),
+    )
+    use_cache: Optional[bool] = Field(
+        None,
+        validation_alias=AliasChoices("use_cache", AliasPath("parameters", "generate_kwargs", "use_cache")),
+    )
 
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
                 {
                     "inputs": "https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac",
+                    "parameters": {
+                        "return_timestamps": "true",
+                    },
                 }
             ]
         }
     )
 
 
-class ASROutputValue(BaseModel):
-    text: str
-
-    # these are under the AutomaticSpeechRecognitionOutputChunk
-    # text: Optional[str] = Field(
-    #     None,
-    #     validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutputChunk", "text"))
-    # )
-    # timestamp: List[float] = Field(
-    #     None,
-    #     validation_alias=AliasChoices("timestamp", AliasPath("AutomaticSpeechRecognitionOutputChunk", "timestamp"))
-    # )
+class ASROutputChunk(BaseModel):
+    text: str = Field(
+        ..., validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutputChunk", "text"))
+    )
+    timestamp: Optional[Tuple[float, float]] = Field(
+        None,
+        validation_alias=AliasChoices(
+            "timestamp", AliasPath("AutomaticSpeechRecognitionOutputChunk", "timestamp")
+        ),
+    )
 
 
-class ASROutput(RootModel):
-    root: Annotated[
-        List[ASROutputValue],
-        BeforeValidator(lambda value: [value] if not isinstance(value, list) else value),
-    ]
+class ASROutput(BaseModel):
+    text: str = Field(
+        ..., validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutput", "text"))
+    )
+    chunks: Optional[List[ASROutputChunk]] = Field(
+        None, validation_alias=AliasChoices("chunks", AliasPath("AutomaticSpeechRecognitionOutput", "chunks"))
+    )
 
 
 class ASR(Predictor[ASRInput, ASROutput]):
@@ -119,4 +166,4 @@ class ASR(Predictor[ASRInput, ASROutput]):
     def __call__(self, input: ASRInput) -> ASROutput:
         payload = input.model_dump(exclude_none=True)
         pipeline_results = self.pipeline(**payload)
-        return ASROutput(root=pipeline_results)  # type: ignore
+        return ASROutput(**pipeline_results)  # type: ignore
