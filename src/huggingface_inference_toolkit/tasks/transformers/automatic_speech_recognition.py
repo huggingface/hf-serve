@@ -114,18 +114,9 @@ class ASR(Predictor[ASRInput, ASROutput]):
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
         warmup_input = ASRInput(**ASRInput.model_json_schema().get("examples")[0])
-
-        print(warmup_input)
-
         self(warmup_input)
 
     def __call__(self, input: ASRInput) -> ASROutput:
         payload = input.model_dump(exclude_none=True)
-
-        print(payload)
-
         pipeline_results = self.pipeline(**payload)
-
-        print(pipeline_results)
-
         return ASROutput(root=pipeline_results)  # type: ignore
