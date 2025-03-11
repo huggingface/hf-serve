@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
+import PIL
 from fastapi import APIRouter, HTTPException
-from PIL.Image import Image as PILImage
 from pydantic import ConfigDict, RootModel
 
 from huggingface_inference_toolkit.serde import Image
@@ -12,7 +12,10 @@ def router(handler: Any) -> APIRouter:
 
     class ArbitraryResponse(RootModel):
         root: Any
-        model_config = ConfigDict(json_encoders={PILImage: Image.serialize}, arbitrary_types_allowed=True)
+        model_config = ConfigDict(
+            json_encoders={PIL.Image.Image: Image.serialize},  # type: ignore
+            arbitrary_types_allowed=True,
+        )
 
     # NOTE: for Inference Endpoints we also need to route to / for the /predict route, as
     # that's the endpoint being hit within the Inference API widgets
