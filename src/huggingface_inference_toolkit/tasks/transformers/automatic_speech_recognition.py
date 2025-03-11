@@ -7,8 +7,9 @@ from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
 class ASRInput(BaseModel):
-    inputs: str = Field()
-
+    inputs: str = Field(
+        validation_alias=AliasChoices("inputs", AliasPath("input_features")),
+    )
     return_timestamps: Optional[bool] = Field(
         False,
         validation_alias=AliasChoices("return_timestamps", AliasPath("parameters", "return_timestamps")),
