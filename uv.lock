@@ -561,7 +561,7 @@ requires-dist = [
     { name = "diffusers", specifier = ">=0.32.1" },
     { name = "fastapi", specifier = ">=0.115.6" },
     { name = "huggingface-hub", extras = ["hf-transfer"], specifier = ">=0.27.1" },
-    { name = "peft" },
+    { name = "peft", specifier = ">=0.14.0" },
     { name = "prometheus-client", specifier = ">=0.21.1" },
     { name = "protobuf", specifier = ">=5.29.3" },
     { name = "pydantic", specifier = ">=2.10.5" },
