@@ -52,10 +52,21 @@ def launch(
             fallback = False
         except Exception as e:
             logger.error(
-                f"Attempted to load a custom handler in {model_dir=}, but either didn't find any or couldn't load it (as per \"{e}\"), so rolling back to default tasks."
+                f"Attempted to load a custom handler from {model_dir=}, but either didn't find any or couldn't load it (as per \"{e}\"), so rolling back to default tasks."
             )
+            # NOTE: don't break if the `handler.py` file couldn't be loaded if the task was not set to `custom`
+            # meaning that if it was not explicitly specified then don't fail, because the user may just want to
+            # run an actual task rather than the `handler.py` one, even if the handler is there; which can be an
+            # edge case, but IMO should be handled here
+            if task == "custom":
+                raise RuntimeError(
+                    f"Attempted to load a custom handler from {model_dir=}, but either didn't find any or couldn't load it (as per \"{e}\"), so rolling back to default tasks."
+                )
 
     if fallback:
+        # TODO: download the repository locally and check for the `handler.py` file, as it should indeed be supported
+        # just that the download mechanisms are native to each library e.g. Diffusers, and developing a custom one
+        # for each model may be tricky, so downloading the whole repository may be the safest
         if model_id is not None:
             logger.warning(
                 "Custom handlers not still supported for remote Hugging Face Hub models provided via `model_id` yet, please provide the local directory when willing to run custom handlers."
