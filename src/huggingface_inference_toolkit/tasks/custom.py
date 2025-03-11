@@ -57,4 +57,5 @@ class Custom:
         # implementations for the custom handler (not sure if there's a lot of those out there), but in this case
         # the ideal next statement should be something like `return EndpointHandler(model_dir=str(model_dir))`, i.e.
         # including the named kwarg rather than any arbitrary positional argument
+        # e.g. https://huggingface.co/philschmid/flan-t5-xxl-sharded-fp16/blob/7edc82dd78b8f084526109f2aafa1126992519e7/handler.py#L6
         return EndpointHandler(str(model_dir))
