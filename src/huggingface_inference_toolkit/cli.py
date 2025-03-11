@@ -63,23 +63,7 @@ parser.add_argument(
 
 
 def main() -> None:
-    from huggingface_inference_toolkit.logging import logger
-
     args = parser.parse_args()
-
-    # NOTE: tried `group = parser.add_mutually_exclusive_group(required=True)`, but it's not working fine because
-    # it won't capture the values from the environment variables values
-    if args.model_id and args.model_dir:
-        logger.warning(
-            f"Both {args.model_id=} and {args.model_dir=} have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
-        )
-
-        args.model_id = None
-
-    if not args.model_id and not args.model_dir:
-        raise ValueError(
-            "Any of `--model-id` or `--model-dir` should be provided but both cannot be None (alternatively those can be provided via the environment variables `MODEL_ID` or `MODEL_DIR`, respectively."
-        )
 
     launch(
         host=args.host,
