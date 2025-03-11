@@ -24,6 +24,11 @@ class Custom:
         Note that the implementation above, and so on the default custom implementation supported within the `Custom`
         class is not fully aligned with the current `huggingface-inference-toolkit` leveraging all the features and
         improvements included here, but rather based on the former `huggingface-inference-toolkit`.
+
+        To see some of the former `handler.py` models created on the Hub you can check the following:
+        https://huggingface.co/models?other=endpoints-template&sort=trending. Note that those are not ALL the
+        models with a custom handler on the Hugging Face Hub, but just the ones with the `endpoints-template` tag
+        set.
         """
         model_dir = Path(model_dir)  # type: ignore
 
