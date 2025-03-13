@@ -166,7 +166,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         )
         self(warmup_input)
 
-    def __call__(self, input: AutomaticSpeechRecognitionInput) -> AutomaticSpeechRecognitionOutput:
-        payload = input.model_dump(exclude_none=True)
-        pipeline_results = self.pipeline(**payload)
+    def __call__(self, payload: AutomaticSpeechRecognitionInput) -> AutomaticSpeechRecognitionOutput:
+        input_dict = payload.model_dump(exclude_none=True)
+        pipeline_results = self.pipeline(**input_dict)
         return AutomaticSpeechRecognitionOutput(**pipeline_results)  # type: ignore
