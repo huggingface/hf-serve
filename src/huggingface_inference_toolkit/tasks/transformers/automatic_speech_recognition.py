@@ -6,7 +6,7 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
-class ASRInput(BaseModel):
+class AutomaticSpeechRecognitionInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("input_features")),
     )
@@ -115,7 +115,7 @@ class ASRInput(BaseModel):
     )
 
 
-class ASROutputChunk(BaseModel):
+class AutomaticSpeechRecognitionOutputChunk(BaseModel):
     text: str = Field(
         ..., validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutputChunk", "text"))
     )
@@ -127,20 +127,20 @@ class ASROutputChunk(BaseModel):
     )
 
 
-class ASROutput(BaseModel):
+class AutomaticSpeechRecognitionOutput(BaseModel):
     text: str = Field(
         ..., validation_alias=AliasChoices("text", AliasPath("AutomaticSpeechRecognitionOutput", "text"))
     )
-    chunks: Optional[List[ASROutputChunk]] = Field(
+    chunks: Optional[List[AutomaticSpeechRecognitionOutputChunk]] = Field(
         None, validation_alias=AliasChoices("chunks", AliasPath("AutomaticSpeechRecognitionOutput", "chunks"))
     )
 
 
-class ASR(Predictor[ASRInput, ASROutput]):
+class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, AutomaticSpeechRecognitionOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline  # type: ignore
+        from transformers import pipeline
 
         # apparently some (not all) the models do not support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
@@ -148,7 +148,7 @@ class ASR(Predictor[ASRInput, ASROutput]):
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = transformers_pipeline(
+        self.pipeline = pipeline(
             task="automatic-speech-recognition",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -161,10 +161,12 @@ class ASR(Predictor[ASRInput, ASROutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = ASRInput(**ASRInput.model_json_schema().get("examples")[0])
+        warmup_input = AutomaticSpeechRecognitionInput(
+            **AutomaticSpeechRecognitionInput.model_json_schema().get("examples")[0]
+        )
         self(warmup_input)
 
-    def __call__(self, input: ASRInput) -> ASROutput:
+    def __call__(self, input: AutomaticSpeechRecognitionInput) -> AutomaticSpeechRecognitionOutput:
         payload = input.model_dump(exclude_none=True)
         pipeline_results = self.pipeline(**payload)
-        return ASROutput(**pipeline_results)  # type: ignore
+        return AutomaticSpeechRecognitionOutput(**pipeline_results)  # type: ignore

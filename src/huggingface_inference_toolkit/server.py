@@ -165,13 +165,13 @@ def launch(
 
         case "automatic-speech-recognition":
             from huggingface_inference_toolkit.tasks.transformers.automatic_speech_recognition import (
-                ASR,
-                ASRInput,
-                ASROutput,
+                AutomaticSpeechRecognition,
+                AutomaticSpeechRecognitionInput,
+                AutomaticSpeechRecognitionOutput,
             )
 
-            predictor = ASR(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = ASRInput, ASROutput
+            predictor = AutomaticSpeechRecognition(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+            input_schema, output_schema = AutomaticSpeechRecognitionInput, AutomaticSpeechRecognitionOutput
 
         case _:
             raise ValueError(f"{task=} not supported!")
