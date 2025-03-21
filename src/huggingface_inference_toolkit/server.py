@@ -1,15 +1,19 @@
-from typing import Literal, Optional
+import os
+from typing import Literal, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
 
+from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
 )
 from huggingface_inference_toolkit.routers import (
+    custom_router,
     health_router,
     metrics_router,
+    predict_router,
 )
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
@@ -22,7 +26,10 @@ app.include_router(router=metrics_router)
 
 
 def launch(
-    model_id: str,
+    model_id: Union[str, None],
+    # NOTE: on Inference Endpoints the model is downloaded in advance into the `/repository` directory
+    # meaning that the `model_id` will always be None there, and the `model_dir` will be used instead
+    model_dir: Union[str, None],
     task: str,
     # TODO: maybe we should include `npu` too as supported by `sentence-transformers`?
     device: Optional[Literal["auto", "balanced", "cuda", "cpu", "mps"]] = "auto",
@@ -33,12 +40,21 @@ def launch(
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
 ) -> None:
-    from huggingface_inference_toolkit.logging import logger
-    from huggingface_inference_toolkit.routers import predict_router
+    if model_id and model_dir:
+        logger.warning(
+            f"Both {model_id=} and {model_dir=} have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
+        )
+        model_id = None
 
-    logger.info(f"Starting toolkit server for model {model_id=} with task {task=} on device {device=}")
+    if not model_id and not model_dir:
+        raise ValueError(
+            "Any of `--model-id` or `--model-dir` should be provided but both cannot be None (alternatively those can be provided via the environment variables `MODEL_ID` or `MODEL_DIR`, respectively."
+        )
 
-    # Python 3.10 should be the minimum supported version (?)
+    logger.info(
+        f"Starting toolkit server for model {model_id or model_dir=} with task {task=} on device {device=}"
+    )
+
     match task:
         # diffusers
         case "text-to-image":
@@ -48,9 +64,13 @@ def launch(
                 TextToImageOutput,
             )
 
-            predictor = TextToImage(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = TextToImageInput, TextToImageOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TextToImageInput,
+                    output_schema=TextToImageOutput,
+                )
+            )
         # sentence-transformers
         case "sentence-similarity":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_similarity import (
@@ -59,9 +79,13 @@ def launch(
                 SentenceSimilarityOutput,
             )
 
-            predictor = SentenceSimilarity(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = SentenceSimilarityInput, SentenceSimilarityOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=SentenceSimilarityInput,
+                    output_schema=SentenceSimilarityOutput,
+                )
+            )
         case "sentence-embeddings":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_embeddings import (
                 SentenceEmbeddings,
@@ -69,9 +93,13 @@ def launch(
                 SentenceEmbeddingsOutput,
             )
 
-            predictor = SentenceEmbeddings(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = SentenceEmbeddingsInput, SentenceEmbeddingsOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=SentenceEmbeddings(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=SentenceEmbeddingsInput,
+                    output_schema=SentenceEmbeddingsOutput,
+                )
+            )
         case "sentence-ranking":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_ranking import (
                 SentenceRanking,
@@ -79,9 +107,13 @@ def launch(
                 SentenceRankingOutput,
             )
 
-            predictor = SentenceRanking(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = SentenceRankingInput, SentenceRankingOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=SentenceRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=SentenceRankingInput,  # type: ignore
+                    output_schema=SentenceRankingOutput,  # type: ignore
+                )
+            )
         # transformers
         case "text-classification":
             from huggingface_inference_toolkit.tasks.transformers.text_classification import (
@@ -90,9 +122,13 @@ def launch(
                 TextClassificationOutput,
             )
 
-            predictor = TextClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = TextClassificationInput, TextClassificationOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=TextClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TextClassificationInput,
+                    output_schema=TextClassificationOutput,
+                )
+            )
         case "fill-mask":
             from huggingface_inference_toolkit.tasks.transformers.fill_mask import (
                 FillMask,
@@ -100,9 +136,13 @@ def launch(
                 FillMaskOutput,
             )
 
-            predictor = FillMask(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = FillMaskInput, FillMaskOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=FillMask(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=FillMaskInput,
+                    output_schema=FillMaskOutput,
+                )
+            )
         case "question-answering":
             from huggingface_inference_toolkit.tasks.transformers.question_answering import (
                 QuestionAnswering,
@@ -110,9 +150,13 @@ def launch(
                 QuestionAnsweringOutput,
             )
 
-            predictor = QuestionAnswering(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = QuestionAnsweringInput, QuestionAnsweringOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=QuestionAnswering(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=QuestionAnsweringInput,
+                    output_schema=QuestionAnsweringOutput,
+                )
+            )
         case "summarization":
             from huggingface_inference_toolkit.tasks.transformers.summarization import (
                 Summarization,
@@ -120,9 +164,13 @@ def launch(
                 SummarizationOutput,
             )
 
-            predictor = Summarization(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = SummarizationInput, SummarizationOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=Summarization(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=SummarizationInput,
+                    output_schema=SummarizationOutput,
+                )
+            )
         case "zero-shot-classification":
             from huggingface_inference_toolkit.tasks.transformers.zero_shot_classification import (
                 ZeroShotClassification,
@@ -130,9 +178,17 @@ def launch(
                 ZeroShotClassificationOutput,
             )
 
-            predictor = ZeroShotClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = ZeroShotClassificationInput, ZeroShotClassificationOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=ZeroShotClassification(
+                        model_id=model_id or model_dir,  # type: ignore
+                        dtype=dtype,  # type: ignore
+                        device=device,  # type: ignore
+                    ),
+                    input_schema=ZeroShotClassificationInput,
+                    output_schema=ZeroShotClassificationOutput,
+                )
+            )
         case "token-classification":
             from huggingface_inference_toolkit.tasks.transformers.token_classification import (
                 TokenClassification,
@@ -140,9 +196,13 @@ def launch(
                 TokenClassificationOutput,
             )
 
-            predictor = TokenClassification(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = TokenClassificationInput, TokenClassificationOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=TokenClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TokenClassificationInput,
+                    output_schema=TokenClassificationOutput,
+                )
+            )
         case "table-question-answering":
             from huggingface_inference_toolkit.tasks.transformers.table_question_answering import (
                 TableQuestionAnswering,
@@ -150,9 +210,17 @@ def launch(
                 TableQuestionAnsweringOutput,
             )
 
-            predictor = TableQuestionAnswering(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = TableQuestionAnsweringInput, TableQuestionAnsweringOutput
-
+            app.include_router(
+                router=predict_router(
+                    predictor=TableQuestionAnswering(
+                        model_id=model_id or model_dir,  # type: ignore
+                        dtype=dtype,  # type: ignore
+                        device=device,  # type: ignore
+                    ),
+                    input_schema=TableQuestionAnsweringInput,
+                    output_schema=TableQuestionAnsweringOutput,
+                )
+            )
         case "translation" | "translation_xx_to_yy":
             from huggingface_inference_toolkit.tasks.transformers.translation import (
                 Translation,
@@ -160,24 +228,34 @@ def launch(
                 TranslationOutput,
             )
 
-            predictor = Translation(model_id=model_id, dtype=dtype, device=device)  # type: ignore
-            input_schema, output_schema = TranslationInput, TranslationOutput
+            app.include_router(
+                router=predict_router(
+                    predictor=Translation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TranslationInput,
+                    output_schema=TranslationOutput,
+                )
+            )
+        case "custom":
+            from huggingface_hub import snapshot_download
 
+            from huggingface_inference_toolkit.tasks.custom import Custom
+
+            # NOTE: if `model_id` is provided, then download the repository first (or just pull it from the cache
+            # if already there); note that if `model_id` is not None here that means that `model_dir` is None and
+            # the other way around
+            if model_id is not None:
+                model_dir = snapshot_download(repo_id=model_id, repo_type="model")
+
+            try:
+                app.include_router(router=custom_router(handler=Custom.load(model_dir)))  # type: ignore
+            except Exception as e:
+                raise RuntimeError(
+                    f"Attempted to load a custom handler i.e. the class `{os.getenv('CUSTOM_HANDLER')}` from `{model_dir=}/{os.getenv('CUSTOM_HANDLER_FILE')}`, but either didn't find any or couldn't load it (as per \"{e}\")"
+                )
         case _:
             raise ValueError(f"{task=} not supported!")
 
-    app.include_router(
-        router=predict_router(
-            predictor=predictor,
-            # TODO: maybe not now, but would be nice to run `mypy` to double check types,
-            # for now just adding `# type: ignore` to prevent random warnings that are false
-            # negatives in most of the cases as e.g. below due to the Union
-            input_schema=input_schema,  # type: ignore
-            output_schema=output_schema,  # type: ignore
-        )
-    )
-
-    logger.info(f"Loaded {model_id=} with {task=} on {device=}.")
+    logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
