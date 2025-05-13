@@ -11,6 +11,7 @@ from huggingface_inference_toolkit.middleware import (
 )
 from huggingface_inference_toolkit.routers import (
     custom_router,
+    chat_completions_router,
     health_router,
     metrics_router,
     predict_router,
@@ -56,6 +57,21 @@ def launch(
     )
 
     match task:
+        # openai-compatible
+        case "image-text-to-text":
+            from huggingface_inference_toolkit.tasks.transformers.image_text_to_text import (
+                ImageTextToText,
+                ImageTextToTextInput,
+                ImageTextToTextOutput,
+            )
+
+            app.include_router(
+                router=chat_completions_router(
+                    predictor=ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=ImageTextToTextInput,
+                    output_schema=ImageTextToTextOutput,
+                )
+            )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
