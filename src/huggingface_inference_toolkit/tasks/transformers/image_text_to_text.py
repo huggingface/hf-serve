@@ -350,17 +350,22 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
                 case "assistant" | "developer" | "tool" | "function":
                     pass
 
-        text = self.processor.tokenizer.apply_chat_template(
+        prompt = self.processor.apply_chat_template(
             messages,
             tokenize=False,
             add_generation_prompt=True,
         )
 
-        inputs = self.processor(text=text, images=images, return_tensors="pt")
+        inputs = self.processor(texts=prompt, images=images, return_tensors="pt")
         inputs = inputs.to(self.model.device)
 
         with torch.inference_mode():
-            output = self.model.generate(**inputs, max_new_tokens=payload.max_completion_tokens or 128)[0]
+            output = self.model.generate(
+                **inputs,
+                max_new_tokens=payload.max_completion_tokens or 128,
+                temperature=payload.temperature,
+                top_p=payload.top_p,
+            )
 
         logger.info(f"output contains {output=}")
         logger.info(f"output has shape {output.shape()=}")
