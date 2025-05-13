@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Union, Iterator
+from typing import Generic, Iterator, TypeVar, Union
 
 from pydantic import BaseModel
 
