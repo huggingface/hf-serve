@@ -10,8 +10,8 @@ from huggingface_inference_toolkit.middleware import (
     PrometheusMiddleware,
 )
 from huggingface_inference_toolkit.routers import (
-    custom_router,
     chat_completions_router,
+    custom_router,
     health_router,
     metrics_router,
     predict_router,
