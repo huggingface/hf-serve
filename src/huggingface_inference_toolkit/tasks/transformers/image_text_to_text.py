@@ -354,7 +354,7 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
         inputs = inputs.to(self.model.device)
 
         with torch.inference_mode():
-            output = self.model.generate(**inputs, max_new_tokens=payload.max_completion_tokens)[0]
+            output = self.model.generate(**inputs, max_new_tokens=payload.max_completion_tokens or 128)[0]
 
         logger.info(f"output contains {output=}")
         logger.info(f"output has shape {output.shape()=}")
@@ -374,7 +374,7 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
                         annotations=[],
                     ),
                     logprobs=None,
-                    finish_reason="stop",
+                    finish_reason="stop" if output.size(1) < payload.max_completion_tokens or 128 else "length",
                 )
             ],
             usage=Usage(
