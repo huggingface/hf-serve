@@ -1,8 +1,16 @@
 [project]
 name = "huggingface-inference-toolkit"
 version = "0.1.0"
-description = "An attempt to refactor the former `huggingface-inference-toolkit`"
+description = "Production-ready inference API on top of Hugging Face (Transformers, Diffusers, and Sentence-Transformers)"
 readme = "README.md"
+authors = [
+  { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
+  { name = "Erik Kaunismäki", email = "erik.kaunismaki@huggingface.co" },
+]
+maintainers = [
+  { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
+  { name = "Erik Kaunismäki", email = "erik.kaunismaki@huggingface.co" },
+]
 requires-python = ">=3.10"
 dependencies = [
     "uvicorn>=0.34.0",
