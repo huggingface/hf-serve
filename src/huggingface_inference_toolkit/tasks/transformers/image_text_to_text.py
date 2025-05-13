@@ -83,7 +83,7 @@ class ContentPartRefusal(BaseModel):
 
 
 class AssistantMessage(BaseModel):
-    role: Literal["developer"] = Field(default="developer")
+    role: Literal["assistant"] = Field(default="assistant")
     audio: Optional[Dict[Literal["id"], str]]
     content: Optional[Union[str, List[Union[ContentPartText, ContentPartRefusal]]]]
     function_call: Optional[Dict[str, Any]] = Field(deprecated=True)
@@ -179,7 +179,7 @@ class WebSearchOptions(BaseModel):
 
 
 class ImageTextToTextInput(BaseModel):
-    messages: List[InputMessage]
+    messages: List[Annotated[InputMessage, Field(discriminator="role")]]
     model: str
     audio: Optional[AudioInput]
     frequency_penalty: Optional[float] = Field(default=0.0, ge=-2.0, le=2.0)
