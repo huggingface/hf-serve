@@ -38,9 +38,9 @@ class ContentPartAudio(BaseModel):
 
 
 class FileData(BaseModel):
-    file_data: Optional[str]
-    file_id: Optional[str]
-    filename: Optional[str]
+    file_data: Optional[str] = Field(default=None)
+    file_id: Optional[str] = Field(default=None)
+    filename: Optional[str] = Field(default=None)
 
 
 class ContentPartFile(BaseModel):
@@ -51,19 +51,19 @@ class ContentPartFile(BaseModel):
 class DeveloperMessage(BaseModel):
     role: Literal["developer"] = Field(default="developer")
     content: Union[str, List[ContentPartText]]
-    name: Optional[str]
+    name: Optional[str] = Field(default=None)
 
 
 class SystemMessage(BaseModel):
     role: Literal["system"] = Field(default="system")
     content: Union[str, List[ContentPartText]]
-    name: Optional[str]
+    name: Optional[str] = Field(default=None)
 
 
 class UserMessage(BaseModel):
     role: Literal["user"] = Field(default="user")
     content: Union[str, List[Union[ContentPartText, ContentPartImage, ContentPartAudio, ContentPartFile]]]
-    name: Optional[str]
+    name: Optional[str] = Field(default=None)
 
 
 class FunctionCall(BaseModel):
@@ -84,12 +84,12 @@ class ContentPartRefusal(BaseModel):
 
 class AssistantMessage(BaseModel):
     role: Literal["assistant"] = Field(default="assistant")
-    audio: Optional[Dict[Literal["id"], str]]
-    content: Optional[Union[str, List[Union[ContentPartText, ContentPartRefusal]]]]
-    function_call: Optional[Dict[str, Any]] = Field(deprecated=True)
-    name: Optional[str]
-    refusal: Optional[str]
-    tool_calls: Optional[List[ToolCall]]
+    audio: Optional[Dict[Literal["id"], str]] = Field(default=None)
+    content: Optional[Union[str, List[Union[ContentPartText, ContentPartRefusal]]]] = Field(default=None)
+    function_call: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
+    name: Optional[str] = Field(default=None)
+    refusal: Optional[str] = Field(default=None)
+    tool_calls: Optional[List[ToolCall]] = Field(default=None)
 
 
 class ToolMessage(BaseModel):
@@ -101,7 +101,7 @@ class ToolMessage(BaseModel):
 # NOTE: deprecated in favor of `ToolMessage`
 class FunctionMessage(BaseModel):
     role: Literal["function"] = Field(default="function")
-    content: Optional[str]
+    content: Optional[str] = Field(default=None)
     name: str
 
 
@@ -126,8 +126,8 @@ class ResponseFormatText(BaseModel):
 
 class JsonSchema(BaseModel):
     name: str
-    description: Optional[str]
-    json_schema: Optional[Dict[str, Any]] = Field(serialization_alias="schema", alias="schema")
+    description: Optional[str] = Field(default=None)
+    json_schema: Optional[Dict[str, Any]] = Field(default=None, serialization_alias="schema", alias="schema")
     strict: Optional[bool] = Field(default=False)
 
 
@@ -141,7 +141,7 @@ class ResponseFormatJsonObject(BaseModel):
 
 
 class StreamOptions(BaseModel):
-    include_usage: Optional[bool]
+    include_usage: Optional[bool] = Field(default=None)
 
 
 class ToolChoice(BaseModel):
@@ -152,8 +152,8 @@ class ToolChoice(BaseModel):
 
 class ToolFunction(BaseModel):
     name: str
-    description: Optional[str]
-    parameters: Optional[Dict[str, Any]]
+    description: Optional[str] = Field(default=None)
+    parameters: Optional[Dict[str, Any]] = Field(default=None)
     strict: Optional[bool] = Field(default=False)
 
 
@@ -163,10 +163,10 @@ class Tool(BaseModel):
 
 
 class ApproximateLocation(BaseModel):
-    city: Optional[str]
-    country: Optional[str]
-    region: Optional[str]
-    timezone: Optional[str]
+    city: Optional[str] = Field(default=None)
+    country: Optional[str] = Field(default=None)
+    region: Optional[str] = Field(default=None)
+    timezone: Optional[str] = Field(default=None)
 
 
 class UserLocation(BaseModel):
@@ -181,24 +181,26 @@ class WebSearchOptions(BaseModel):
 class ImageTextToTextInput(BaseModel):
     messages: List[Annotated[InputMessage, Field(discriminator="role")]]
     model: str
-    audio: Optional[AudioInput]
+    audio: Optional[AudioInput] = Field(default=None)
     frequency_penalty: Optional[float] = Field(default=0.0, ge=-2.0, le=2.0)
-    function_call: Optional[Union[Literal["none", "auto"], str]] = Field(deprecated=True)
-    functions: Optional[Dict[str, Any]] = Field(deprecated=True)
-    logit_bias: Optional[Dict[int, Annotated[int, conint(ge=-100, le=100)]]]
+    function_call: Optional[Union[Literal["none", "auto"], str]] = Field(default=None, deprecated=True)
+    functions: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
+    logit_bias: Optional[Dict[int, Annotated[int, conint(ge=-100, le=100)]]] = Field(default=None)
     logprobs: Optional[bool] = Field(default=False)
     max_completion_tokens: Optional[int] = Field(alias="max_tokens")
-    metadata: Optional[Dict[str, Any]]  # NOTE: up-to 16 kv pairs, key 64 chars, value 512 chars
+    metadata: Optional[Dict[str, Any]] = Field(
+        default=None
+    )  # NOTE: up-to 16 kv pairs, key 64 chars, value 512 chars
     modalities: List[Literal["text", "audio"]] = Field(default=["text"])
     n: Optional[int] = Field(default=1)
     parallel_tool_calls: Optional[bool] = Field(default=True)
-    prediction: Optional[Prediction]
+    prediction: Optional[Prediction] = Field(default=None)
     presence_penalty: Optional[float] = Field(default=0.0, ge=-2.0, le=2.0)
     reasoning_effort: Optional[Literal["low", "medium", "high"]] = Field(default="medium")
     response_format: Optional[Union[ResponseFormatText, ResponseFormatJsonSchema, ResponseFormatJsonObject]] = (
         Field(default=ResponseFormatText())
     )
-    seed: Optional[int]
+    seed: Optional[int] = Field(default=None)
     service_tier: Optional[Literal["auto", "default", "flex"]] = Field(default="auto")
     stop: Optional[Union[str, List[str]]] = Field(default=None)
     store: Optional[bool] = Field(default=False)
@@ -208,21 +210,21 @@ class ImageTextToTextInput(BaseModel):
     tool_choice: Optional[Union[Literal["none", "auto", "required"], ToolChoice]] = Field(
         default="none"
     )  # NOTE: set to "auto" if `tools` is not None, and to None if `tools` is None
-    tools: Optional[List[Tool]]
+    tools: Optional[List[Tool]] = Field(default=None)
     top_logprobs: Optional[int] = Field(default=1, ge=0, le=20)  # NOTE: ignore field if `logprobs=False`
     top_p: Optional[float] = Field(default=1.0, ge=0.0, le=1.0)
-    user: Optional[str]
-    web_search_options: Optional[WebSearchOptions]
+    user: Optional[str] = Field(default=None)
+    web_search_options: Optional[WebSearchOptions] = Field(default=None)
 
 
 class TopLogProb(BaseModel):
-    bytes: Optional[List[bytes]]
+    bytes: Optional[List[int]] = Field(default=None)
     logprob: float
     token: str
 
 
 class Refusal(BaseModel):
-    bytes: Optional[List[bytes]]
+    bytes: Optional[List[int]] = Field(default=None)
     logprob: float
     token: str
     top_logprobs: List[TopLogProb]
@@ -241,14 +243,14 @@ class OutputAudio(BaseModel):
 
 
 class Annotation(BaseModel):
-    audio: Optional[OutputAudio]
+    audio: Optional[OutputAudio] = Field(default=None)
     function_call: Annotated[FunctionCall, Field(deprecated=True)]
     tool_calls: List[ToolCall]
 
 
 class OutputMessage(BaseModel):
-    content: Optional[str]
-    refusal: Optional[str]
+    content: Optional[str] = Field(default=None)
+    refusal: Optional[str] = Field(default=None)
     role: str
     annotations: List[Annotation]
 
