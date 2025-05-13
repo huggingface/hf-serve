@@ -301,9 +301,13 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             if os.getenv("TRUST_REMOTE_CODE", None) not in {None, 0, "false", "False"}
             else False,
             torch_dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
         )
+
+        if device == "auto":
+            device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
+
+        self.model = self.model.to(device)
+
         self.processor = AutoProcessor.from_pretrained(
             model_id,
             trust_remote_code=True
