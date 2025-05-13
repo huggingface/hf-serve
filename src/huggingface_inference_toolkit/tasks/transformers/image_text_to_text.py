@@ -322,7 +322,7 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
     def __call__(self, payload: ImageTextToTextInput) -> ImageTextToTextOutput:
-        logger.info(f"Received input {payload}")
+        logger.info(f"Received input {payload=}")
 
         messages, images = [], []
         for message in payload.messages:
@@ -332,13 +332,25 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
                     if isinstance(message.content, str):
                         formatted_message["content"] = message.content
                     elif isinstance(message.content, list):
-                        formatted_message["content"] = []  # type: ignore
+                        formatted_message["content"] = ""
+                        # NOTE: see explanation below
+                        # formatted_message["content"] = []  # type: ignore
                         for content in message.content:
                             if isinstance(content, ContentPartText):
-                                formatted_message["content"].append(content)
+                                # NOTE: see explanation below
+                                # formatted_message["content"].append(content)
+                                formatted_message["content"] += content.text
                             elif isinstance(content, ContentPartImage):
                                 images.append(load_image(content.image_url.url))
-                                formatted_message["content"].append({"type": "image"})
+                                # NOTE: ideally the image tokens would be included when applying the chat template if including the following
+                                # formatted_message["content"].append({"type": "image"})
+                                # Since that won't work for `microsoft/Magma-8B`, we'll just add it as it follows
+                                while formatted_message["content"].count(
+                                    "<image_start><image><image_end>\n"
+                                ) < len(images):
+                                    formatted_message["content"] = (
+                                        "<image_start><image><image_end>\n" + formatted_message["content"]
+                                    )
                     messages.append(formatted_message)
                 case "system":
                     formatted_message = {"role": message.role}
@@ -356,19 +368,22 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             add_generation_prompt=True,
         )
 
-        inputs = self.processor(texts=prompt, images=images, return_tensors="pt")
-        inputs = inputs.to(self.model.device)
+        inputs = self.processor(texts=prompt, images=images or None, return_tensors="pt")
+        if images:
+            inputs["pixel_values"] = inputs["pixel_values"].unsqueeze(0)
+            inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
+        inputs = inputs.to(self.model.device).to(self.model.dtype)
 
-        with torch.inference_mode():
+        with torch.no_grad():
             output = self.model.generate(
                 **inputs,
                 max_new_tokens=payload.max_completion_tokens or 128,
+                do_sample=True if payload.temperature != 1.0 else False,
                 temperature=payload.temperature,
                 top_p=payload.top_p,
             )
 
-        logger.info(f"output contains {output=}")
-        logger.info(f"output has shape {output.shape()=}")
+        output = output[:, inputs["input_ids"].shape[-1] :][0]
 
         return ImageTextToTextOutput(
             id=f"chatcmpl-{uuid4().hex[:10]}",
@@ -379,19 +394,21 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
                 Choice(
                     index=0,
                     message=OutputMessage(
-                        content=self.processor.batch_decode(output, skip_special_tokens=True),
+                        content=self.processor.decode(output, skip_special_tokens=True),
                         refusal=None,
                         role="assistant",
                         annotations=[],
                     ),
                     logprobs=None,
-                    finish_reason="stop" if output.size(1) < payload.max_completion_tokens or 128 else "length",
+                    finish_reason="stop"
+                    if output.shape[0] < (payload.max_completion_tokens or 128)
+                    else "length",
                 )
             ],
             usage=Usage(
-                completion_tokens=output.size(1),
+                completion_tokens=output.shape[0],
                 reasoning_tokens=0,
-                total_tokens=inputs["input_ids"].size(1),
+                total_tokens=output.shape[0] + inputs["input_ids"].size(1),
                 completion_tokens_details=CompletionTokensDetails(
                     accepted_prediction_tokens=0,
                     audio_tokens=0,
