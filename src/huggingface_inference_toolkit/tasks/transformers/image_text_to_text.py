@@ -127,7 +127,7 @@ class ResponseFormatText(BaseModel):
 class JsonSchema(BaseModel):
     name: str
     description: Optional[str]
-    _schema: Optional[Dict[str, Any]] = Field(serialization_alias="schema", alias="schema")
+    json_schema: Optional[Dict[str, Any]] = Field(serialization_alias="schema", alias="schema")
     strict: Optional[bool] = Field(default=False)
 
 
