@@ -236,6 +236,15 @@ def launch(
                 )
             )
         case "custom":
+            if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
+                0,
+                "false",
+                "False",
+            }:
+                raise RuntimeError(
+                    f"Since `TRUST_REMOTE_CODE` (formerly known as `HF_TRUST_REMOTE_CODE`) is set to {os.getenv('TRUST_REMOTE_CODE', None)}, it means that the `custom` task cannot run, as it requires to pull and run custom code. Enabling it as `TRUST_REMOTE_CODE=(1, true, True)` is not recommended, unless you either developed the custom code or trust the developer / organization."
+                )
+
             from huggingface_hub import snapshot_download
 
             from huggingface_inference_toolkit.tasks.custom import Custom
