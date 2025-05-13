@@ -1,3 +1,4 @@
+from collections.abc import AsyncIterator
 from typing import Iterator, Type, Union
 
 from fastapi import APIRouter, Body, HTTPException
@@ -17,12 +18,18 @@ def router(
     @router.post("/v1/chat/completions", response_model=output_schema)
     async def predict(payload: input_schema = Body(...)) -> output_schema:  # type: ignore
         try:
+            output = predictor(payload=payload)
             if payload.stream:
-                return StreamingResponse(predictor(payload=payload), media_type="application/json")
-            return predictor(payload=payload)
+                return StreamingResponse(iter_chunks(output), media_type="application/x-ndjson")
+            return output
         # TODO(alvarobartt): create better custom exceptions and handle those here with different
         # error codes for I/O validation errors, ser/de errors, or pipeline errors
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
     return router
+
+
+async def iter_chunks(chunks: Iterator[BaseModel]) -> AsyncIterator[bytes]:
+    for chunk in chunks:
+        yield chunk.model_dump_json().encode() + b"\n"
