@@ -190,6 +190,7 @@ class ImageTextToTextInput(BaseModel):
     logit_bias: Optional[Dict[int, Annotated[int, conint(ge=-100, le=100)]]] = Field(default=None)
     logprobs: Optional[bool] = Field(default=False)
     max_completion_tokens: Optional[int] = Field(
+        default=None,
         validation_alias=AliasChoices("max_completion_tokens", AliasPath("max_tokens")),
     )
     metadata: Optional[Dict[str, Any]] = Field(
@@ -415,7 +416,7 @@ class ImageTextToText(
 
         generation_kwargs = dict(
             inputs,
-            max_new_tokens=payload.max_completion_tokens or 128,
+            max_new_tokens=payload.max_completion_tokens,
             do_sample=True if payload.temperature != 1.0 else False,
             temperature=payload.temperature,
             top_p=payload.top_p,
@@ -447,7 +448,10 @@ class ImageTextToText(
                             finish_reason="length"
                             if stream
                             not in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
-                            and completion_tokens >= (payload.max_completion_tokens or 128)
+                            and (
+                                payload.max_completion_tokens
+                                and completion_tokens >= payload.max_completion_tokens
+                            )
                             else "stop"
                             if stream
                             in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
@@ -472,15 +476,7 @@ class ImageTextToText(
                 )
             return
 
-        output = self.model.generate(
-            **inputs,
-            max_new_tokens=payload.max_completion_tokens or 128,
-            do_sample=True if payload.temperature != 1.0 else False,
-            temperature=payload.temperature,
-            top_p=payload.top_p,
-            streamer=self.streamer if payload.stream is True else None,
-        )
-
+        output = self.model.generate(**generation_kwargs)
         output = output[:, inputs["input_ids"].shape[-1] :][0]
 
         return ImageTextToTextOutput(
@@ -498,9 +494,9 @@ class ImageTextToText(
                         annotations=[],
                     ),
                     logprobs=None,
-                    finish_reason="stop"
-                    if output.shape[0] < (payload.max_completion_tokens or 128)
-                    else "length",
+                    finish_reason="length"
+                    if (payload.max_completion_tokens and output.shape[0] >= payload.max_completion_tokens)
+                    else "stop",
                 )
             ],
             usage=Usage(
