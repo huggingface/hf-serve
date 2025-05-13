@@ -11,17 +11,17 @@ from huggingface_inference_toolkit.tasks.predictor import Predictor
 def router(
     predictor: Predictor,
     input_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
-    output_schema: Union[Type[BaseModel], Type[Union[BaseModel, Iterator[BaseModel], ...]]],  # type: ignore
+    output_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
 ) -> APIRouter:
     router = APIRouter()
 
     @router.post("/v1/chat/completions", response_model=output_schema)
-    async def predict(payload: input_schema = Body(...)) -> output_schema:  # type: ignore
+    async def predict(payload: input_schema = Body(...)) -> Union[StreamingResponse, output_schema]:  # type: ignore
         try:
             output = predictor(payload=payload)
-            if payload.stream:
+            if payload.stream is True:
                 return StreamingResponse(iter_chunks(output), media_type="application/x-ndjson")
-            return output
+            return next(output)
         # TODO(alvarobartt): create better custom exceptions and handle those here with different
         # error codes for I/O validation errors, ser/de errors, or pipeline errors
         except Exception as e:

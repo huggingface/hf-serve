@@ -328,7 +328,7 @@ class ImageTextToTextOutputChunk(BaseModel):
 
 
 class ImageTextToText(
-    Predictor[ImageTextToTextInput, Union[ImageTextToTextOutput, Iterator[ImageTextToTextOutputChunk]]]
+    Predictor[ImageTextToTextInput, Union[Iterator[ImageTextToTextOutputChunk], ImageTextToTextOutput]]
 ):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
@@ -361,7 +361,7 @@ class ImageTextToText(
 
     def __call__(
         self, payload: ImageTextToTextInput
-    ) -> Union[ImageTextToTextOutput, Iterator[ImageTextToTextOutputChunk]]:
+    ) -> Union[Iterator[ImageTextToTextOutputChunk], ImageTextToTextOutput]:
         logger.info(f"Received input {payload=}")
 
         messages, images = [], []
@@ -423,6 +423,7 @@ class ImageTextToText(
         )
 
         if payload.stream is True:
+            logger.info("i'm here motherfucker")
             generation_kwargs["streamer"] = self.streamer  # type: ignore
 
             id = f"chatcmpl-{uuid4().hex[:10]}"
@@ -472,44 +473,45 @@ class ImageTextToText(
                     service_tier="default",
                     system_fingerprint=system_fingerprint,
                 )
-            return
+        else:
+            logger.info("i'm here")
+            with torch.no_grad():
+                output = self.model.generate(**generation_kwargs)
+            output = output[:, inputs["input_ids"].shape[-1] :][0]
 
-        output = self.model.generate(**generation_kwargs)
-        output = output[:, inputs["input_ids"].shape[-1] :][0]
-
-        return ImageTextToTextOutput(
-            id=f"chatcmpl-{uuid4().hex[:10]}",
-            object="chat.completion",
-            created=int(time()),
-            model=payload.model,
-            choices=[
-                Choice(
-                    index=0,
-                    message=OutputMessage(
-                        content=self.processor.decode(output, skip_special_tokens=True),
-                        refusal=None,
-                        role="assistant",
-                        annotations=[],
-                    ),
-                    logprobs=None,
-                    finish_reason="length"
-                    if output.shape[0] >= (payload.max_completion_tokens or 256)
-                    else "stop",
-                )
-            ],
-            usage=Usage(
-                prompt_tokens=inputs["input_ids"].size(1),
-                completion_tokens=output.shape[0],
-                reasoning_tokens=0,
-                total_tokens=output.shape[0] + inputs["input_ids"].size(1),
-                completion_tokens_details=CompletionTokensDetails(
-                    accepted_prediction_tokens=0,
-                    audio_tokens=0,
+            return ImageTextToTextOutput(
+                id=f"chatcmpl-{uuid4().hex[:10]}",
+                object="chat.completion",
+                created=int(time()),
+                model=payload.model,
+                choices=[
+                    Choice(
+                        index=0,
+                        message=OutputMessage(
+                            content=self.processor.decode(output, skip_special_tokens=True),
+                            refusal=None,
+                            role="assistant",
+                            annotations=[],
+                        ),
+                        logprobs=None,
+                        finish_reason="length"
+                        if output.shape[0] >= (payload.max_completion_tokens or 256)
+                        else "stop",
+                    )
+                ],
+                usage=Usage(
+                    prompt_tokens=inputs["input_ids"].size(1),
+                    completion_tokens=output.shape[0],
                     reasoning_tokens=0,
-                    rejected_prediction_tokens=0,
+                    total_tokens=output.shape[0] + inputs["input_ids"].size(1),
+                    completion_tokens_details=CompletionTokensDetails(
+                        accepted_prediction_tokens=0,
+                        audio_tokens=0,
+                        reasoning_tokens=0,
+                        rejected_prediction_tokens=0,
+                    ),
+                    prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0),
                 ),
-                prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0),
-            ),
-            service_tier="default",
-            system_fingerprint=str(uuid4()),
-        )
+                service_tier="default",
+                system_fingerprint=str(uuid4()),
+            )
