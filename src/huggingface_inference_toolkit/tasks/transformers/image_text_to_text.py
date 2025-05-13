@@ -1,11 +1,12 @@
 import os
+from threading import Thread
 from time import time
-from typing import Annotated, Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, Iterator, List, Literal, Optional, Union
 from uuid import uuid4
 
 import torch
 from pydantic import BaseModel, Field, conint
-from transformers import AutoModelForCausalLM, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoProcessor, TextIteratorStreamer
 from transformers.image_utils import load_image
 
 from huggingface_inference_toolkit.logging import logger
@@ -223,7 +224,7 @@ class TopLogProb(BaseModel):
     token: str
 
 
-class Refusal(BaseModel):
+class LogProb(BaseModel):
     bytes: Optional[List[int]] = Field(default=None)
     logprob: float
     token: str
@@ -231,8 +232,8 @@ class Refusal(BaseModel):
 
 
 class LogProbs(BaseModel):
-    content: str
-    refusal: Refusal
+    content: Optional[List[LogProb]] = Field(default=None)
+    refusal: Optional[List[LogProb]] = Field(default=None)
 
 
 class OutputAudio(BaseModel):
@@ -260,6 +261,23 @@ class Choice(BaseModel):
     message: OutputMessage
     logprobs: Optional[LogProbs] = Field(default=None)
     finish_reason: Literal["stop", "length", "content_filter", "tool_calls", "function_call"]
+
+
+class Delta(BaseModel):
+    content: Optional[str] = Field(default=None)
+    function_call: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
+    refusal: Optional[str] = Field(default=None)
+    role: Literal["developer", "system", "user", "assistant", "function", "tool"]
+    tool_calls: Optional[List[ToolCall]] = Field(default=None)
+
+
+class ChoiceChunk(BaseModel):
+    index: int
+    delta: Delta
+    logprobs: Optional[LogProbs] = Field(default=None)
+    finish_reason: Optional[Literal["stop", "length", "content_filter", "tool_calls", "function_call"]] = Field(
+        default=None
+    )
 
 
 class CompletionTokensDetails(BaseModel):
@@ -293,7 +311,20 @@ class ImageTextToTextOutput(BaseModel):
     system_fingerprint: str
 
 
-class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
+class ImageTextToTextOutputChunk(BaseModel):
+    id: str
+    object: Literal["chat.completion.chunk"] = Field(default="chat.completion.chunk")
+    created: int
+    model: str
+    choices: List[ChoiceChunk]
+    usage: Usage
+    service_tier: Literal["auto", "default", "flex"] = Field(default="auto")
+    system_fingerprint: str
+
+
+class ImageTextToText(
+    Predictor[ImageTextToTextInput, Union[ImageTextToTextOutput, Iterator[ImageTextToTextOutputChunk]]]
+):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
@@ -310,6 +341,10 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
 
         self.model = self.model.to(device)
 
+        if torch.mps.is_available():
+            torch.mps.empty_cache()
+            torch.mps.set_per_process_memory_fraction(0.9)
+
         self.processor = AutoProcessor.from_pretrained(
             model_id,
             trust_remote_code=True
@@ -317,11 +352,11 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             else False,
         )
 
-        if torch.mps.is_available():
-            torch.mps.empty_cache()
-            torch.mps.set_per_process_memory_fraction(0.9)
+        self.streamer = TextIteratorStreamer(self.processor.tokenizer)
 
-    def __call__(self, payload: ImageTextToTextInput) -> ImageTextToTextOutput:
+    def __call__(
+        self, payload: ImageTextToTextInput
+    ) -> Union[ImageTextToTextOutput, Iterator[ImageTextToTextOutputChunk]]:
         logger.info(f"Received input {payload=}")
 
         messages, images = [], []
@@ -374,14 +409,69 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
         inputs = inputs.to(self.model.device).to(self.model.dtype)
 
-        with torch.no_grad():
-            output = self.model.generate(
-                **inputs,
-                max_new_tokens=payload.max_completion_tokens or 128,
-                do_sample=True if payload.temperature != 1.0 else False,
-                temperature=payload.temperature,
-                top_p=payload.top_p,
-            )
+        generation_kwargs = dict(
+            inputs,
+            max_new_tokens=payload.max_completion_tokens or 128,
+            do_sample=True if payload.temperature != 1.0 else False,
+            temperature=payload.temperature,
+            top_p=payload.top_p,
+        )
+
+        if payload.stream is True:
+            generation_kwargs["streamer"] = self.streamer  # type: ignore
+
+            id = f"chatcmpl-{uuid4().hex[:10]}"
+            system_fingerprint = str(uuid4())
+
+            with torch.no_grad():
+                thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
+                thread.start()
+
+            completion_tokens = 0
+            for stream in self.streamer:
+                completion_tokens += 1
+                yield ImageTextToTextOutputChunk(
+                    id=id,
+                    object="chat.completion.chunk",
+                    created=int(time()),
+                    model=payload.model,
+                    choices=[
+                        ChoiceChunk(
+                            index=0,
+                            delta=Delta(role="assistant", content=stream),
+                            logprobs=None,
+                            finish_reason=None
+                            if stream
+                            else "stop"
+                            if completion_tokens < (payload.max_completion_tokens or 128)
+                            else "length",
+                        ),
+                    ],
+                    usage=Usage(
+                        completion_tokens=completion_tokens,
+                        reasoning_tokens=0,
+                        total_tokens=completion_tokens + inputs["input_ids"].size(1),
+                        completion_tokens_details=CompletionTokensDetails(
+                            accepted_prediction_tokens=0,
+                            audio_tokens=0,
+                            reasoning_tokens=0,
+                            rejected_prediction_tokens=0,
+                        ),
+                        prompt_tokens_details=PromptTokensDetails(audio_tokens=0, cached_tokens=0),
+                    ),
+                    service_tier="default",
+                    system_fingerprint=system_fingerprint,
+                )
+            return
+
+        output = self.model.generate(
+            **inputs,
+            max_new_tokens=payload.max_completion_tokens or 128,
+            do_sample=True if payload.temperature != 1.0 else False,
+            temperature=payload.temperature,
+            top_p=payload.top_p,
+            streamer=self.streamer if payload.stream is True else None,
+        )
 
         output = output[:, inputs["input_ids"].shape[-1] :][0]
 
