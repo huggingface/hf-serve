@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     build-essential \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -24,7 +25,7 @@ WORKDIR /app
 COPY . .
 
 RUN uv sync --frozen && uv pip install .
-ENV HF_HUB_ENABLE_HF_TRANSFER=1
+ENV HF_HUB_USER_AGENT_ORIGIN=azure:foundry:gpu-cuda:inference:huggingface-inference-toolkit
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
