@@ -27,6 +27,8 @@ dependencies = [
     "sentencepiece>=0.2.0",
     "protobuf>=5.29.3",
     "peft>=0.14.0",
+    "pillow>=11.1.0",
+    "open-clip-torch>=2.32.0",
 ]
 
 [build-system]
@@ -35,6 +37,7 @@ build-backend = "hatchling.build"
 
 [tool.uv.sources]
 huggingface-inference-toolkit = { workspace = true }
+transformers = { git = "https://github.com/jwyang/transformers.git", rev = "dev/jwyang-v4.48.2" }
 
 [project.scripts]
 huggingface-inference-toolkit = "huggingface_inference_toolkit.cli:main"
