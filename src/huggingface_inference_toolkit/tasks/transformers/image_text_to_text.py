@@ -423,7 +423,6 @@ class ImageTextToText(
         )
 
         if payload.stream is True:
-            logger.info("i'm here motherfucker")
             generation_kwargs["streamer"] = self.streamer  # type: ignore
 
             id = f"chatcmpl-{uuid4().hex[:10]}"
@@ -474,7 +473,6 @@ class ImageTextToText(
                     system_fingerprint=system_fingerprint,
                 )
         else:
-            logger.info("i'm here")
             with torch.no_grad():
                 output = self.model.generate(**generation_kwargs)
             output = output[:, inputs["input_ids"].shape[-1] :][0]

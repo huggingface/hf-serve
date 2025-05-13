@@ -16,12 +16,22 @@ def router(
     router = APIRouter()
 
     @router.post("/v1/chat/completions", response_model=output_schema)
-    async def predict(payload: input_schema = Body(...)) -> Union[StreamingResponse, output_schema]:  # type: ignore
+    async def predict(payload: input_schema = Body(...)) -> Union[output_schema, StreamingResponse]:  # type: ignore
         try:
-            output = predictor(payload=payload)
             if payload.stream is True:
-                return StreamingResponse(iter_chunks(output), media_type="application/x-ndjson")
-            return next(output)
+                return StreamingResponse(
+                    iter_chunks(predictor(payload=payload)), media_type="application/x-ndjson"
+                )
+
+            try:
+                output = next(predictor(payload=payload))
+            except StopIteration as e:
+                if e.value and isinstance(e.value, output_schema):
+                    return e.value
+                raise HTTPException(500, "Non-streaming chat completion couldn't be generated") from e
+
+            return output
+
         # TODO(alvarobartt): create better custom exceptions and handle those here with different
         # error codes for I/O validation errors, ser/de errors, or pipeline errors
         except Exception as e:
