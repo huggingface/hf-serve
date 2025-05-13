@@ -367,6 +367,13 @@ class ImageTextToText(
         messages, images = [], []
         for message in payload.messages:
             match message.role:
+                case "system" | "assistant":
+                    formatted_message = {"role": message.role}
+                    if isinstance(message.content, str):
+                        formatted_message["content"] = message.content
+                    elif isinstance(message.content, ContentPartText):
+                        formatted_message["content"] = message.content.text
+                    messages.append(formatted_message)
                 case "user":
                     formatted_message = {"role": message.role}
                     if isinstance(message.content, str):
@@ -392,14 +399,8 @@ class ImageTextToText(
                                         "<image_start><image><image_end>\n" + formatted_message["content"]
                                     )
                     messages.append(formatted_message)
-                case "system":
-                    formatted_message = {"role": message.role}
-                    if isinstance(message.content, str):
-                        formatted_message["content"] = message.content
-                    elif isinstance(message.content, ContentPartText):
-                        formatted_message["content"] = message.content.text
-                    messages.append(formatted_message)
-                case "assistant" | "developer" | "tool" | "function":
+                case "developer" | "tool" | "function":
+                    # TODO: note that tool and audio don't work yet
                     pass
 
         prompt = self.processor.apply_chat_template(
