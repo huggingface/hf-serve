@@ -416,7 +416,7 @@ class ImageTextToText(
 
         generation_kwargs = dict(
             inputs,
-            max_new_tokens=payload.max_completion_tokens,
+            max_new_tokens=payload.max_completion_tokens or 256,
             do_sample=True if payload.temperature != 1.0 else False,
             temperature=payload.temperature,
             top_p=payload.top_p,
@@ -432,7 +432,8 @@ class ImageTextToText(
                 thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
                 thread.start()
 
-            completion_tokens = 0
+            # NOTE: since the first token is always ""
+            completion_tokens = -1
             for stream in self.streamer:
                 completion_tokens += 1
                 yield ImageTextToTextOutputChunk(
@@ -448,10 +449,7 @@ class ImageTextToText(
                             finish_reason="length"
                             if stream
                             not in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
-                            and (
-                                payload.max_completion_tokens
-                                and completion_tokens >= payload.max_completion_tokens
-                            )
+                            and completion_tokens >= (payload.max_completion_tokens or 256)
                             else "stop"
                             if stream
                             in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
@@ -495,7 +493,7 @@ class ImageTextToText(
                     ),
                     logprobs=None,
                     finish_reason="length"
-                    if (payload.max_completion_tokens and output.shape[0] >= payload.max_completion_tokens)
+                    if output.shape[0] >= (payload.max_completion_tokens or 256)
                     else "stop",
                 )
             ],
