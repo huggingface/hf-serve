@@ -6,6 +6,7 @@ from uuid import uuid4
 
 import torch
 from pydantic import BaseModel, Field, conint
+from pydantic.aliases import AliasChoices, AliasPath
 from transformers import AutoModelForCausalLM, AutoProcessor, TextIteratorStreamer
 from transformers.image_utils import load_image
 
@@ -188,7 +189,9 @@ class ImageTextToTextInput(BaseModel):
     functions: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
     logit_bias: Optional[Dict[int, Annotated[int, conint(ge=-100, le=100)]]] = Field(default=None)
     logprobs: Optional[bool] = Field(default=False)
-    max_completion_tokens: Optional[int] = Field(alias="max_tokens")
+    max_completion_tokens: Optional[int] = Field(
+        validation_alias=AliasChoices("max_completion_tokens", AliasPath("max_tokens")),
+    )
     metadata: Optional[Dict[str, Any]] = Field(
         default=None
     )  # NOTE: up-to 16 kv pairs, key 64 chars, value 512 chars
@@ -293,6 +296,7 @@ class PromptTokensDetails(BaseModel):
 
 
 class Usage(BaseModel):
+    prompt_tokens: int
     completion_tokens: int
     reasoning_tokens: int
     total_tokens: int
@@ -352,7 +356,7 @@ class ImageTextToText(
             else False,
         )
 
-        self.streamer = TextIteratorStreamer(self.processor.tokenizer)
+        self.streamer = TextIteratorStreamer(self.processor.tokenizer, skip_prompt=True)
 
     def __call__(
         self, payload: ImageTextToTextInput
@@ -440,14 +444,18 @@ class ImageTextToText(
                             index=0,
                             delta=Delta(role="assistant", content=stream),
                             logprobs=None,
-                            finish_reason=None
+                            finish_reason="length"
                             if stream
+                            not in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
+                            and completion_tokens >= (payload.max_completion_tokens or 128)
                             else "stop"
-                            if completion_tokens < (payload.max_completion_tokens or 128)
-                            else "length",
+                            if stream
+                            in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
+                            else None,
                         ),
                     ],
                     usage=Usage(
+                        prompt_tokens=inputs["input_ids"].size(1),
                         completion_tokens=completion_tokens,
                         reasoning_tokens=0,
                         total_tokens=completion_tokens + inputs["input_ids"].size(1),
@@ -496,6 +504,7 @@ class ImageTextToText(
                 )
             ],
             usage=Usage(
+                prompt_tokens=inputs["input_ids"].size(1),
                 completion_tokens=output.shape[0],
                 reasoning_tokens=0,
                 total_tokens=output.shape[0] + inputs["input_ids"].size(1),
