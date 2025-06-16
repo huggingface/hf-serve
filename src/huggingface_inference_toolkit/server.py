@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Literal, Optional, Union
 
 import uvicorn
@@ -281,6 +282,30 @@ def launch(
             raise ValueError(f"{task=} not supported!")
 
     logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
+
+    # NOTE: some models as `microsoft/Magma-8B` may contain custom routers as those are not covered within the
+    # default implementation, to solve that, we create those under `src/huggingface_inference_toolkit/models`
+    # and add those on top of whatever the default router is.
+    if model_id:
+        model_file_name = model_id.replace("/", "--")
+        models_dir = Path(__file__).parent / "models"
+        model_file_path = models_dir / f"{model_file_name}.py"
+        if model_file_path.exists():
+            logger.info(f"Provided {model_id=} has a custom model file at {model_file_path=}")
+            try:
+                import importlib.util
+
+                spec = importlib.util.spec_from_file_location(model_file_name, model_file_path)
+                if spec and spec.loader:
+                    model_module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(model_module)
+
+                    if hasattr(model_module, "router"):
+                        logger.info(f"Loading custom router for {model_id=}")
+                        app.include_router(router=model_module.router)
+                        logger.info(f"Loaded custom router for {model_id=}")
+            except Exception as e:
+                logger.warning(f"Failed to load custom router for {model_id}: {e}")
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
