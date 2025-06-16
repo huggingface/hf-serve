@@ -287,7 +287,7 @@ def launch(
     # default implementation, to solve that, we create those under `src/huggingface_inference_toolkit/models`
     # and add those on top of whatever the default router is.
     if model_id:
-        model_file_name = model_id.replace("/", "--")
+        model_file_name = model_id.replace("/", "--").lower()
         models_dir = Path(__file__).parent / "models"
         model_file_path = models_dir / f"{model_file_name}.py"
         if model_file_path.exists():
