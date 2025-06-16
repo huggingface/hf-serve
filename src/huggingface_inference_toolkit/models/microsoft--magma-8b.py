@@ -2,7 +2,7 @@ from typing import List, Literal, Optional
 
 import numpy as np
 from fastapi import APIRouter
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 from transformers import AutoTokenizer
 from typing_extensions import Self
 
@@ -11,6 +11,13 @@ class NormalizationStats(BaseModel):
     mask: List[bool]
     q01: List[float]
     q99: List[float]
+
+    @field_validator("mask", "q01", "q99")
+    @classmethod
+    def validate_length(cls, v):
+        if len(v) != 7:
+            raise ValueError("All the normalization stats must contain exactly 7 items")
+        return v
 
 
 class ActionCompletionsRequest(BaseModel):
