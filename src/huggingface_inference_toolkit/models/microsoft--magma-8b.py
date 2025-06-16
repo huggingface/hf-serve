@@ -1,14 +1,32 @@
-from typing import Literal
+from typing import List, Literal, Optional
 
 import numpy as np
 from fastapi import APIRouter
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from transformers import AutoTokenizer
+from typing_extensions import Self
+
+
+class NormalizationStats(BaseModel):
+    mask: List[bool]
+    q01: List[float]
+    q99: List[float]
 
 
 class ActionCompletionsRequest(BaseModel):
     text: str
-    robot_type: Literal["bridge_orig", "google_robot"] = Field(default="bridge_orig")
+    robot_type: Optional[Literal["bridge_orig", "google_robot"]] = Field(default=None)
+    normalization_stats: Optional[NormalizationStats] = Field(default=None)
+
+    @model_validator(mode="after")
+    def check_mutually_exclusive(cls, values) -> Self:
+        robot_type = values.robot_type
+        normalization_stats = values.normalization_stats
+        if robot_type is not None and normalization_stats is not None:
+            raise ValueError("`robot_type` and `normalization_stats` are mutually exclusive")
+        if robot_type is None and normalization_stats is None:
+            values.robot_type = "bridge_orig"
+        return values
 
 
 class ActionCompletionsResponse(BaseModel):
@@ -26,33 +44,6 @@ class ActionCompletionsResponse(BaseModel):
 NORMALIZATION_STATS = {
     "bridge_orig": {
         "mask": [True, True, True, True, True, True, False],
-        "max": [
-            0.41691166162490845,
-            0.25864794850349426,
-            0.21218234300613403,
-            3.122201919555664,
-            1.8618112802505493,
-            6.280478477478027,
-            1.0,
-        ],
-        "mean": [
-            0.0002334194869035855,
-            0.00013004911306779832,
-            -0.00012762474943883717,
-            -0.0001556558854645118,
-            -0.0004039328487124294,
-            0.00023557482927571982,
-            0.5764579176902771,
-        ],
-        "min": [
-            -0.4007510244846344,
-            -0.13874775171279907,
-            -0.22553899884223938,
-            -3.2010786533355713,
-            -1.8618112802505493,
-            -6.279075622558594,
-            0.0,
-        ],
         "q01": [
             -0.02872725307941437,
             -0.04170349963009357,
@@ -71,45 +62,9 @@ NORMALIZATION_STATS = {
             0.20382574498653397,
             1.0,
         ],
-        "std": [
-            0.009765930473804474,
-            0.013689135201275349,
-            0.012667362578213215,
-            0.028534092009067535,
-            0.030637972056865692,
-            0.07691419124603271,
-            0.4973701536655426,
-        ],
     },
     "google_robot": {
         "mask": [True, True, True, True, True, True, False],
-        "max": [
-            2.9984593391418457,
-            22.09052848815918,
-            2.7507524490356445,
-            1.570636510848999,
-            1.5321086645126343,
-            1.5691522359848022,
-            1.0,
-        ],
-        "mean": [
-            0.006987582892179489,
-            0.006265917327255011,
-            -0.01262515690177679,
-            0.04333311319351196,
-            -0.005756212864071131,
-            0.0009130256366916001,
-            0.5354204773902893,
-        ],
-        "min": [
-            -2.0204520225524902,
-            -5.497899532318115,
-            -2.031663417816162,
-            -1.569917917251587,
-            -1.569892168045044,
-            -1.570419430732727,
-            0.0,
-        ],
         "q01": [
             -0.22453527510166169,
             -0.14820013284683228,
@@ -128,15 +83,6 @@ NORMALIZATION_STATS = {
             0.44796681255102094,
             1.0,
         ],
-        "std": [
-            0.0692116990685463,
-            0.05970962345600128,
-            0.07353084534406662,
-            0.15610496699810028,
-            0.13164450228214264,
-            0.14593800902366638,
-            0.497110515832901,
-        ],
     },
 }
 
@@ -147,7 +93,10 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/Magma-8B", trust_remote_cod
 @router.post("/v1/action-tokens", response_model=ActionCompletionsResponse)
 async def action_completions(request: ActionCompletionsRequest) -> ActionCompletionsResponse:
     try:
-        norm_stats = NORMALIZATION_STATS[request.robot_type]
+        if request.normalization_stats is not None:
+            norm_stats = dict(request.normalization_stats)
+        else:
+            norm_stats = NORMALIZATION_STATS[request.robot_type]  # type: ignore
 
         # Extract action tokens from the text
         input_ids = tokenizer.encode(request.text)
