@@ -144,7 +144,7 @@ router = APIRouter()
 tokenizer = AutoTokenizer.from_pretrained("microsoft/Magma-8B", trust_remote_code=True)
 
 
-@router.post("/v1/action/completions", response_model=ActionCompletionsResponse)
+@router.post("/v1/action-tokens", response_model=ActionCompletionsResponse)
 async def action_completions(request: ActionCompletionsRequest) -> ActionCompletionsResponse:
     try:
         norm_stats = NORMALIZATION_STATS[request.robot_type]
