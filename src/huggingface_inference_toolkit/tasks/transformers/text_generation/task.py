@@ -70,7 +70,7 @@ class TextGeneration(
         messages = []
         for message in payload.messages:
             match message.role:
-                case "system" | "assistant":
+                case "system" | "developer":
                     formatted_message = {"role": message.role}
                     if isinstance(message.content, str):
                         formatted_message["content"] = message.content
@@ -86,17 +86,58 @@ class TextGeneration(
                         for content in message.content:
                             if isinstance(content, ContentPartText):
                                 formatted_message["content"] += content.text
+                            elif isinstance(content, ContentPartRefusal):
+                                formatted_message["content"] += content.refusal
                             elif isinstance(
                                 content,
-                                (ContentPartImage, ContentPartAudio, ContentPartFile, ContentPartRefusal),
+                                (ContentPartImage, ContentPartAudio, ContentPartFile),
                             ):
                                 raise ValueError(
-                                    f"Provided {payload.messages=} contains an input that's either an image, audio, file or refusal, which is either not supported or not compatible yet."
+                                    f"Provided {payload.messages=} contains an input that's either an image, audio, or file, which is either not supported or not compatible yet."
                                 )
                     messages.append(formatted_message)
-                case "developer" | "tool" | "function":
-                    # TODO: note that tool and audio don't work yet
-                    pass
+                case "assistant":
+                    formatted_message = {"role": message.role}
+                    if message.content is not None:
+                        if isinstance(message.content, str):
+                            formatted_message["content"] = message.content
+                        elif isinstance(message.content, list):
+                            formatted_message["content"] = ""
+                            for content in message.content:
+                                if isinstance(content, ContentPartText):
+                                    formatted_message["content"] += content.text
+                                elif isinstance(content, ContentPartRefusal):
+                                    formatted_message["content"] += content.refusal
+                    if message.tool_calls is not None:
+                        formatted_message["tool_calls"] = [  # type: ignore
+                            {
+                                "id": tool_call.id,
+                                "type": tool_call.type,
+                                "function": {
+                                    "name": tool_call.function.name,
+                                    "arguments": tool_call.function.arguments,
+                                },
+                            }
+                            for tool_call in message.tool_calls
+                        ]
+                    if message.function_call is not None:
+                        formatted_message["function_call"] = message.function_call  # type: ignore
+                    messages.append(formatted_message)
+                case "tool":
+                    formatted_message = {"role": message.role, "tool_call_id": message.tool_call_id}
+                    if isinstance(message.content, str):
+                        formatted_message["content"] = message.content
+                    elif isinstance(message.content, list):
+                        formatted_message["content"] = ""
+                        for content in message.content:
+                            if isinstance(content, ContentPartText):
+                                formatted_message["content"] += content.text
+                    messages.append(formatted_message)
+                case "function":
+                    formatted_message = {"role": message.role, "name": message.name}
+                    if message.content is not None:
+                        formatted_message["content"] = message.content
+                    messages.append(formatted_message)
 
         prompt = self.tokenizer.apply_chat_template(
             messages,
@@ -105,7 +146,7 @@ class TextGeneration(
         )
 
         inputs = self.tokenizer(prompt, return_tensors="pt")
-        inputs = inputs.to(self.model.device).to(self.model.dtype)
+        inputs = inputs.to(self.model.device)  # .to(self.model.dtype)
 
         generation_kwargs = dict(
             inputs,
