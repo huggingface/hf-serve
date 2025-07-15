@@ -266,6 +266,17 @@ class TextGenerationInput(BaseModel):
         if self.top_logprobs is not None and self.top_logprobs > 0 and not self.logprobs:
             logger.warning("`top_logprobs` provided but `logprobs` is False. `top_logprobs` will be ignored.")
 
+        system_count = sum(1 for msg in self.messages if msg.role == "system")
+        developer_count = sum(1 for msg in self.messages if msg.role == "developer")
+        total_system_developer = system_count + developer_count
+
+        if total_system_developer > 1:
+            raise ValueError(
+                f"At most one system or developer message is allowed. Found {system_count} system "
+                f"and {developer_count} developer messages (total: {total_system_developer}). "
+                "Use either zero or one system/developer message."
+            )
+
         return self
 
 
