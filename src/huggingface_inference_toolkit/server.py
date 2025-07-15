@@ -73,6 +73,21 @@ def launch(
                     output_schema=ImageTextToTextOutput,
                 )
             )
+        # NOTE: we might need to also support `| "text2text-generation" | "chat-completion"`
+        case "text-generation":
+            from huggingface_inference_toolkit.tasks.transformers.text_generation import (
+                TextGeneration,
+                TextGenerationInput,
+                TextGenerationOutput,
+            )
+
+            app.include_router(
+                router=chat_completions_router(
+                    predictor=TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TextGenerationInput,
+                    output_schema=TextGenerationOutput,
+                )
+            )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
