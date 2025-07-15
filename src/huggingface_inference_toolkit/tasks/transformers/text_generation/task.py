@@ -91,7 +91,7 @@ class TextGeneration(
                                 (ContentPartImage, ContentPartAudio, ContentPartFile, ContentPartRefusal),
                             ):
                                 raise ValueError(
-                                    f"Provided {payload.messages=} contains an image, which is not compatible with the current LLM as it doesn't come with vision-capabilities, use a VLM instead with the task `image-text-to-text`."
+                                    f"Provided {payload.messages=} contains an input that's either an image, audio, file or refusal, which is either not supported or not compatible yet."
                                 )
                     messages.append(formatted_message)
                 case "developer" | "tool" | "function":
@@ -110,9 +110,9 @@ class TextGeneration(
         generation_kwargs = dict(
             inputs,
             max_new_tokens=payload.max_completion_tokens or 256,
-            do_sample=True if payload.temperature != 1.0 else False,
-            temperature=payload.temperature,
-            top_p=payload.top_p,
+            do_sample=True if (payload.temperature is not None and payload.temperature != 1.0) else False,
+            temperature=payload.temperature if payload.temperature is not None else 1.0,
+            top_p=payload.top_p if payload.top_p is not None else 1.0,
         )
 
         if payload.stream is True:
