@@ -323,8 +323,8 @@ class OutputMessage(BaseModel):
     role: str
     annotations: List[Annotation]
     audio: Optional[OutputAudio] = Field(default=None)
-    function_call: Annotated[FunctionCall, Field(deprecated=True)]
-    tool_calls: List[ToolCall]
+    function_call: Optional[Annotated[FunctionCall, Field(deprecated=True)]] = Field(default=None)
+    tool_calls: Optional[List[ToolCall]] = Field(default=None)
 
 
 class Choice(BaseModel):
