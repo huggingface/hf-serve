@@ -294,10 +294,16 @@ class OutputAudio(BaseModel):
     transcript: str
 
 
+class UrlCitation(BaseModel):
+    end_index: int
+    start_index: int
+    title: str
+    url: str
+
+
 class Annotation(BaseModel):
-    audio: Optional[OutputAudio] = Field(default=None)
-    function_call: Annotated[FunctionCall, Field(deprecated=True)]
-    tool_calls: List[ToolCall]
+    type: Literal["url_citation"] = Field(default="url_citation")
+    url_citation: UrlCitation
 
 
 class OutputMessage(BaseModel):
@@ -305,6 +311,9 @@ class OutputMessage(BaseModel):
     refusal: Optional[str] = Field(default=None)
     role: str
     annotations: List[Annotation]
+    audio: Optional[OutputAudio] = Field(default=None)
+    function_call: Annotated[FunctionCall, Field(deprecated=True)]
+    tool_calls: List[ToolCall]
 
 
 class Choice(BaseModel):
