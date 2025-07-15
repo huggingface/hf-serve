@@ -1,8 +1,10 @@
+import json
 import os
+import re
 from pathlib import Path
 from threading import Thread
 from time import time
-from typing import Iterator, Union
+from typing import Iterator, List, Union
 from uuid import uuid4
 
 import torch
@@ -21,13 +23,51 @@ from huggingface_inference_toolkit.tasks.transformers.text_generation.schemas im
     ContentPartRefusal,
     ContentPartText,
     Delta,
+    FunctionCall,
     OutputMessage,
     PromptTokensDetails,
     TextGenerationInput,
     TextGenerationOutput,
     TextGenerationOutputChunk,
+    ToolCall,
     Usage,
 )
+
+
+def extract_tool_calls(text: str) -> List[ToolCall]:
+    """Extract tool calls from generated text."""
+    tool_calls = []
+
+    patterns = [
+        # Pattern for <tool_call> format
+        r"<tool_call>\s*(\{.*?\})\s*</tool_call>",
+        # Pattern for function calls in JSON format
+        r"<function_call>\s*(\{.*?\})\s*</function_call>",
+        # Pattern for direct JSON tool calls
+        r'```json\s*(\{[^}]*"name"[^}]*"arguments"[^}]*\})\s*```',
+    ]
+
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.DOTALL)
+        for match in matches:
+            try:
+                tool_data = json.loads(match)
+                if "name" in tool_data and "arguments" in tool_data:
+                    tool_call = ToolCall(
+                        id=f"call-{uuid4().hex[:8]}",
+                        type="function",
+                        function=FunctionCall(
+                            name=tool_data["name"],
+                            arguments=json.dumps(tool_data["arguments"])
+                            if isinstance(tool_data["arguments"], dict)
+                            else tool_data["arguments"],
+                        ),
+                    )
+                    tool_calls.append(tool_call)
+            except json.JSONDecodeError:
+                continue
+
+    return tool_calls
 
 
 class TextGeneration(
@@ -139,14 +179,30 @@ class TextGeneration(
                         formatted_message["content"] = message.content
                     messages.append(formatted_message)
 
+        # Add tools to chat template if available
+        tools = None
+        if payload.tools is not None:
+            tools = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": tool.function.name,
+                        "description": tool.function.description,
+                        "parameters": tool.function.parameters,
+                    },
+                }
+                for tool in payload.tools
+            ]
+
         prompt = self.tokenizer.apply_chat_template(
             messages,
+            tools=tools,
             tokenize=False,
             add_generation_prompt=True,
         )
 
         inputs = self.tokenizer(prompt, return_tensors="pt")
-        inputs = inputs.to(self.model.device)  # .to(self.model.dtype)
+        inputs = inputs.to(self.model.device)
 
         generation_kwargs = dict(
             inputs,
@@ -168,8 +224,26 @@ class TextGeneration(
 
             # NOTE: since the first token is always ""
             completion_tokens = -1
+            accumulated_text = ""
+
             for stream in self.streamer:
                 completion_tokens += 1
+                accumulated_text += stream
+
+                tool_calls = extract_tool_calls(accumulated_text) if payload.tools else None
+
+                finish_reason = None
+                if stream in {self.tokenizer.eos_token, self.tokenizer.pad_token}:
+                    finish_reason = "stop"
+                elif completion_tokens >= (payload.max_completion_tokens or 256):
+                    finish_reason = "length"
+                elif tool_calls:
+                    finish_reason = "tool_calls"
+
+                delta = Delta(role="assistant", content=stream)
+                if tool_calls:
+                    delta.tool_calls = tool_calls
+
                 yield TextGenerationOutputChunk(
                     id=id,
                     object="chat.completion.chunk",
@@ -178,14 +252,9 @@ class TextGeneration(
                     choices=[
                         ChoiceChunk(
                             index=0,
-                            delta=Delta(role="assistant", content=stream),
+                            delta=delta,
                             logprobs=None,
-                            finish_reason="length"
-                            if stream not in {self.tokenizer.eos_token, self.tokenizer.pad_token}
-                            and completion_tokens >= (payload.max_completion_tokens or 256)
-                            else "stop"
-                            if stream in {self.tokenizer.eos_token, self.tokenizer.pad_token}
-                            else None,
+                            finish_reason=finish_reason,
                         ),
                     ],
                     usage=Usage(
@@ -209,6 +278,16 @@ class TextGeneration(
                 output = self.model.generate(**generation_kwargs)
             output = output[:, inputs["input_ids"].shape[-1] :][0]
 
+            decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)
+
+            tool_calls = extract_tool_calls(decoded_output) if payload.tools else None
+
+            finish_reason = "stop"
+            if output.shape[0] >= (payload.max_completion_tokens or 256):
+                finish_reason = "length"
+            elif tool_calls:
+                finish_reason = "tool_calls"
+
             return TextGenerationOutput(
                 id=f"chatcmpl-{uuid4().hex[:10]}",
                 object="chat.completion",
@@ -218,15 +297,14 @@ class TextGeneration(
                     Choice(
                         index=0,
                         message=OutputMessage(
-                            content=self.tokenizer.decode(output, skip_special_tokens=True),
+                            content=decoded_output,
                             refusal=None,
                             role="assistant",
                             annotations=[],
+                            tool_calls=tool_calls,
                         ),
                         logprobs=None,
-                        finish_reason="length"
-                        if output.shape[0] >= (payload.max_completion_tokens or 256)
-                        else "stop",
+                        finish_reason=finish_reason,
                     )
                 ],
                 usage=Usage(
