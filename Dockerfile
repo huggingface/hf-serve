@@ -24,7 +24,7 @@ ENV VIRTUAL_ENV=/venv \
 WORKDIR /app
 COPY . .
 
-RUN uv sync --frozen && uv pip install .
+RUN uv sync --frozen && uv pip install .[cuda]
 ENV HF_HUB_USER_AGENT_ORIGIN=azure:foundry:gpu-cuda:inference:huggingface-inference-toolkit
 
 COPY entrypoint.sh /entrypoint.sh
