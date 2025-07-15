@@ -18,12 +18,14 @@ dependencies = [
     "prometheus-client>=0.21.1",
     "diffusers>=0.32.1",
     "torch>=2.5.1",
-    "transformers>=4.47.1",
+    "transformers>=4.53.2",
     "pydantic>=2.10.5",
     "accelerate>=1.2.1",
     "huggingface-hub[hf-transfer,hf-xet]>=0.27.1",
     "protobuf>=5.29.3",
-    "sentence-transformers[onnx]>=3.4.1",
+    "sentence-transformers>=5.0.0",
+    # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
+    # "sentence-transformers[onnx]>=5.0.0",
     "sentencepiece>=0.2.0",
     "protobuf>=5.29.3",
     "peft>=0.14.0",
@@ -34,10 +36,6 @@ dependencies = [
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
-
-[tool.uv.sources]
-huggingface-inference-toolkit = { workspace = true }
-transformers = { git = "https://github.com/jwyang/transformers.git", rev = "dev/jwyang-v4.48.2" }
 
 [project.scripts]
 huggingface-inference-toolkit = "huggingface_inference_toolkit.cli:main"
