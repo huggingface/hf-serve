@@ -13,3 +13,7 @@ class Predictor(ABC, Generic[InputType, OutputType]):
 
     @abstractmethod
     def __call__(self, payload: InputType) -> OutputType: ...
+
+    @property
+    @abstractmethod
+    def model_id(self) -> Union[str, None]: ...
