@@ -25,6 +25,7 @@ WORKDIR /app
 COPY . .
 
 RUN uv sync --frozen && uv pip install .
+
 ENV HF_HUB_USER_AGENT_ORIGIN=azure:foundry:cpu:inference:huggingface-inference-toolkit
 
 COPY entrypoint.sh /entrypoint.sh
