@@ -5,6 +5,7 @@ from typing import Literal, Optional, Union
 import uvicorn
 from fastapi import FastAPI
 
+from huggingface_inference_toolkit.clouds.azure import router as azure_router
 from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
@@ -17,7 +18,6 @@ from huggingface_inference_toolkit.routers import (
     metrics_router,
     predict_router,
 )
-from huggingface_inference_toolkit.clouds.azure import router as azure_router
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
 
