@@ -17,6 +17,7 @@ from huggingface_inference_toolkit.routers import (
     metrics_router,
     predict_router,
 )
+from huggingface_inference_toolkit.clouds.azure import router as azure_router
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
 
@@ -25,6 +26,7 @@ app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/healt
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
+app.include_router(router=azure_router)
 
 
 def launch(
