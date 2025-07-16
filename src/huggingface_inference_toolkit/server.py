@@ -10,8 +10,8 @@ from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
 )
+from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
 from huggingface_inference_toolkit.routers import (
-    chat_completions_router,
     custom_router,
     health_router,
     metrics_router,
@@ -81,13 +81,16 @@ def launch(
                 TextGenerationOutput,
             )
 
+            predictor = TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
             app.include_router(
                 router=chat_completions_router(
-                    predictor=TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=TextGenerationInput,
                     output_schema=TextGenerationOutput,
                 )
             )
+            app.include_router(router=models_router(predictor=predictor))
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (

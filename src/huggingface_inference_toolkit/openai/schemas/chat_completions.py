@@ -174,7 +174,7 @@ class WebSearchOptions(BaseModel):
     search_context_size: Optional[Literal["low", "medium", "high"]] = Field(default="medium")
 
 
-class TextGenerationInput(BaseModel):
+class ChatCompletionsInput(BaseModel):
     messages: List[Annotated[InputMessage, Field(discriminator="role")]]
     model: str
     audio: Optional[AudioInput] = Field(default=None)
@@ -226,7 +226,7 @@ class TextGenerationInput(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def validate_compatibility(self) -> "TextGenerationInput":
+    def validate_compatibility(self) -> "ChatCompletionsInput":
         if self.function_call is not None:
             logger.warning("`function_call` is deprecated in favor of `tool_choice`. Mapping to `tool_choice`.")
             if self.function_call == "none":
@@ -372,7 +372,7 @@ class Usage(BaseModel):
     prompt_tokens_details: PromptTokensDetails
 
 
-class TextGenerationOutput(BaseModel):
+class ChatCompletionsOutput(BaseModel):
     id: str
     object: Literal["chat.completion"] = Field(default="chat.completion")
     created: int
@@ -383,7 +383,7 @@ class TextGenerationOutput(BaseModel):
     system_fingerprint: str
 
 
-class TextGenerationOutputChunk(BaseModel):
+class ChatCompletionsOutputChunk(BaseModel):
     id: str
     object: Literal["chat.completion.chunk"] = Field(default="chat.completion.chunk")
     created: int

@@ -12,12 +12,14 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.generation.streamers import TextIteratorStreamer
 
 from huggingface_inference_toolkit.logging import logger
-from huggingface_inference_toolkit.tasks.predictor import Predictor
-from huggingface_inference_toolkit.tasks.transformers.image_text_to_text import ContentPartAudio
-from huggingface_inference_toolkit.tasks.transformers.text_generation.schemas import (
+from huggingface_inference_toolkit.openai.schemas.chat_completions import (
+    ChatCompletionsInput,
+    ChatCompletionsOutput,
+    ChatCompletionsOutputChunk,
     Choice,
     ChoiceChunk,
     CompletionTokensDetails,
+    ContentPartAudio,
     ContentPartFile,
     ContentPartImage,
     ContentPartRefusal,
@@ -26,12 +28,14 @@ from huggingface_inference_toolkit.tasks.transformers.text_generation.schemas im
     FunctionCall,
     OutputMessage,
     PromptTokensDetails,
-    TextGenerationInput,
-    TextGenerationOutput,
-    TextGenerationOutputChunk,
     ToolCall,
     Usage,
 )
+from huggingface_inference_toolkit.tasks.predictor import Predictor
+
+TextGenerationInput = ChatCompletionsInput
+TextGenerationOutput = ChatCompletionsOutput
+TextGenerationOutputChunk = ChatCompletionsOutputChunk
 
 
 def extract_tool_calls(text: str) -> List[ToolCall]:
@@ -179,7 +183,6 @@ class TextGeneration(
                         formatted_message["content"] = message.content
                     messages.append(formatted_message)
 
-        # Add tools to chat template if available
         tools = None
         if payload.tools is not None:
             tools = [
@@ -222,7 +225,6 @@ class TextGeneration(
                 thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
                 thread.start()
 
-            # NOTE: since the first token is always ""
             completion_tokens = -1
             accumulated_text = ""
 
@@ -230,6 +232,7 @@ class TextGeneration(
                 completion_tokens += 1
                 accumulated_text += stream
 
+                # TODO: handle within_tool to capture whether it makes sense to capture the tool_call or not, i.e., ensure only when tool_call is done as per the last token (might not be super robust so think a bit carefully about it)
                 tool_calls = extract_tool_calls(accumulated_text) if payload.tools else None
 
                 finish_reason = None

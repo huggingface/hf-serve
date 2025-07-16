@@ -20,5 +20,6 @@ def get_available_tasks():
     # NOTE: we add the `custom` task here to make sure that when setting the `HF_TASK` within Inference Endpoints
     # to `Custom`, everything still works, but the custom task is a dynamic task that depends on the custom handler
     # implementation if provided i.e. not a real task per se
-    available_tasks += ["text-generation", "custom"]
+    # NOTE: `custom` is most likely not required at least for our partners e.g. Microsoft Azure, as they disallow egress connections and remote code execution, so custom implementations should live under `src/models` instead (still very early)
+    available_tasks += ["custom"]
     return available_tasks
