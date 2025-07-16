@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
+FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
 LABEL maintainer="Hugging Face"
 
 SHELL ["/bin/bash", "-c"]
@@ -25,6 +25,8 @@ WORKDIR /app
 COPY . .
 
 RUN uv sync --frozen && uv pip install .
+RUN uv pip install packaging ninja --upgrade && uv pip install --no-build-isolation "flash-attn==2.7.3"
+
 ENV HF_HUB_USER_AGENT_ORIGIN=azure:foundry:gpu-cuda:inference:huggingface-inference-toolkit
 
 COPY entrypoint.sh /entrypoint.sh
