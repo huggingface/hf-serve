@@ -38,7 +38,7 @@ def router(
         try:
             if payload.stream is True:
                 return StreamingResponse(
-                    iter_chunks(predictor(payload=payload)), media_type="application/x-ndjson"
+                    iter_chunks(predictor(payload=payload)), media_type="text/event-stream"
                 )
 
             try:
@@ -60,4 +60,5 @@ def router(
 
 async def iter_chunks(chunks: Iterator[BaseModel]) -> AsyncIterator[bytes]:
     for chunk in chunks:
-        yield chunk.model_dump_json().encode() + b"\n"
+        yield b"data: " + chunk.model_dump_json().encode() + b"\n\n"
+    yield b"data: [DONE]\n\n"
