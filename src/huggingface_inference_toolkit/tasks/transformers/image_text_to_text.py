@@ -1,330 +1,79 @@
+import json
 import os
+import re
 from threading import Thread
 from time import time
-from typing import Annotated, Any, Dict, Iterator, List, Literal, Optional, Union
+from typing import Iterator, List, Union
 from uuid import uuid4
 
 import torch
-from pydantic import BaseModel, Field, conint
-from pydantic.aliases import AliasChoices, AliasPath
-from transformers import AutoModelForCausalLM, AutoProcessor, TextIteratorStreamer
+from transformers import AutoModelForCausalLM, AutoProcessor
+from transformers.generation.streamers import TextIteratorStreamer
 from transformers.image_utils import load_image
 
 from huggingface_inference_toolkit.logging import logger
+from huggingface_inference_toolkit.openai.schemas.chat_completions import (
+    ChatCompletionsInput,
+    ChatCompletionsOutput,
+    ChatCompletionsOutputChunk,
+    Choice,
+    ChoiceChunk,
+    CompletionTokensDetails,
+    ContentPartAudio,
+    ContentPartFile,
+    ContentPartImage,
+    ContentPartRefusal,
+    ContentPartText,
+    Delta,
+    FunctionCall,
+    OutputMessage,
+    PromptTokensDetails,
+    ToolCall,
+    Usage,
+)
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-
-class ContentPartText(BaseModel):
-    text: str
-    type: Literal["text"] = Field(default="text")
-
-
-class ImageData(BaseModel):
-    url: str
-    detail: Optional[Literal["auto"]] = Field(default="auto")
-
-
-class ContentPartImage(BaseModel):
-    image_url: ImageData
-    type: Literal["image_url"] = Field(default="image_url")
-
-
-class AudioData(BaseModel):
-    data: str
-    format: Literal["wav", "mp3"]
-
-
-class ContentPartAudio(BaseModel):
-    input_audio: AudioData
-    type: Literal["input_audio"] = Field(default="input_audio")
-
-
-class FileData(BaseModel):
-    file_data: Optional[str] = Field(default=None)
-    file_id: Optional[str] = Field(default=None)
-    filename: Optional[str] = Field(default=None)
-
-
-class ContentPartFile(BaseModel):
-    file: FileData
-    type: Literal["file"] = Field(default="file")
-
-
-class DeveloperMessage(BaseModel):
-    role: Literal["developer"] = Field(default="developer")
-    content: Union[str, List[ContentPartText]]
-    name: Optional[str] = Field(default=None)
-
-
-class SystemMessage(BaseModel):
-    role: Literal["system"] = Field(default="system")
-    content: Union[str, List[ContentPartText]]
-    name: Optional[str] = Field(default=None)
-
-
-class UserMessage(BaseModel):
-    role: Literal["user"] = Field(default="user")
-    content: Union[str, List[Union[ContentPartText, ContentPartImage, ContentPartAudio, ContentPartFile]]]
-    name: Optional[str] = Field(default=None)
-
-
-class FunctionCall(BaseModel):
-    arguments: str
-    name: str
-
-
-class ToolCall(BaseModel):
-    function: FunctionCall
-    id: str
-    type: Literal["function"] = Field(default="function")
-
-
-class ContentPartRefusal(BaseModel):
-    refusal: str
-    type: Literal["refusal"] = Field(default="refusal")
-
-
-class AssistantMessage(BaseModel):
-    role: Literal["assistant"] = Field(default="assistant")
-    audio: Optional[Dict[Literal["id"], str]] = Field(default=None)
-    content: Optional[Union[str, List[Union[ContentPartText, ContentPartRefusal]]]] = Field(default=None)
-    function_call: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
-    name: Optional[str] = Field(default=None)
-    refusal: Optional[str] = Field(default=None)
-    tool_calls: Optional[List[ToolCall]] = Field(default=None)
-
-
-class ToolMessage(BaseModel):
-    role: Literal["tool"] = Field(default="tool")
-    content: Union[str, List[ContentPartText]]
-    tool_call_id: str
-
-
-# NOTE: deprecated in favor of `ToolMessage`
-class FunctionMessage(BaseModel):
-    role: Literal["function"] = Field(default="function")
-    content: Optional[str] = Field(default=None)
-    name: str
-
-
-InputMessage = Union[
-    DeveloperMessage, SystemMessage, UserMessage, AssistantMessage, ToolMessage, FunctionMessage
-]
-
-
-class AudioInput(BaseModel):
-    format: Literal["wav", "mp3", "flac", "opus", "pcm16"]
-    voice: Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "nova", "onyx", "sage", "shimmer"]
-
-
-class Prediction(BaseModel):
-    content: Union[str, List[ContentPartText]]
-    type: str
-
-
-class ResponseFormatText(BaseModel):
-    type: Literal["text"] = Field(default="text")
-
-
-class JsonSchema(BaseModel):
-    name: str
-    description: Optional[str] = Field(default=None)
-    json_schema: Optional[Dict[str, Any]] = Field(default=None, serialization_alias="schema", alias="schema")
-    strict: Optional[bool] = Field(default=False)
-
-
-class ResponseFormatJsonSchema(BaseModel):
-    type: Literal["json_schema"] = Field(default="json_schema")
-    json_schema: JsonSchema
-
-
-class ResponseFormatJsonObject(BaseModel):
-    type: Literal["json_object"] = Field(default="json_object")
-
-
-class StreamOptions(BaseModel):
-    include_usage: Optional[bool] = Field(default=None)
-
-
-class ToolChoice(BaseModel):
-    # NOTE: could be a separate schema but since it just contains a single field is left as is
-    function: Dict[Literal["name"], str]
-    type: str
-
-
-class ToolFunction(BaseModel):
-    name: str
-    description: Optional[str] = Field(default=None)
-    parameters: Optional[Dict[str, Any]] = Field(default=None)
-    strict: Optional[bool] = Field(default=False)
-
-
-class Tool(BaseModel):
-    function: ToolFunction
-    type: str
-
-
-class ApproximateLocation(BaseModel):
-    city: Optional[str] = Field(default=None)
-    country: Optional[str] = Field(default=None)
-    region: Optional[str] = Field(default=None)
-    timezone: Optional[str] = Field(default=None)
-
-
-class UserLocation(BaseModel):
-    approximate: ApproximateLocation
-    type: str
-
-
-class WebSearchOptions(BaseModel):
-    search_context_size: Optional[Literal["low", "medium", "high"]] = Field(default="medium")
-
-
-class ImageTextToTextInput(BaseModel):
-    messages: List[Annotated[InputMessage, Field(discriminator="role")]]
-    model: str
-    audio: Optional[AudioInput] = Field(default=None)
-    frequency_penalty: Optional[float] = Field(default=0.0, ge=-2.0, le=2.0)
-    function_call: Optional[Union[Literal["none", "auto"], str]] = Field(default=None, deprecated=True)
-    functions: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
-    logit_bias: Optional[Dict[int, Annotated[int, conint(ge=-100, le=100)]]] = Field(default=None)
-    logprobs: Optional[bool] = Field(default=False)
-    max_completion_tokens: Optional[int] = Field(
-        default=None,
-        validation_alias=AliasChoices("max_completion_tokens", AliasPath("max_tokens")),
-    )
-    metadata: Optional[Dict[str, Any]] = Field(
-        default=None
-    )  # NOTE: up-to 16 kv pairs, key 64 chars, value 512 chars
-    modalities: List[Literal["text", "audio"]] = Field(default=["text"])
-    n: Optional[int] = Field(default=1)
-    parallel_tool_calls: Optional[bool] = Field(default=True)
-    prediction: Optional[Prediction] = Field(default=None)
-    presence_penalty: Optional[float] = Field(default=0.0, ge=-2.0, le=2.0)
-    reasoning_effort: Optional[Literal["low", "medium", "high"]] = Field(default="medium")
-    response_format: Optional[Union[ResponseFormatText, ResponseFormatJsonSchema, ResponseFormatJsonObject]] = (
-        Field(default=ResponseFormatText())
-    )
-    seed: Optional[int] = Field(default=None)
-    service_tier: Optional[Literal["auto", "default", "flex"]] = Field(default="auto")
-    stop: Optional[Union[str, List[str]]] = Field(default=None)
-    store: Optional[bool] = Field(default=False)
-    stream: Optional[bool] = Field(default=False)
-    stream_options: Optional[StreamOptions] = Field(default=None)  # NOTE: ignore if `stream=False`
-    temperature: Optional[float] = Field(default=1.0, ge=0.0, le=2.0)
-    tool_choice: Optional[Union[Literal["none", "auto", "required"], ToolChoice]] = Field(
-        default="none"
-    )  # NOTE: set to "auto" if `tools` is not None, and to None if `tools` is None
-    tools: Optional[List[Tool]] = Field(default=None)
-    top_logprobs: Optional[int] = Field(default=1, ge=0, le=20)  # NOTE: ignore field if `logprobs=False`
-    top_p: Optional[float] = Field(default=1.0, ge=0.0, le=1.0)
-    user: Optional[str] = Field(default=None)
-    web_search_options: Optional[WebSearchOptions] = Field(default=None)
-
-
-class TopLogProb(BaseModel):
-    bytes: Optional[List[int]] = Field(default=None)
-    logprob: float
-    token: str
-
-
-class LogProb(BaseModel):
-    bytes: Optional[List[int]] = Field(default=None)
-    logprob: float
-    token: str
-    top_logprobs: List[TopLogProb]
-
-
-class LogProbs(BaseModel):
-    content: Optional[List[LogProb]] = Field(default=None)
-    refusal: Optional[List[LogProb]] = Field(default=None)
-
-
-class OutputAudio(BaseModel):
-    data: str
-    expires_at: int
-    id: str
-    transcript: str
-
-
-class Annotation(BaseModel):
-    audio: Optional[OutputAudio] = Field(default=None)
-    function_call: Annotated[FunctionCall, Field(deprecated=True)]
-    tool_calls: List[ToolCall]
-
-
-class OutputMessage(BaseModel):
-    content: Optional[str] = Field(default=None)
-    refusal: Optional[str] = Field(default=None)
-    role: str
-    annotations: List[Annotation]
-
-
-class Choice(BaseModel):
-    index: int
-    message: OutputMessage
-    logprobs: Optional[LogProbs] = Field(default=None)
-    finish_reason: Literal["stop", "length", "content_filter", "tool_calls", "function_call"]
-
-
-class Delta(BaseModel):
-    content: Optional[str] = Field(default=None)
-    function_call: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
-    refusal: Optional[str] = Field(default=None)
-    role: Literal["developer", "system", "user", "assistant", "function", "tool"]
-    tool_calls: Optional[List[ToolCall]] = Field(default=None)
-
-
-class ChoiceChunk(BaseModel):
-    index: int
-    delta: Delta
-    logprobs: Optional[LogProbs] = Field(default=None)
-    finish_reason: Optional[Literal["stop", "length", "content_filter", "tool_calls", "function_call"]] = Field(
-        default=None
-    )
-
-
-class CompletionTokensDetails(BaseModel):
-    accepted_prediction_tokens: int
-    audio_tokens: int
-    reasoning_tokens: int
-    rejected_prediction_tokens: int
-
-
-class PromptTokensDetails(BaseModel):
-    audio_tokens: int
-    cached_tokens: int
-
-
-class Usage(BaseModel):
-    prompt_tokens: int
-    completion_tokens: int
-    reasoning_tokens: int
-    total_tokens: int
-    completion_tokens_details: CompletionTokensDetails
-    prompt_tokens_details: PromptTokensDetails
-
-
-class ImageTextToTextOutput(BaseModel):
-    id: str
-    object: Literal["chat.completion"] = Field(default="chat.completion")
-    created: int
-    model: str
-    choices: List[Choice]
-    usage: Usage
-    service_tier: Literal["auto", "default", "flex"] = Field(default="auto")
-    system_fingerprint: str
-
-
-class ImageTextToTextOutputChunk(BaseModel):
-    id: str
-    object: Literal["chat.completion.chunk"] = Field(default="chat.completion.chunk")
-    created: int
-    model: str
-    choices: List[ChoiceChunk]
-    usage: Usage
-    service_tier: Literal["auto", "default", "flex"] = Field(default="auto")
-    system_fingerprint: str
+ImageTextToTextInput = ChatCompletionsInput
+ImageTextToTextOutput = ChatCompletionsOutput
+ImageTextToTextOutputChunk = ChatCompletionsOutputChunk
+
+
+def extract_tool_calls(text: str) -> List[ToolCall]:
+    """Extract tool calls from generated text."""
+    tool_calls = []
+
+    patterns = [
+        # Pattern for <tool_call> format
+        r"<tool_call>\s*(\{.*?\})\s*</tool_call>",
+        # Pattern for function calls in JSON format
+        r"<function_call>\s*(\{.*?\})\s*</function_call>",
+        # Pattern for direct JSON tool calls
+        r'```json\s*(\{[^}]*"name"[^}]*"arguments"[^}]*\})\s*```',
+        # Pattern for tool_response format
+        r"<\|tool_response_start\|>\s*(\{.*?\})\s*<\|tool_response_end\|>",
+    ]
+
+    for pattern in patterns:
+        matches = re.findall(pattern, text, re.DOTALL)
+        for match in matches:
+            try:
+                tool_data = json.loads(match)
+                if "name" in tool_data and "arguments" in tool_data:
+                    tool_call = ToolCall(
+                        id=f"call-{uuid4().hex[:8]}",
+                        type="function",
+                        function=FunctionCall(
+                            name=tool_data["name"],
+                            arguments=json.dumps(tool_data["arguments"])
+                            if isinstance(tool_data["arguments"], dict)
+                            else tool_data["arguments"],
+                        ),
+                    )
+                    tool_calls.append(tool_call)
+            except json.JSONDecodeError:
+                continue
+
+    return tool_calls
 
 
 class ImageTextToText(
@@ -367,7 +116,7 @@ class ImageTextToText(
         messages, images = [], []
         for message in payload.messages:
             match message.role:
-                case "system" | "assistant":
+                case "system" | "developer":
                     formatted_message = {"role": message.role}
                     if isinstance(message.content, str):
                         formatted_message["content"] = message.content
@@ -380,13 +129,11 @@ class ImageTextToText(
                         formatted_message["content"] = message.content
                     elif isinstance(message.content, list):
                         formatted_message["content"] = ""
-                        # NOTE: see explanation below
-                        # formatted_message["content"] = []  # type: ignore
                         for content in message.content:
                             if isinstance(content, ContentPartText):
-                                # NOTE: see explanation below
-                                # formatted_message["content"].append(content)
                                 formatted_message["content"] += content.text
+                            elif isinstance(content, ContentPartRefusal):
+                                formatted_message["content"] += content.refusal
                             elif isinstance(content, ContentPartImage):
                                 images.append(load_image(content.image_url.url))
                                 # NOTE: ideally the image tokens would be included when applying the chat template if including the following
@@ -398,13 +145,74 @@ class ImageTextToText(
                                     formatted_message["content"] = (
                                         "<image_start><image><image_end>\n" + formatted_message["content"]
                                     )
+                            elif isinstance(
+                                content,
+                                (ContentPartAudio, ContentPartFile),
+                            ):
+                                raise ValueError(
+                                    f"Provided {payload.messages=} contains an input that's either audio or file, which is either not supported or not compatible yet."
+                                )
                     messages.append(formatted_message)
-                case "developer" | "tool" | "function":
-                    # TODO: note that tool and audio don't work yet
-                    pass
+                case "assistant":
+                    formatted_message = {"role": message.role}
+                    if message.content is not None:
+                        if isinstance(message.content, str):
+                            formatted_message["content"] = message.content
+                        elif isinstance(message.content, list):
+                            formatted_message["content"] = ""
+                            for content in message.content:
+                                if isinstance(content, ContentPartText):
+                                    formatted_message["content"] += content.text
+                                elif isinstance(content, ContentPartRefusal):
+                                    formatted_message["content"] += content.refusal
+                    if message.tool_calls is not None:
+                        formatted_message["tool_calls"] = [  # type: ignore
+                            {
+                                "id": tool_call.id,
+                                "type": tool_call.type,
+                                "function": {
+                                    "name": tool_call.function.name,
+                                    "arguments": tool_call.function.arguments,
+                                },
+                            }
+                            for tool_call in message.tool_calls
+                        ]
+                    if message.function_call is not None:
+                        formatted_message["function_call"] = message.function_call  # type: ignore
+                    messages.append(formatted_message)
+                case "tool":
+                    formatted_message = {"role": message.role, "tool_call_id": message.tool_call_id}
+                    if isinstance(message.content, str):
+                        formatted_message["content"] = message.content
+                    elif isinstance(message.content, list):
+                        formatted_message["content"] = ""
+                        for content in message.content:
+                            if isinstance(content, ContentPartText):
+                                formatted_message["content"] += content.text
+                    messages.append(formatted_message)
+                case "function":
+                    formatted_message = {"role": message.role, "name": message.name}
+                    if message.content is not None:
+                        formatted_message["content"] = message.content
+                    messages.append(formatted_message)
+
+        tools = None
+        if payload.tools is not None:
+            tools = [
+                {
+                    "type": "function",
+                    "function": {
+                        "name": tool.function.name,
+                        "description": tool.function.description,
+                        "parameters": tool.function.parameters,
+                    },
+                }
+                for tool in payload.tools
+            ]
 
         prompt = self.processor.apply_chat_template(
             messages,
+            tools=tools,
             tokenize=False,
             add_generation_prompt=True,
         )
@@ -418,9 +226,9 @@ class ImageTextToText(
         generation_kwargs = dict(
             inputs,
             max_new_tokens=payload.max_completion_tokens or 256,
-            do_sample=True if payload.temperature != 1.0 else False,
-            temperature=payload.temperature,
-            top_p=payload.top_p,
+            do_sample=True if (payload.temperature is not None and payload.temperature != 1.0) else False,
+            temperature=payload.temperature if payload.temperature is not None else 1.0,
+            top_p=payload.top_p if payload.top_p is not None else 1.0,
         )
 
         if payload.stream is True:
@@ -433,10 +241,28 @@ class ImageTextToText(
                 thread = Thread(target=self.model.generate, kwargs=generation_kwargs)
                 thread.start()
 
-            # NOTE: since the first token is always ""
             completion_tokens = -1
+            accumulated_text = ""
+
             for stream in self.streamer:
                 completion_tokens += 1
+                accumulated_text += stream
+
+                # TODO: handle within_tool to capture whether it makes sense to capture the tool_call or not, i.e., ensure only when tool_call is done as per the last token (might not be super robust so think a bit carefully about it)
+                tool_calls = extract_tool_calls(accumulated_text) if payload.tools else None
+
+                finish_reason = None
+                if stream in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}:
+                    finish_reason = "stop"
+                elif completion_tokens >= (payload.max_completion_tokens or 256):
+                    finish_reason = "length"
+                elif tool_calls:
+                    finish_reason = "tool_calls"
+
+                delta = Delta(role="assistant", content=stream)
+                if tool_calls:
+                    delta.tool_calls = tool_calls
+
                 yield ImageTextToTextOutputChunk(
                     id=id,
                     object="chat.completion.chunk",
@@ -445,16 +271,9 @@ class ImageTextToText(
                     choices=[
                         ChoiceChunk(
                             index=0,
-                            delta=Delta(role="assistant", content=stream),
+                            delta=delta,
                             logprobs=None,
-                            finish_reason="length"
-                            if stream
-                            not in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
-                            and completion_tokens >= (payload.max_completion_tokens or 256)
-                            else "stop"
-                            if stream
-                            in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}
-                            else None,
+                            finish_reason=finish_reason,
                         ),
                     ],
                     usage=Usage(
@@ -478,6 +297,16 @@ class ImageTextToText(
                 output = self.model.generate(**generation_kwargs)
             output = output[:, inputs["input_ids"].shape[-1] :][0]
 
+            decoded_output = self.processor.decode(output, skip_special_tokens=True)
+
+            tool_calls = extract_tool_calls(decoded_output) if payload.tools else None
+
+            finish_reason = "stop"
+            if output.shape[0] >= (payload.max_completion_tokens or 256):
+                finish_reason = "length"
+            elif tool_calls:
+                finish_reason = "tool_calls"
+
             return ImageTextToTextOutput(
                 id=f"chatcmpl-{uuid4().hex[:10]}",
                 object="chat.completion",
@@ -487,15 +316,14 @@ class ImageTextToText(
                     Choice(
                         index=0,
                         message=OutputMessage(
-                            content=self.processor.decode(output, skip_special_tokens=True),
+                            content=decoded_output,
                             refusal=None,
                             role="assistant",
                             annotations=[],
+                            tool_calls=tool_calls,
                         ),
                         logprobs=None,
-                        finish_reason="length"
-                        if output.shape[0] >= (payload.max_completion_tokens or 256)
-                        else "stop",
+                        finish_reason=finish_reason,
                     )
                 ],
                 usage=Usage(
