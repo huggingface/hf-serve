@@ -49,6 +49,8 @@ def extract_tool_calls(text: str) -> List[ToolCall]:
         r"<function_call>\s*(\{.*?\})\s*</function_call>",
         # Pattern for direct JSON tool calls
         r'```json\s*(\{[^}]*"name"[^}]*"arguments"[^}]*\})\s*```',
+        # Pattern for tool_response format
+        r"<\|tool_response_start\|>\s*(\{.*?\})\s*<\|tool_response_end\|>",
     ]
 
     for pattern in patterns:
