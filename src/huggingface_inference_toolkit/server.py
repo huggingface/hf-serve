@@ -13,7 +13,6 @@ from huggingface_inference_toolkit.middleware import (
 )
 from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
 from huggingface_inference_toolkit.routers import (
-    chat_completions_router,
     custom_router,
     health_router,
     metrics_router,
