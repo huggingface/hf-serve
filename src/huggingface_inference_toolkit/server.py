@@ -13,6 +13,7 @@ from huggingface_inference_toolkit.middleware import (
 )
 from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
 from huggingface_inference_toolkit.routers import (
+    chat_completions_router,
     custom_router,
     health_router,
     metrics_router,
@@ -75,8 +76,7 @@ def launch(
                     output_schema=ImageTextToTextOutput,
                 )
             )
-        # NOTE: we might need to also support `| "text2text-generation" | "chat-completion"`
-        case "text-generation":
+        case "text-generation" | "text2text-generation" | "conversational":
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
                 TextGenerationInput,

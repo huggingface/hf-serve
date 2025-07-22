@@ -49,7 +49,7 @@ def extract_tool_calls(text: str) -> List[ToolCall]:
         r"<function_call>\s*(\{.*?\})\s*</function_call>",
         # Pattern for direct JSON tool calls
         r'```json\s*(\{[^}]*"name"[^}]*"arguments"[^}]*\})\s*```',
-        # Pattern for tool_response format
+        # Pattern for tool_response ChatML format
         r"<\|tool_response_start\|>\s*(\{.*?\})\s*<\|tool_response_end\|>",
     ]
 
@@ -128,23 +128,15 @@ class ImageTextToText(
                     if isinstance(message.content, str):
                         formatted_message["content"] = message.content
                     elif isinstance(message.content, list):
-                        formatted_message["content"] = ""
+                        formatted_message["content"] = []
                         for content in message.content:
                             if isinstance(content, ContentPartText):
-                                formatted_message["content"] += content.text
+                                formatted_message["content"].append({"type": "text", "text": content.text})
                             elif isinstance(content, ContentPartRefusal):
-                                formatted_message["content"] += content.refusal
+                                formatted_message["content"].append({"type": "text", "text": content.refusal})
                             elif isinstance(content, ContentPartImage):
                                 images.append(load_image(content.image_url.url))
-                                # NOTE: ideally the image tokens would be included when applying the chat template if including the following
-                                # formatted_message["content"].append({"type": "image"})
-                                # Since that won't work for `microsoft/Magma-8B`, we'll just add it as it follows
-                                while formatted_message["content"].count(
-                                    "<image_start><image><image_end>\n"
-                                ) < len(images):
-                                    formatted_message["content"] = (
-                                        "<image_start><image><image_end>\n" + formatted_message["content"]
-                                    )
+                                formatted_message["content"].append({"type": "image"})
                             elif isinstance(
                                 content,
                                 (ContentPartAudio, ContentPartFile),
