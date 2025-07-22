@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 from typing import Literal, Optional, Union
 
 import uvicorn
@@ -10,6 +11,7 @@ from huggingface_inference_toolkit.middleware import (
     PrometheusMiddleware,
 )
 from huggingface_inference_toolkit.routers import (
+    chat_completions_router,
     custom_router,
     health_router,
     metrics_router,
@@ -56,6 +58,21 @@ def launch(
     )
 
     match task:
+        # openai-compatible
+        case "image-text-to-text":
+            from huggingface_inference_toolkit.tasks.transformers.image_text_to_text import (
+                ImageTextToText,
+                ImageTextToTextInput,
+                ImageTextToTextOutput,
+            )
+
+            app.include_router(
+                router=chat_completions_router(
+                    predictor=ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=ImageTextToTextInput,
+                    output_schema=ImageTextToTextOutput,
+                )
+            )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
@@ -236,6 +253,15 @@ def launch(
                 )
             )
         case "custom":
+            if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
+                0,
+                "false",
+                "False",
+            }:
+                raise RuntimeError(
+                    f"Since `TRUST_REMOTE_CODE` (formerly known as `HF_TRUST_REMOTE_CODE`) is set to {os.getenv('TRUST_REMOTE_CODE', None)}, it means that the `custom` task cannot run, as it requires to pull and run custom code. Enabling it as `TRUST_REMOTE_CODE=(1, true, True)` is not recommended, unless you either developed the custom code or trust the developer / organization."
+                )
+
             from huggingface_hub import snapshot_download
 
             from huggingface_inference_toolkit.tasks.custom import Custom
@@ -256,6 +282,30 @@ def launch(
             raise ValueError(f"{task=} not supported!")
 
     logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
+
+    # NOTE: some models as `microsoft/Magma-8B` may contain custom routers as those are not covered within the
+    # default implementation, to solve that, we create those under `src/huggingface_inference_toolkit/models`
+    # and add those on top of whatever the default router is.
+    if model_id:
+        model_file_name = model_id.replace("/", "--").lower()
+        models_dir = Path(__file__).parent / "models"
+        model_file_path = models_dir / f"{model_file_name}.py"
+        if model_file_path.exists():
+            logger.info(f"Provided {model_id=} has a custom model file at {model_file_path=}")
+            try:
+                import importlib.util
+
+                spec = importlib.util.spec_from_file_location(model_file_name, model_file_path)
+                if spec and spec.loader:
+                    model_module = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(model_module)
+
+                    if hasattr(model_module, "router"):
+                        logger.info(f"Loading custom router for {model_id=}")
+                        app.include_router(router=model_module.router)
+                        logger.info(f"Loaded custom router for {model_id=}")
+            except Exception as e:
+                logger.warning(f"Failed to load custom router for {model_id}: {e}")
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",

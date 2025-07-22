@@ -1,8 +1,16 @@
 [project]
 name = "huggingface-inference-toolkit"
 version = "0.1.0"
-description = "An attempt to refactor the former `huggingface-inference-toolkit`"
+description = "Production-ready inference API on top of Hugging Face (Transformers, Diffusers, and Sentence-Transformers)"
 readme = "README.md"
+authors = [
+  { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
+  { name = "Erik Kaunismäki", email = "erik.kaunismaki@huggingface.co" },
+]
+maintainers = [
+  { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
+  { name = "Erik Kaunismäki", email = "erik.kaunismaki@huggingface.co" },
+]
 requires-python = ">=3.10"
 dependencies = [
     "uvicorn>=0.34.0",
@@ -13,12 +21,14 @@ dependencies = [
     "transformers>=4.47.1",
     "pydantic>=2.10.5",
     "accelerate>=1.2.1",
-    "huggingface-hub[hf-transfer]>=0.27.1",
+    "huggingface-hub[hf-transfer,hf-xet]>=0.27.1",
     "protobuf>=5.29.3",
     "sentence-transformers[onnx]>=3.4.1",
     "sentencepiece>=0.2.0",
     "protobuf>=5.29.3",
     "peft>=0.14.0",
+    "pillow>=11.1.0",
+    "open-clip-torch>=2.32.0",
 ]
 
 [build-system]
@@ -27,6 +37,7 @@ build-backend = "hatchling.build"
 
 [tool.uv.sources]
 huggingface-inference-toolkit = { workspace = true }
+transformers = { git = "https://github.com/jwyang/transformers.git", rev = "dev/jwyang-v4.48.2" }
 
 [project.scripts]
 huggingface-inference-toolkit = "huggingface_inference_toolkit.cli:main"

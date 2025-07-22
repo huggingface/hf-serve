@@ -12,9 +12,7 @@ def check_backwards_compatibility() -> None:
         "HF_HUB_TOKEN": "HF_TOKEN",
         "HF_MODULE_NAME": "CUSTOM_HANDLER",
         "HF_DEFAULT_PIPELINE_NAME": "CUSTOM_HANDLER_FILE",
-        # TODO: this one most likely should be deprecated, IIRC Google needed it, but it
-        # shouldn't be allowed publicly in Inference Endpoints
-        # "HF_TRUST_REMOTE_CODE": "TRUST_REMOTE_CODE",
+        "HF_TRUST_REMOTE_CODE": "TRUST_REMOTE_CODE",
     }
 
     for old_key, new_key in mappings.items():
