@@ -26,7 +26,7 @@ COPY . .
 
 RUN uv sync --frozen && uv pip install .
 
-ENV HF_HUB_USER_AGENT_ORIGIN=azure:foundry:cpu:inference:huggingface-inference-toolkit
+ENV HF_HUB_USER_AGENT_ORIGIN=azure:maap:cpu:inference:inference-toolkit
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
