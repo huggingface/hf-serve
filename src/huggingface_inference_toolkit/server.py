@@ -1,4 +1,5 @@
 import os
+import time
 from pathlib import Path
 from typing import Literal, Optional, Union
 
@@ -68,13 +69,16 @@ def launch(
                 ImageTextToTextOutput,
             )
 
+            predictor = ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
             app.include_router(
                 router=chat_completions_router(
-                    predictor=ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=ImageTextToTextInput,
                     output_schema=ImageTextToTextOutput,
                 )
             )
+            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
         case "text-generation" | "text2text-generation" | "conversational":
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
@@ -91,7 +95,7 @@ def launch(
                     output_schema=TextGenerationOutput,
                 )
             )
-            app.include_router(router=models_router(predictor=predictor))
+            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
