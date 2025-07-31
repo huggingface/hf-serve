@@ -9,25 +9,34 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     build-essential \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+RUN groupadd --gid 1000 huggingface \
+    && useradd --uid 1000 --gid huggingface --shell /bin/bash --create-home huggingface
+
+USER huggingface
+WORKDIR /home/huggingface
 
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:/root/.local/bin/:$PATH"
+ENV PATH="/home/huggingface/.cargo/bin:/home/huggingface/.local/bin/:$PATH"
 
 RUN uv python install 3.12
 
-RUN uv venv /venv --python 3.12
-ENV VIRTUAL_ENV=/venv \
-    PATH="/venv/bin:$PATH"
+RUN uv venv /home/huggingface/venv --python 3.12
+ENV VIRTUAL_ENV=/home/huggingface/venv \
+    PATH="/home/huggingface/venv/bin:$PATH"
 
-WORKDIR /app
-COPY . .
+WORKDIR /home/huggingface/app
+COPY --chown=huggingface:huggingface . .
 
 RUN uv sync --frozen && uv pip install .
 
 ENV HF_HUB_USER_AGENT_ORIGIN=azure:maap:cpu:inference:inference-toolkit
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
+RUN chmod +x /home/huggingface/entrypoint.sh
+
+USER huggingface
+ENTRYPOINT ["/home/huggingface/entrypoint.sh"]
