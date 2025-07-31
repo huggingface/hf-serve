@@ -1,17 +1,19 @@
 import os
+import time
 from pathlib import Path
 from typing import Literal, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
 
+from huggingface_inference_toolkit.clouds.azure import router as azure_router
 from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
 )
+from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
 from huggingface_inference_toolkit.routers import (
-    chat_completions_router,
     custom_router,
     health_router,
     metrics_router,
@@ -25,6 +27,7 @@ app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/healt
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
+app.include_router(router=azure_router)
 
 
 def launch(
@@ -66,13 +69,33 @@ def launch(
                 ImageTextToTextOutput,
             )
 
+            predictor = ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
             app.include_router(
                 router=chat_completions_router(
-                    predictor=ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=ImageTextToTextInput,
                     output_schema=ImageTextToTextOutput,
                 )
             )
+            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
+        case "text-generation" | "text2text-generation" | "conversational":
+            from huggingface_inference_toolkit.tasks.transformers.text_generation import (
+                TextGeneration,
+                TextGenerationInput,
+                TextGenerationOutput,
+            )
+
+            predictor = TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            app.include_router(
+                router=chat_completions_router(
+                    predictor=predictor,
+                    input_schema=TextGenerationInput,
+                    output_schema=TextGenerationOutput,
+                )
+            )
+            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (

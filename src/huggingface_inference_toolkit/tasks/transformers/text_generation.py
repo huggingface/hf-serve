@@ -1,15 +1,15 @@
 import json
 import os
 import re
+from pathlib import Path
 from threading import Thread
 from time import time
 from typing import Iterator, List, Union
 from uuid import uuid4
 
 import torch
-from transformers import AutoModelForCausalLM, AutoProcessor
+from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.generation.streamers import TextIteratorStreamer
-from transformers.image_utils import load_image
 
 from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.openai.schemas.chat_completions import (
@@ -33,9 +33,9 @@ from huggingface_inference_toolkit.openai.schemas.chat_completions import (
 )
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
-ImageTextToTextInput = ChatCompletionsInput
-ImageTextToTextOutput = ChatCompletionsOutput
-ImageTextToTextOutputChunk = ChatCompletionsOutputChunk
+TextGenerationInput = ChatCompletionsInput
+TextGenerationOutput = ChatCompletionsOutput
+TextGenerationOutputChunk = ChatCompletionsOutputChunk
 
 
 def extract_tool_calls(text: str) -> List[ToolCall]:
@@ -49,7 +49,7 @@ def extract_tool_calls(text: str) -> List[ToolCall]:
         r"<function_call>\s*(\{.*?\})\s*</function_call>",
         # Pattern for direct JSON tool calls
         r'```json\s*(\{[^}]*"name"[^}]*"arguments"[^}]*\})\s*```',
-        # Pattern for tool_response ChatML format
+        # Pattern for tool_response format
         r"<\|tool_response_start\|>\s*(\{.*?\})\s*<\|tool_response_end\|>",
     ]
 
@@ -76,17 +76,14 @@ def extract_tool_calls(text: str) -> List[ToolCall]:
     return tool_calls
 
 
-class ImageTextToText(
-    Predictor[ImageTextToTextInput, Union[Iterator[ImageTextToTextOutputChunk], ImageTextToTextOutput]]
+class TextGeneration(
+    Predictor[TextGenerationInput, Union[Iterator[TextGenerationOutputChunk], TextGenerationOutput]]
 ):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
         self.model = AutoModelForCausalLM.from_pretrained(
             model_id,
-            trust_remote_code=True
-            if os.getenv("TRUST_REMOTE_CODE", None) not in {None, 0, "false", "False"}
-            else False,
             torch_dtype=getattr(torch, dtype),
         )
 
@@ -99,21 +96,24 @@ class ImageTextToText(
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        self.processor = AutoProcessor.from_pretrained(
-            model_id,
-            trust_remote_code=True
-            if os.getenv("TRUST_REMOTE_CODE", None) not in {None, 0, "false", "False"}
-            else False,
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+        self.streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
+
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.model.config._name_or_path
+            if not Path(self.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
         )
 
-        self.streamer = TextIteratorStreamer(self.processor.tokenizer, skip_prompt=True)
-
     def __call__(
-        self, payload: ImageTextToTextInput
-    ) -> Union[Iterator[ImageTextToTextOutputChunk], ImageTextToTextOutput]:
+        self, payload: TextGenerationInput
+    ) -> Union[Iterator[TextGenerationOutputChunk], TextGenerationOutput]:
         logger.info(f"Received input {payload=}")
 
-        messages, images = [], []
+        messages = []
         for message in payload.messages:
             match message.role:
                 case "system" | "developer":
@@ -128,21 +128,18 @@ class ImageTextToText(
                     if isinstance(message.content, str):
                         formatted_message["content"] = message.content
                     elif isinstance(message.content, list):
-                        formatted_message["content"] = []
+                        formatted_message["content"] = ""
                         for content in message.content:
                             if isinstance(content, ContentPartText):
-                                formatted_message["content"].append({"type": "text", "text": content.text})
+                                formatted_message["content"] += content.text
                             elif isinstance(content, ContentPartRefusal):
-                                formatted_message["content"].append({"type": "text", "text": content.refusal})
-                            elif isinstance(content, ContentPartImage):
-                                images.append(load_image(content.image_url.url))
-                                formatted_message["content"].append({"type": "image"})
+                                formatted_message["content"] += content.refusal
                             elif isinstance(
                                 content,
-                                (ContentPartAudio, ContentPartFile),
+                                (ContentPartImage, ContentPartAudio, ContentPartFile),
                             ):
                                 raise ValueError(
-                                    f"Provided {payload.messages=} contains an input that's either audio or file, which is either not supported or not compatible yet."
+                                    f"Provided {payload.messages=} contains an input that's either an image, audio, or file, which is either not supported or not compatible yet."
                                 )
                     messages.append(formatted_message)
                 case "assistant":
@@ -202,18 +199,15 @@ class ImageTextToText(
                 for tool in payload.tools
             ]
 
-        prompt = self.processor.apply_chat_template(
+        prompt = self.tokenizer.apply_chat_template(
             messages,
             tools=tools,
             tokenize=False,
             add_generation_prompt=True,
         )
 
-        inputs = self.processor(texts=prompt, images=images or None, return_tensors="pt")
-        if images:
-            inputs["pixel_values"] = inputs["pixel_values"].unsqueeze(0)
-            inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
-        inputs = inputs.to(self.model.device).to(self.model.dtype)
+        inputs = self.tokenizer(prompt, return_tensors="pt")
+        inputs = inputs.to(self.model.device)
 
         generation_kwargs = dict(
             inputs,
@@ -244,7 +238,7 @@ class ImageTextToText(
                 tool_calls = extract_tool_calls(accumulated_text) if payload.tools else None
 
                 finish_reason = None
-                if stream in {self.processor.tokenizer.eos_token, self.processor.tokenizer.pad_token}:
+                if stream in {self.tokenizer.eos_token, self.tokenizer.pad_token}:
                     finish_reason = "stop"
                 elif completion_tokens >= (payload.max_completion_tokens or 256):
                     finish_reason = "length"
@@ -255,7 +249,7 @@ class ImageTextToText(
                 if tool_calls:
                     delta.tool_calls = tool_calls
 
-                yield ImageTextToTextOutputChunk(
+                yield TextGenerationOutputChunk(
                     id=id,
                     object="chat.completion.chunk",
                     created=int(time()),
@@ -289,7 +283,7 @@ class ImageTextToText(
                 output = self.model.generate(**generation_kwargs)
             output = output[:, inputs["input_ids"].shape[-1] :][0]
 
-            decoded_output = self.processor.decode(output, skip_special_tokens=True)
+            decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)
 
             tool_calls = extract_tool_calls(decoded_output) if payload.tools else None
 
@@ -299,7 +293,7 @@ class ImageTextToText(
             elif tool_calls:
                 finish_reason = "tool_calls"
 
-            return ImageTextToTextOutput(
+            return TextGenerationOutput(
                 id=f"chatcmpl-{uuid4().hex[:10]}",
                 object="chat.completion",
                 created=int(time()),
