@@ -60,6 +60,14 @@ parser.add_argument(
     required=False,
     help="The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`",
 )
+parser.add_argument(
+    "--cloud-provider",
+    type=str,
+    default=os.getenv("CLOUD_PROVIDER"),
+    choices=["azure"],
+    required=False,
+    help="The name of the cloud provider where the API is being deployed in if that's the case. This flag is useful as it might contain some cloud-provider specific features e.g. `--cloud-provider azure` comes with an extra route in `/swagger.json` with the OpenAPI specification.",
+)
 
 
 def main() -> None:
@@ -73,4 +81,5 @@ def main() -> None:
         task=args.task,
         device=args.device,
         dtype=args.dtype,
+        cloud_provider=args.cloud_provider,
     )

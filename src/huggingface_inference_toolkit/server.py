@@ -27,7 +27,6 @@ app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/healt
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
-app.include_router(router=azure_router)
 
 
 def launch(
@@ -41,9 +40,12 @@ def launch(
     # TODO: maybe the best default is no default, but handling that separately based on the library as it seems
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
+    # TODO: note that the `config.json` comes with a default value for `torch_dtype` which defines the dtype in
+    # which the weights are pushed to the Hub, so we can eventually rely on that value as the default
     dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
+    cloud_provider: Optional[Literal["azure"]] = None,
 ) -> None:
     if model_id and model_dir:
         logger.warning(
@@ -61,6 +63,7 @@ def launch(
     )
 
     match task:
+        # TODO: OpenAI routes should be optional whilst the standard Inference API route should be handled too
         # openai-compatible
         case "image-text-to-text":
             from huggingface_inference_toolkit.tasks.transformers.image_text_to_text import (
@@ -329,6 +332,15 @@ def launch(
                         logger.info(f"Loaded custom router for {model_id=}")
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
+
+    # NOTE: one of the requirements for Microsoft Azure is that the `SwaggerUri` is set and pointing to
+    # `/swagger.json` containing the OpenAPI specification, so we need to add a custom route if running on
+    # Azure, and the same might apply to other cloud providers such as Google Cloud or AWS, among others.
+    match cloud_provider:
+        case "azure":
+            app.include_router(router=azure_router)
+        case _:
+            pass
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
