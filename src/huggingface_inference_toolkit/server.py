@@ -12,7 +12,6 @@ from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
 )
-from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
 from huggingface_inference_toolkit.routers import (
     custom_router,
     health_router,
@@ -80,6 +79,7 @@ def launch(
             )
             app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
         case "text-generation" | "text2text-generation" | "conversational":
+            from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
                 TextGenerationInput,
@@ -87,15 +87,25 @@ def launch(
             )
 
             predictor = TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-
             app.include_router(
-                router=chat_completions_router(
+                router=predict_router(
                     predictor=predictor,
                     input_schema=TextGenerationInput,
                     output_schema=TextGenerationOutput,
                 )
             )
-            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
+            if (
+                predictor.pipeline.tokenizer is not None
+                and predictor.pipeline.tokenizer.chat_template is not None
+            ):
+                from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
+
+                chat_completions = ChatCompletions(
+                    model=predictor.pipeline.model,
+                    tokenizer=predictor.pipeline.tokenizer,  # type: ignore
+                )
+                app.include_router(router=chat_completions_router(predictor=chat_completions))
+                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
