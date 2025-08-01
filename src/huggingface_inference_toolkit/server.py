@@ -330,6 +330,21 @@ def launch(
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
 
+    logger.info("Available API routes:")
+    groups = {"/docs": "/docs/oauth2-redirect", "/openapi.json": "/swagger.json", "/": "/predict"}
+    logged = set()
+
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path") and route.path not in logged:
+            methods = [m for m in sorted(route.methods) if m != "HEAD"]  # type: ignore
+            for method in methods:
+                if route.path in groups:  # type: ignore
+                    logger.info(f"[{method:<4}] {route.path}, {groups[route.path]}")  # type: ignore
+                    logged.update([route.path, groups[route.path]])  # type: ignore
+                else:
+                    logger.info(f"[{method:<4}] {route.path}")  # type: ignore
+                    logged.add(route.path)  # type: ignore
+
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
         host=host,  # type: ignore
