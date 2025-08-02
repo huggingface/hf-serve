@@ -102,7 +102,7 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         warmup_input = TranslationInput(**TranslationInput.model_json_schema().get("examples")[0])
         for pipeline in self.pipelines.values():
             pipeline(warmup_input.inputs)  # only pass the input str for easiness here
-    
+
     @property
     def model_id(self) -> Union[str, None]:
         return (
@@ -135,4 +135,3 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         )  # type: ignore
 
         return TranslationOutput(root=pipeline_results)
-

@@ -42,7 +42,7 @@ class SentenceEmbeddings(Predictor[SentenceEmbeddingsInput, SentenceEmbeddingsOu
                 "attn_implementation": attn_implementation or "sdpa",
             },
         )
-    
+
     @property
     def model_id(self) -> Union[str, None]:
         return (
@@ -55,4 +55,3 @@ class SentenceEmbeddings(Predictor[SentenceEmbeddingsInput, SentenceEmbeddingsOu
         return SentenceEmbeddingsOutput(
             embeddings=self.pipeline.encode(payload.sentences, convert_to_tensor=True).tolist(),
         )
-

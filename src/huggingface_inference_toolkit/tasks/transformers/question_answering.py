@@ -107,4 +107,3 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return QuestionAnsweringOutput(root=pipeline_results)
-

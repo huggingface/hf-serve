@@ -343,4 +343,3 @@ class ImageTextToText(
                 service_tier="default",
                 system_fingerprint=str(uuid4()),
             )
-

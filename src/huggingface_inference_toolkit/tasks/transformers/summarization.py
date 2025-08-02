@@ -101,4 +101,3 @@ class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
 
         pipeline_results = self.pipeline(inputs, **payload)  # type: ignore
         return SummarizationOutput(root=pipeline_results)
-

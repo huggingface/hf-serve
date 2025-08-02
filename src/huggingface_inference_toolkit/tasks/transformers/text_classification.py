@@ -62,7 +62,7 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
         _ = self.pipeline(
             "This was a masterpiece. Not completely faithful to the books, but enthralling from beginning to end. Might be my favorite of the three."
         )  # type: ignore
-    
+
     @property
     def model_id(self) -> Union[str, None]:
         return (
@@ -73,4 +73,3 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
 
     def __call__(self, input: TextClassificationInput) -> TextClassificationOutput:
         return TextClassificationOutput(root=self.pipeline(**input.model_dump()))  # type: ignore
-

@@ -82,4 +82,3 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
                 for score in scores:
                     score["index"] = score.pop("corpus_id")  # type: ignore
                 return RankOutput(scores=scores)  # type: ignore
-

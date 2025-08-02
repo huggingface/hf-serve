@@ -91,4 +91,3 @@ class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClas
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return ZeroShotClassificationOutput(root=pipeline_results)
-

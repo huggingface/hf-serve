@@ -93,4 +93,3 @@ class TokenClassification(Predictor[TokenClassificationInput, TokenClassificatio
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return TokenClassificationOutput(root=pipeline_results)
-

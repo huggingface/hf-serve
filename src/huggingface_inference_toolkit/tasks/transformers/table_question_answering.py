@@ -82,7 +82,7 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
         )
 
         self(warmup_input)
-    
+
     @property
     def model_id(self) -> Union[str, None]:
         return (
@@ -105,4 +105,3 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
         )
 
         return TableQuestionAnsweringOutput(root=results)
-
