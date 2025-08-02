@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Literal, Optional
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
@@ -73,6 +75,14 @@ class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
         warmup_input = SummarizationInput(**SummarizationInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.model.config._name_or_path
+            if not Path(self.pipeline.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
+
     def __call__(self, input: SummarizationInput) -> SummarizationOutput:
         payload = input.model_dump(exclude_none=True)
 
@@ -91,3 +101,4 @@ class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
 
         pipeline_results = self.pipeline(inputs, **payload)  # type: ignore
         return SummarizationOutput(root=pipeline_results)
+

@@ -1,4 +1,6 @@
-from typing import List, Optional
+import os
+from pathlib import Path
+from typing import List, Optional, Union
 
 import torch
 from pydantic import BaseModel, ConfigDict, RootModel
@@ -82,6 +84,14 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
         warmup_input = QuestionAnsweringInput(**QuestionAnsweringInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.model.config._name_or_path
+            if not Path(self.pipeline.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
+
     def __call__(self, input: QuestionAnsweringInput) -> QuestionAnsweringOutput:
         payload = input.model_dump(exclude_none=True)
 
@@ -97,3 +107,4 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return QuestionAnsweringOutput(root=pipeline_results)
+

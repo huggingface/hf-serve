@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from pathlib import Path
 from threading import Thread
 from time import time
 from typing import Iterator, List, Union
@@ -107,6 +108,14 @@ class ImageTextToText(
         )
 
         self.streamer = TextIteratorStreamer(self.processor.tokenizer, skip_prompt=True)
+
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.model.config._name_or_path
+            if not Path(self.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
 
     def __call__(
         self, payload: ImageTextToTextInput
@@ -334,3 +343,4 @@ class ImageTextToText(
                 service_tier="default",
                 system_fingerprint=str(uuid4()),
             )
+

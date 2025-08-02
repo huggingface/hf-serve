@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from typing import List, Literal, Optional, Union
 
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
@@ -40,8 +42,17 @@ class SentenceEmbeddings(Predictor[SentenceEmbeddingsInput, SentenceEmbeddingsOu
                 "attn_implementation": attn_implementation or "sdpa",
             },
         )
+    
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.tokenizer.name_or_path
+            if not Path(self.pipeline.tokenizer.name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
 
     def __call__(self, payload: SentenceEmbeddingsInput) -> SentenceEmbeddingsOutput:
         return SentenceEmbeddingsOutput(
             embeddings=self.pipeline.encode(payload.sentences, convert_to_tensor=True).tolist(),
         )
+

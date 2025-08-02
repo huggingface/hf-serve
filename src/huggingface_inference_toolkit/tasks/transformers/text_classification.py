@@ -1,7 +1,9 @@
-from typing import List
+import os
+from pathlib import Path
+from typing import List, Union
 
 import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, Field, RootModel
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
@@ -9,6 +11,16 @@ from huggingface_inference_toolkit.tasks.predictor import Predictor
 class TextClassificationInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "inputs": "This was a masterpiece. Not completely faithful to the books, but enthralling from beginning to end. Might be my favorite of the three."
+                }
+            ]
+        }
     )
 
 
@@ -50,6 +62,15 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
         _ = self.pipeline(
             "This was a masterpiece. Not completely faithful to the books, but enthralling from beginning to end. Might be my favorite of the three."
         )  # type: ignore
+    
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.model.config._name_or_path
+            if not Path(self.pipeline.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
 
     def __call__(self, input: TextClassificationInput) -> TextClassificationOutput:
         return TextClassificationOutput(root=self.pipeline(**input.model_dump()))  # type: ignore
+

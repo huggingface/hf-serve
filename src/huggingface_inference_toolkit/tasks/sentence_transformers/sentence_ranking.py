@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from typing import List, Literal, Optional, Tuple, Union
 
 import torch
@@ -57,6 +59,14 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
             default_activation_function=torch.nn.Sigmoid(),
         )
 
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.tokenizer.name_or_path
+            if not Path(self.pipeline.tokenizer.name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
+
     def __call__(self, payload: SentenceRankingInput) -> SentenceRankingOutput:
         match payload:
             case PredictInput():
@@ -72,3 +82,4 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
                 for score in scores:
                     score["index"] = score.pop("corpus_id")  # type: ignore
                 return RankOutput(scores=scores)  # type: ignore
+

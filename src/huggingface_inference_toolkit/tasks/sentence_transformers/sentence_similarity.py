@@ -1,4 +1,6 @@
-from typing import List, Literal, Optional
+import os
+from pathlib import Path
+from typing import List, Literal, Optional, Union
 
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
 from sentence_transformers import SentenceTransformer
@@ -45,6 +47,14 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
                 "attn_implementation": attn_implementation or "sdpa",
             },
             similarity_fn_name=similarity_fn_name or "cosine",
+        )
+
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.tokenizer.name_or_path
+            if not Path(self.pipeline.tokenizer.name_or_path).exists()
+            else os.getenv("MODEL_ID")
         )
 
     def __call__(self, payload: SentenceSimilarityInput) -> SentenceSimilarityOutput:

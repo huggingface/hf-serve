@@ -1,4 +1,6 @@
-from typing import List, Literal, Optional
+import os
+from pathlib import Path
+from typing import List, Literal, Optional, Union
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
@@ -78,8 +80,17 @@ class TokenClassification(Predictor[TokenClassificationInput, TokenClassificatio
         )
         self(warmup_input)
 
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.model.config._name_or_path
+            if not Path(self.pipeline.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
+
     def __call__(self, input: TokenClassificationInput) -> TokenClassificationOutput:
         payload = input.model_dump(exclude_none=True)
 
         pipeline_results = self.pipeline(**payload)  # type: ignore
         return TokenClassificationOutput(root=pipeline_results)
+

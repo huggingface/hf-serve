@@ -1,4 +1,6 @@
-from typing import Any, Dict, List, Literal, Optional
+import os
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Optional, Union
 from huggingface_inference_toolkit.logging import logger
 
 import torch
@@ -100,6 +102,14 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         warmup_input = TranslationInput(**TranslationInput.model_json_schema().get("examples")[0])
         for pipeline in self.pipelines.values():
             pipeline(warmup_input.inputs)  # only pass the input str for easiness here
+    
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.model.config._name_or_path
+            if not Path(self.model.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
 
     def __call__(self, input: TranslationInput) -> TranslationOutput:
         if input.src_lang and input.tgt_lang:
@@ -125,3 +135,4 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         )  # type: ignore
 
         return TranslationOutput(root=pipeline_results)
+

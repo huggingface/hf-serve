@@ -1,6 +1,8 @@
 import base64
+import os
 from io import BytesIO
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 
 import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
@@ -108,6 +110,14 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
         # TODO: better validation and more meaningful errors on warmup
         self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))  # type: ignore
+
+    @property
+    def model_id(self) -> Union[str, None]:
+        return (
+            self.pipeline.config._name_or_path
+            if not Path(self.pipeline.config._name_or_path).exists()
+            else os.getenv("MODEL_ID")
+        )
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
         payload_dump = payload.model_dump(exclude_defaults=True)
