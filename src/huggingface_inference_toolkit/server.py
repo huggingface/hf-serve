@@ -275,6 +275,20 @@ def launch(
                     output_schema=TranslationOutput,
                 )
             )
+        case "audio-classification":
+            from huggingface_inference_toolkit.tasks.transformers.audio_classification import (
+                AudioClassification,
+                AudioClassificationInput,
+                AudioClassificationOutput,
+            )
+
+            app.include_router(
+                router=predict_router(
+                    predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=AudioClassificationInput,
+                    output_schema=AudioClassificationOutput,
+                )
+            )
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
                 0,

@@ -5,7 +5,7 @@
 
 Supported tasks in endpoints atm:
 
-- [ ] Audio classification
+- [x] Audio classification
 - [ ] Automatic Speech Recognition 
 - [ ] Custom 
 - [ ] Feature Extraction 
