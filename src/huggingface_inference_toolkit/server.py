@@ -69,17 +69,27 @@ def launch(
             )
 
             predictor = ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-
             app.include_router(
-                router=chat_completions_router(
+                router=predict_router(
                     predictor=predictor,
                     input_schema=ImageTextToTextInput,
                     output_schema=ImageTextToTextOutput,
                 )
             )
-            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
+            if (
+                predictor.pipeline.tokenizer is not None
+                and predictor.pipeline.tokenizer.chat_template is not None
+            ):
+                from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
+                from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
+
+                chat_completions = ChatCompletions(
+                    model=predictor.pipeline.model,
+                    tokenizer=predictor.pipeline.tokenizer,  # type: ignore
+                )
+                app.include_router(router=chat_completions_router(predictor=chat_completions))
+                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
         case "text-generation" | "text2text-generation" | "conversational":
-            from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
                 TextGenerationInput,
@@ -99,6 +109,7 @@ def launch(
                 and predictor.pipeline.tokenizer.chat_template is not None
             ):
                 from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
+                from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
                     model=predictor.pipeline.model,
