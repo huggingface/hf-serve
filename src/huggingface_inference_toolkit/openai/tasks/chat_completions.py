@@ -102,8 +102,6 @@ class ChatCompletions:
     def __call__(
         self, payload: ChatCompletionsInput
     ) -> Union[Iterator[ChatCompletionsOutputChunk], ChatCompletionsOutput]:
-        logger.info(f"Received input {payload=}")
-
         messages = []
         images = []  # NOTE: only required when the model is a VLM and the `processor` is provided
         for message in payload.messages:
