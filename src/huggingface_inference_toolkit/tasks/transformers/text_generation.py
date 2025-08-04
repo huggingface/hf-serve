@@ -4,7 +4,6 @@ import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
 from transformers.pipelines import pipeline
 
-from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
