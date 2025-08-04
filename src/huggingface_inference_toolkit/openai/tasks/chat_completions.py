@@ -12,7 +12,6 @@ from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
 from transformers.generation.streamers import TextIteratorStreamer
 from transformers.image_utils import load_image
 
-from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.openai.schemas.chat_completions import (
     ChatCompletionsInput,
     ChatCompletionsOutput,
