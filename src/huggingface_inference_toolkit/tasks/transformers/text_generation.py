@@ -54,8 +54,6 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
     def __call__(self, payload: TextGenerationInput) -> TextGenerationOutput:
-        logger.info(f"Received input {payload=}")
-
         parameters = {}
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
