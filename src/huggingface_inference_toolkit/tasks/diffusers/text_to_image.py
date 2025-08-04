@@ -1,8 +1,7 @@
-import base64
-from io import BytesIO
 from typing import Optional
 
 import torch
+from PIL.Image import Image as PILImage
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from huggingface_inference_toolkit.logging import logger
@@ -65,7 +64,7 @@ class TextToImageInput(BaseModel):
 class TextToImageOutput(BaseModel):
     # NOTE: the output just contains `image` and not e.g. `images` since only one image can be generated
     # at a time at the moment
-    image: str
+    image: PILImage
 
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
@@ -118,10 +117,5 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             payload_dump.pop("seed")
 
         # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
-        out = self.pipeline(**payload_dump)
-        image = out.images[0]  # type: ignore
-        buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        image = base64.b64encode(buffered.getvalue()).decode()
-
+        image = self.pipeline(**payload_dump)[0]
         return TextToImageOutput(image=image)
