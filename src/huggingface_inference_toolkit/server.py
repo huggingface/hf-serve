@@ -356,15 +356,15 @@ def launch(
     logged = set()
 
     for route in app.routes:
-        if hasattr(route, "methods") and hasattr(route, "path") and route.path not in logged:
+        if hasattr(route, "methods") and hasattr(route, "path") and route.path not in logged:  # type: ignore
             methods = [m for m in sorted(route.methods) if m != "HEAD"]  # type: ignore
             for method in methods:
                 if route.path in groups:  # type: ignore
                     logger.info(f"[{method:<4}] {route.path}, {groups[route.path]}")  # type: ignore
                     logged.update([route.path, groups[route.path]])  # type: ignore
-                else:
+                elif route.path not in groups.values():  # type: ignore
                     logger.info(f"[{method:<4}] {route.path}")  # type: ignore
-                    logged.add(route.path)  # type: ignore
+                logged.add(route.path)  # type: ignore
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
