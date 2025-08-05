@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from huggingface_inference_toolkit.tasks.predictor import Predictor
+from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
 
 
-def router(predictor: Predictor, timestamp: int) -> APIRouter:
+def router(predictor: ChatCompletions, timestamp: int) -> APIRouter:
     router = APIRouter()
 
     @router.get("/v1/models")
