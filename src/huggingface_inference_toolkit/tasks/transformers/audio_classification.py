@@ -1,8 +1,6 @@
 from typing import List, Optional, Union
-import base64
-import io
 
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 import torch
 from transformers.pipelines import pipeline
 
@@ -24,7 +22,9 @@ class AudioClassificationParameters(BaseModel):
 
 
 class AudioClassificationInput(BaseModel):
-    inputs: Union[str, bytes]  # Audio file path, audio in base64 encoding or raw audio bytes
+    # TODO: handle request with no parameters and raw audio bytes as payload
+    # as defined in https://huggingface.co/docs/inference-providers/tasks/audio-classification
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", 'audio'))
     parameters: Optional[AudioClassificationParameters] = None
 
     model_config = ConfigDict(
@@ -49,8 +49,6 @@ class AudioClassificationInput(BaseModel):
             return v
         elif isinstance(v, bytes):
             # If it's bytes, return as is
-            # TODO: handle request with no parameters and raw audio bytes as payload,
-            # as defined in https://huggingface.co/docs/inference-providers/tasks/audio-classification
             return v
         else:
             raise ValueError("inputs must be either a file path (str), base64-encoded string, or audio bytes")
@@ -62,7 +60,7 @@ class AudioClassificationOutputValue(BaseModel):
 
 
 class AudioClassificationOutput(BaseModel):
-    audio_classification_result: AudioClassificationOutputValue
+    results: List[AudioClassificationOutputValue]
 
 
 class AudioClassification(Predictor[AudioClassificationInput, AudioClassificationOutput]):
@@ -96,5 +94,5 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
             if not audio_input.startswith(('/', 'http://', 'https://')) and not '.' in audio_input.split('/')[-1]:
                 audio_input = Audio.deserialize(audio_input)
 
-        audio_classification_result = self.pipeline(audio_input, **parameters)[0]
-        return AudioClassificationOutput(audio_classification_result=audio_classification_result)
+        audio_classification_results = self.pipeline(audio_input, **parameters)
+        return AudioClassificationOutput(results=audio_classification_results)
