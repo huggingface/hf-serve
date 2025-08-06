@@ -310,6 +310,20 @@ def launch(
                     output_schema=AudioClassificationOutput,
                 )
             )
+        case "zero-shot-audio-classification":
+            from huggingface_inference_toolkit.tasks.transformers.zero_shot_audio_classification import (
+                ZeroShotAudioClassification,
+                ZeroShotAudioClassificationInput,
+                ZeroShotAudioClassificationOutput,
+            )
+
+            app.include_router(
+                router=predict_router(
+                    predictor=ZeroShotAudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=ZeroShotAudioClassificationInput,
+                    output_schema=ZeroShotAudioClassificationOutput,
+                )
+            )
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
                 0,

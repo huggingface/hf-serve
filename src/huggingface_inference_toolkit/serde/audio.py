@@ -9,5 +9,5 @@ class Audio:
             dec = base64.b64decode(audio_base64)
         except base64.binascii.Error as e:
             raise ValueError(f"Invalid base64 string: {e}") from e
-        
+
         return dec

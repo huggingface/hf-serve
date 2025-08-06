@@ -14,24 +14,23 @@ class AudioClassificationParameters(BaseModel):
 
     @field_validator("function_to_apply")
     def validate_function_to_apply(cls, v):
-        if v in {'sigmoid', 'softmax', None}:
+        if v in {"sigmoid", "softmax", None}:
             return v
         else:
             raise ValueError("Parameter `function_to_apply` must be one of: sigmoid, softmax, none.")
 
 
-
 class AudioClassificationInput(BaseModel):
     # TODO: handle request with no parameters and raw audio bytes as payload
     # as defined in https://huggingface.co/docs/inference-providers/tasks/audio-classification
-    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", 'audio'))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
     parameters: Optional[AudioClassificationParameters] = None
 
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/marsyas/gtzan/resolve/main/1.flac",
+                    "inputs": "https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac",
                     "parameters": {
                         "top_k": 5,
                         "function_to_apply": "softmax",
@@ -64,7 +63,7 @@ class AudioClassificationOutput(BaseModel):
 
 
 class AudioClassification(Predictor[AudioClassificationInput, AudioClassificationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
         # Handle device selection for models that don't support device_map
@@ -89,10 +88,10 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
             parameters = payload.parameters.model_dump(exclude_none=True)
 
         audio_input = payload.inputs
-        
         if isinstance(audio_input, str):
-            if not audio_input.startswith(('/', 'http://', 'https://')) and not '.' in audio_input.split('/')[-1]:
+            if not audio_input.startswith(("/", "http://", "https://")) and "." not in audio_input.split("/")[-1]:
                 audio_input = Audio.deserialize(audio_input)
 
-        audio_classification_results = self.pipeline(audio_input, **parameters)
-        return AudioClassificationOutput(results=audio_classification_results)
+        results = self.pipeline(audio_input, **parameters)
+
+        return AudioClassificationOutput(results=results)
