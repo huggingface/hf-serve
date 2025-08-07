@@ -12,13 +12,6 @@ class AudioClassificationParameters(BaseModel):
     function_to_apply: Optional[str] = None
     top_k: Optional[int] = None
 
-    @field_validator("function_to_apply")
-    def validate_function_to_apply(cls, v):
-        if v in {"sigmoid", "softmax", None}:
-            return v
-        else:
-            raise ValueError("Parameter `function_to_apply` must be one of: sigmoid, softmax, none.")
-
 
 class AudioClassificationInput(BaseModel):
     # TODO: handle request with no parameters and raw audio bytes as payload
