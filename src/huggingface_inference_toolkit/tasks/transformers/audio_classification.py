@@ -33,19 +33,6 @@ class AudioClassificationInput(BaseModel):
         }
     )
 
-    @field_validator("inputs")
-    def validate_inputs(cls, v):
-        if isinstance(v, str):
-            # If it's a string, it could be a file path or base64-encoded audio
-            # We'll determine this later in the __call__ method
-            return v
-        elif isinstance(v, bytes):
-            # If it's bytes, return as is
-            return v
-        else:
-            raise ValueError("inputs must be either a file path (str), base64-encoded string, or audio bytes")
-
-
 class AudioClassificationOutputValue(BaseModel):
     label: str
     score: float
