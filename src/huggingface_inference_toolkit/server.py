@@ -117,6 +117,20 @@ def launch(
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
                 app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
+        case "automatic-speech-recognition":
+            from huggingface_inference_toolkit.tasks.transformers.automatic_speech_recognition import (
+                AutomaticSpeechRecognition,
+                AutomaticSpeechRecognitionInput,
+                AutomaticSpeechRecognitionOutput,
+            )
+            predictor = AutomaticSpeechRecognition(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            app.include_router(
+                router=predict_router(
+                    predictor=predictor,
+                    input_schema=AutomaticSpeechRecognitionInput,
+                    output_schema=AutomaticSpeechRecognitionOutput,
+                )
+            )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
