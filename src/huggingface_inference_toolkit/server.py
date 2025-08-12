@@ -118,20 +118,6 @@ def launch(
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
                 app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
-        case "automatic-speech-recognition":
-            from huggingface_inference_toolkit.tasks.transformers.automatic_speech_recognition import (
-                AutomaticSpeechRecognition,
-                AutomaticSpeechRecognitionInput,
-                AutomaticSpeechRecognitionOutput,
-            )
-            predictor = AutomaticSpeechRecognition(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            app.include_router(
-                router=predict_audio_router(
-                    predictor=predictor,
-                    input_schema=AutomaticSpeechRecognitionInput,
-                    output_schema=AutomaticSpeechRecognitionOutput,
-                )
-            )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
@@ -311,6 +297,23 @@ def launch(
                     output_schema=TranslationOutput,
                 )
             )
+        # transformers - audio
+        case "zero-shot-audio-classification":
+            from huggingface_inference_toolkit.tasks.transformers.zero_shot_audio_classification import (
+                ZeroShotAudioClassification,
+                ZeroShotAudioClassificationInput,
+                ZeroShotAudioClassificationOutput,
+            )
+
+            app.include_router(
+                router=predict_audio_router(
+                    predictor=ZeroShotAudioClassification(
+                        model_id=model_id or model_dir, dtype=dtype, device=device
+                    ),  # type: ignore
+                    input_schema=ZeroShotAudioClassificationInput,
+                    output_schema=ZeroShotAudioClassificationOutput,
+                )
+            )
         case "audio-classification":
             from huggingface_inference_toolkit.tasks.transformers.audio_classification import (
                 AudioClassification,
@@ -325,20 +328,22 @@ def launch(
                     output_schema=AudioClassificationOutput,
                 )
             )
-        case "zero-shot-audio-classification":
-            from huggingface_inference_toolkit.tasks.transformers.zero_shot_audio_classification import (
-                ZeroShotAudioClassification,
-                ZeroShotAudioClassificationInput,
-                ZeroShotAudioClassificationOutput,
+        case "automatic-speech-recognition":
+            from huggingface_inference_toolkit.tasks.transformers.automatic_speech_recognition import (
+                AutomaticSpeechRecognition,
+                AutomaticSpeechRecognitionInput,
+                AutomaticSpeechRecognitionOutput,
             )
 
+            predictor = AutomaticSpeechRecognition(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
                 router=predict_audio_router(
-                    predictor=ZeroShotAudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=ZeroShotAudioClassificationInput,
-                    output_schema=ZeroShotAudioClassificationOutput,
+                    predictor=predictor,
+                    input_schema=AutomaticSpeechRecognitionInput,
+                    output_schema=AutomaticSpeechRecognitionOutput,
                 )
             )
+        # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
                 0,

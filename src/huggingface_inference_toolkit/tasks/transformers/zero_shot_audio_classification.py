@@ -37,14 +37,6 @@ class ZeroShotAudioClassificationInput(BaseModel):
         }
     )
 
-    @field_validator("inputs")
-    def validate_inputs(cls, v):
-        if isinstance(v, str):
-            # If it's a string, it could be a file path or base64-encoded audio
-            return v
-        else:
-            raise ValueError("inputs must be either a file path (str) or base64-encoded string")
-
     @field_validator("candidate_labels")
     def validate_candidate_labels(cls, v):
         if not v:
@@ -61,7 +53,9 @@ class ZeroShotAudioClassificationOutput(BaseModel):
     results: List[ZeroShotAudioClassificationOutputValue]
 
 
-class ZeroShotAudioClassification(Predictor[ZeroShotAudioClassificationInput, ZeroShotAudioClassificationOutput]):
+class ZeroShotAudioClassification(
+    Predictor[ZeroShotAudioClassificationInput, ZeroShotAudioClassificationOutput]
+):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
@@ -86,17 +80,15 @@ class ZeroShotAudioClassification(Predictor[ZeroShotAudioClassificationInput, Ze
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # Process the input based on its type
         audio_input = payload.inputs
         if isinstance(audio_input, str):
             # Check if it's a base64-encoded string (not a file path/URL)
-            if not audio_input.startswith(('/', 'http://', 'https://')) and '.' not in audio_input.split('/')[-1]:
+            if (
+                not audio_input.startswith(("/", "http://", "https://"))
+                and "." not in audio_input.split("/")[-1]
+            ):
                 audio_input = Audio.deserialize(audio_input)
 
-
-        results = self.pipeline(audio_input,
-                                candidate_labels=payload.candidate_labels,
-                                **parameters
-                                )
+        results = self.pipeline(audio_input, candidate_labels=payload.candidate_labels, **parameters)
 
         return ZeroShotAudioClassificationOutput(results=results)

@@ -30,9 +30,11 @@ class AutomaticSpeechRecognitionGenerationParameters(BaseModel):
     penalty_alpha: Optional[float] = None
     use_cache: Optional[bool] = None
 
+
 class AutomaticSpeechRecognitionParameters(BaseModel):
     return_timestamps: Optional[Union[bool, str]] = Field(default=None)
     generation_parameters: Optional[AutomaticSpeechRecognitionGenerationParameters] = Field(default=None)
+
 
 class AutomaticSpeechRecognitionInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
@@ -45,11 +47,8 @@ class AutomaticSpeechRecognitionInput(BaseModel):
                     "inputs": "https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac",
                     "parameters": {
                         "return_timestamps": True,
-                        "generation_parameters": {
-                            "temperature": 0.1,
-                            "top_k": 50
-                        }
-                    }
+                        "generation_parameters": {"temperature": 0.1, "top_k": 50},
+                    },
                 }
             ]
         }
@@ -98,32 +97,39 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
+        # TODO (@juanjucm): Check if maybe its better to standarize how the audio is passed to the pipeline (e.g. always as a bytes, instead of bytes or url).
         audio_input = payload.inputs
         if isinstance(audio_input, str):
-            if audio_input.startswith(('http://', 'https://')):
+            if audio_input.startswith(("http://", "https://")):
                 res = requests.get(audio_input)
                 audio_enc = BytesIO(res.content)
-            elif '.' in audio_input.split('/')[-1]:
+            elif "." in audio_input.split("/")[-1]:
                 audio_enc = audio_input
             else:
                 # audio as base64 encoded string, input has to be deserialized.
                 audio_input = Audio.deserialize(audio_input)
                 audio_enc = BytesIO(audio_input)
-        elif isinstance(audio_input, bytes):
+        else:  # audio as bytes
             audio_enc = BytesIO(audio_input)
 
         audio_length = AudioSegment.from_file(audio_enc).duration_seconds
-        logging.info(f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}")
+        logging.info(
+            f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}"
+        )
 
-        result = self.pipeline(audio_input,
-                               return_timestamps=parameters.get("return_timestamps", None),
-                               chunk_length_s=self.chunk_length_s,
-                               batch_size=int(audio_length // self.chunk_length_s + 1),
-                               generate_kwargs=parameters.get("generation_parameters", None))
+        result = self.pipeline(
+            audio_input,
+            return_timestamps=parameters.get("return_timestamps", None),
+            chunk_length_s=self.chunk_length_s,
+            batch_size=int(audio_length // self.chunk_length_s + 1),
+            generate_kwargs=parameters.get("generation_parameters", None),
+        )
 
         return AutomaticSpeechRecognitionOutput(
+            # TODO (@juanjucm): check if an empty audio should return empty text or not.
+            # If not needed, remove this fallback and crash.
             text=result.get("text", ""),
-            chunks=[
-                Chunk(text=chunk['text'], timestamp=chunk['timestamp']) for chunk in result['chunks']
-            ] if result.get("chunks") else None
+            chunks=[Chunk(text=chunk["text"], timestamp=chunk["timestamp"]) for chunk in result["chunks"]]
+            if result.get("chunks")
+            else None,
         )

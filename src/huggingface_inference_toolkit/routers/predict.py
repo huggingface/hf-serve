@@ -1,12 +1,12 @@
+from pathlib import Path
 from typing import Type, Union
 
-from fastapi import APIRouter, Body, File, HTTPException, UploadFile, Request
+from fastapi import APIRouter, Body, HTTPException, UploadFile, Request
+import magic
 from pydantic import BaseModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
-from huggingface_inference_toolkit.tasks.transformers.audio_classification import AudioClassificationInput
-from huggingface_inference_toolkit.tasks.transformers.automatic_speech_recognition import AutomaticSpeechRecognitionInput
-from huggingface_inference_toolkit.tasks.transformers.zero_shot_audio_classification import ZeroShotAudioClassificationInput
+
 
 def router(
     predictor: Predictor,
@@ -38,6 +38,19 @@ def audio_router(
 ) -> APIRouter:
     router = APIRouter()
 
+    accepted_extensions = ["flac", "mp3", "mp4", "mpeg", "mpga", "m4a", "ogg", "wav", "webm"]
+    # TODO (juanjucm): double check how MIME types are handeled when sending files as multipart/form-data
+    # It seems like the MIME type is always application/octet-stream.
+    accepted_mimetypes = [
+        "audio/flac",
+        "audio/xflac",
+        "audio/mpeg",
+        "audio/mp4",
+        "audio/ogg",
+        "audio/wav",
+        "audio/webm",
+        "application/octet-stream",
+    ]
 
     @router.post("/predict-json", response_model=output_schema)
     async def predict_json(payload: input_schema = Body(...)) -> output_schema:  # type: ignore
@@ -45,22 +58,29 @@ def audio_router(
             return predictor(payload=payload)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
-        
+
     @router.post("/predict-file", response_model=output_schema)
     async def predict_file(file: UploadFile) -> output_schema:  # type: ignore
         try:
-            if not file.filename.lower().endswith(('.flac', '.mp3', '.mp4', '.mpeg', '.mpga', '.m4a', '.ogg', '.wav', '.webm')):
-                    raise HTTPException(status_code=400, detail="Unsupported audio file format.")
+            extension = Path(file.filename).suffix.lower().lstrip(".")
+            chunk = await file.read(2048)
+            mime_type = magic.from_buffer(chunk, mime=True)
 
-            content = await file.read()
+            if extension not in accepted_extensions and mime_type not in accepted_mimetypes:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Provided file with extension {extension} and MIME type {mime_type} is not supported. \
+                                            Supported extensions are: "
+                    + ", ".join(accepted_extensions)
+                    + ". Supported MIME types are: "
+                    + ", ".join(accepted_mimetypes),
+                )
+            else:
+                content = await file.read()
+
             payload = input_schema(inputs=content, parameters=None)  # type: ignore
 
-            try:
-                res = predictor(payload=payload)
-            except Exception as e:
-                import traceback
-                traceback.print_exc()
-            return res
+            return predictor(payload=payload)
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
@@ -69,25 +89,21 @@ def audio_router(
     async def predict(request: Request) -> output_schema:  # type: ignore
         ct = request.headers.get("content-type", "")
         match ct:
-            case "application/json":
+            case _ if "application/json" in ct:
                 payload = await request.json()
-                audio_payload = {}
                 try:
-                    audio_payload = input_schema(**payload)  # type: ignore
+                    payload = input_schema(**payload)  # type: ignore
                 except Exception as e:
                     raise HTTPException(status_code=422, detail=e.errors())
 
-                return await predict_json(payload=audio_payload)
-            case "multipart/form-data":
+                return await predict_json(payload=payload)
+            case _ if "multipart/form-data" in ct:
                 form = await request.form()
                 file = form.get("file")
 
-                # Checks audio
                 if not file:
                     raise HTTPException(status_code=400, detail="File not found in the request.")
 
                 return await predict_file(file=file)
-
-
 
     return router

@@ -1,6 +1,6 @@
 from typing import List, Optional, Union
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 import torch
 from transformers.pipelines import pipeline
 
@@ -14,7 +14,7 @@ class AudioClassificationParameters(BaseModel):
 
 
 class AudioClassificationInput(BaseModel):
-    inputs: str = Field(validation_alias=AliasChoices("inputs", "audio"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
     parameters: Optional[AudioClassificationParameters] = None
 
     model_config = ConfigDict(
@@ -30,6 +30,7 @@ class AudioClassificationInput(BaseModel):
             ]
         }
     )
+
 
 class AudioClassificationOutputValue(BaseModel):
     label: str
@@ -67,7 +68,10 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
 
         audio_input = payload.inputs
         if isinstance(audio_input, str):
-            if not audio_input.startswith(("/", "http://", "https://")) and "." not in audio_input.split("/")[-1]:
+            if (
+                not audio_input.startswith(("/", "http://", "https://"))
+                and "." not in audio_input.split("/")[-1]
+            ):
                 audio_input = Audio.deserialize(audio_input)
 
         results = self.pipeline(audio_input, **parameters)

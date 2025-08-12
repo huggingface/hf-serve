@@ -19,12 +19,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                     logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8')}")
                 case "multipart/form-data":
                     form = await request.form()
-                    file = form.get("file")
-                    if file:
-                        logger.info(f"Request: {request.method} {request.url.path} - File: {file.filename}")
+                    if form:
+                        logger.info(f"Request: {request.method} {request.url.path} - Form: {form}")
                     else:
-                        logger.info(f"Request: {request.method} {request.url.path} - No file in form data")
-
+                        logger.info(f"Request: {request.method} {request.url.path} - No form in payload")
 
         response = await call_next(request)
         process_time = time.time() - start_time
