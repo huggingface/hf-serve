@@ -128,7 +128,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         return AutomaticSpeechRecognitionOutput(
             # TODO (@juanjucm): check if an empty audio should return empty text or not.
             # If not needed, remove this fallback and crash.
-            text=result.get("text", ""),
+            text=result['text'], # type: ignore
             chunks=[Chunk(text=chunk["text"], timestamp=chunk["timestamp"]) for chunk in result["chunks"]]
             if result.get("chunks")
             else None,
