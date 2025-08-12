@@ -14,9 +14,7 @@ class AudioClassificationParameters(BaseModel):
 
 
 class AudioClassificationInput(BaseModel):
-    # TODO: handle request with no parameters and raw audio bytes as payload
-    # as defined in https://huggingface.co/docs/inference-providers/tasks/audio-classification
-    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
+    inputs: str = Field(validation_alias=AliasChoices("inputs", "audio"))
     parameters: Optional[AudioClassificationParameters] = None
 
     model_config = ConfigDict(

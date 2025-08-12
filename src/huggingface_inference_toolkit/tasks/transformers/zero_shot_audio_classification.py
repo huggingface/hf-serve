@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 import torch
@@ -19,9 +19,7 @@ class ZeroShotAudioClassificationParameters(BaseModel):
 
 
 class ZeroShotAudioClassificationInput(BaseModel):
-    # NOTE: For this task, we cannnot pass raw audio bytes as payload, since the model also expects candidate_labels.
-    # Only string inputs (file paths or base64-encoded audio) are supported.
-    inputs: str = Field(validation_alias=AliasChoices("inputs", "audio"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
     candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
     parameters: Optional[ZeroShotAudioClassificationParameters] = None
 

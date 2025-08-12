@@ -12,8 +12,19 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         start_time = time.time()
 
         if request.method == "POST":
-            body = await request.body()
-            logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8')}")
+            ct = request.headers.get("content-type", "")
+            match ct:
+                case "application/json":
+                    body = await request.body()
+                    logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8')}")
+                case "multipart/form-data":
+                    form = await request.form()
+                    file = form.get("file")
+                    if file:
+                        logger.info(f"Request: {request.method} {request.url.path} - File: {file.filename}")
+                    else:
+                        logger.info(f"Request: {request.method} {request.url.path} - No file in form data")
+
 
         response = await call_next(request)
         process_time = time.time() - start_time

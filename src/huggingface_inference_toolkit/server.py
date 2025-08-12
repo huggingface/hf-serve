@@ -17,6 +17,7 @@ from huggingface_inference_toolkit.routers import (
     health_router,
     metrics_router,
     predict_router,
+    predict_audio_router,
 )
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
@@ -125,7 +126,7 @@ def launch(
             )
             predictor = AutomaticSpeechRecognition(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
-                router=predict_router(
+                router=predict_audio_router(
                     predictor=predictor,
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
@@ -318,7 +319,7 @@ def launch(
             )
 
             app.include_router(
-                router=predict_router(
+                router=predict_audio_router(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=AudioClassificationInput,
                     output_schema=AudioClassificationOutput,
@@ -332,7 +333,7 @@ def launch(
             )
 
             app.include_router(
-                router=predict_router(
+                router=predict_audio_router(
                     predictor=ZeroShotAudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ZeroShotAudioClassificationInput,
                     output_schema=ZeroShotAudioClassificationOutput,

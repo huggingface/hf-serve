@@ -31,11 +31,11 @@ class AutomaticSpeechRecognitionGenerationParameters(BaseModel):
     use_cache: Optional[bool] = None
 
 class AutomaticSpeechRecognitionParameters(BaseModel):
-    return_timestamps: Optional[bool] = None
+    return_timestamps: Optional[Union[bool, str]] = Field(default=None)
     generation_parameters: Optional[AutomaticSpeechRecognitionGenerationParameters] = Field(default=None)
 
 class AutomaticSpeechRecognitionInput(BaseModel):
-    inputs: str = Field(validation_alias=AliasChoices("inputs", "audio"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
     parameters: Optional[AutomaticSpeechRecognitionParameters] = Field(default=None)
 
     model_config = ConfigDict(
@@ -99,17 +99,20 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
             parameters = payload.parameters.model_dump(exclude_none=True)
 
         audio_input = payload.inputs
-        if audio_input.startswith(('http://', 'https://')):
-            res = requests.get(audio_input)
-            res = BytesIO(res.content)
-            audio_length = AudioSegment.from_file(res).duration_seconds
-        elif '.' in audio_input.split('/')[-1]:
-            audio_length = AudioSegment.from_file(audio_input).duration_seconds
-        else:
-            # audio as base64 encoded string, input has to be deserialized.
-            audio_input = Audio.deserialize(audio_input)
-            audio_length = AudioSegment.from_file(BytesIO(audio_input)).duration_seconds
+        if isinstance(audio_input, str):
+            if audio_input.startswith(('http://', 'https://')):
+                res = requests.get(audio_input)
+                audio_enc = BytesIO(res.content)
+            elif '.' in audio_input.split('/')[-1]:
+                audio_enc = audio_input
+            else:
+                # audio as base64 encoded string, input has to be deserialized.
+                audio_input = Audio.deserialize(audio_input)
+                audio_enc = BytesIO(audio_input)
+        elif isinstance(audio_input, bytes):
+            audio_enc = BytesIO(audio_input)
 
+        audio_length = AudioSegment.from_file(audio_enc).duration_seconds
         logging.info(f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}")
 
         result = self.pipeline(audio_input,
