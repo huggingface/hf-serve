@@ -33,6 +33,9 @@ dependencies = [
     "peft>=0.14.0",
     "pillow>=11.1.0",
     "open-clip-torch>=2.32.0",
+    "pydub>=0.25.0",
+    "python-multipart>=0.0.20",
+    "python-magic>=0.4.27"
 ]
 
 [build-system]
