@@ -12,7 +12,6 @@ from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
 )
-from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
 from huggingface_inference_toolkit.routers import (
     custom_router,
     health_router,
@@ -70,15 +69,26 @@ def launch(
             )
 
             predictor = ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-
             app.include_router(
-                router=chat_completions_router(
+                router=predict_router(
                     predictor=predictor,
                     input_schema=ImageTextToTextInput,
                     output_schema=ImageTextToTextOutput,
                 )
             )
-            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
+            if (
+                predictor.pipeline.tokenizer is not None
+                and predictor.pipeline.tokenizer.chat_template is not None
+            ):
+                from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
+                from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
+
+                chat_completions = ChatCompletions(
+                    model=predictor.pipeline.model,
+                    tokenizer=predictor.pipeline.tokenizer,  # type: ignore
+                )
+                app.include_router(router=chat_completions_router(predictor=chat_completions))
+                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
         case "text-generation" | "text2text-generation" | "conversational":
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
@@ -87,15 +97,26 @@ def launch(
             )
 
             predictor = TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-
             app.include_router(
-                router=chat_completions_router(
+                router=predict_router(
                     predictor=predictor,
                     input_schema=TextGenerationInput,
                     output_schema=TextGenerationOutput,
                 )
             )
-            app.include_router(router=models_router(predictor=predictor, timestamp=int(time.time())))
+            if (
+                predictor.pipeline.tokenizer is not None
+                and predictor.pipeline.tokenizer.chat_template is not None
+            ):
+                from huggingface_inference_toolkit.openai.routers import chat_completions_router, models_router
+                from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
+
+                chat_completions = ChatCompletions(
+                    model=predictor.pipeline.model,
+                    tokenizer=predictor.pipeline.tokenizer,  # type: ignore
+                )
+                app.include_router(router=chat_completions_router(predictor=chat_completions))
+                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
@@ -329,6 +350,21 @@ def launch(
                         logger.info(f"Loaded custom router for {model_id=}")
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
+
+    logger.info("Available API routes:")
+    groups = {"/docs": "/docs/oauth2-redirect", "/openapi.json": "/swagger.json", "/": "/predict"}
+    logged = set()
+
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path") and route.path not in logged:  # type: ignore
+            methods = [m for m in sorted(route.methods) if m != "HEAD"]  # type: ignore
+            for method in methods:
+                if route.path in groups:  # type: ignore
+                    logger.info(f"[{method:<4}] {route.path}, {groups[route.path]}")  # type: ignore
+                    logged.update([route.path, groups[route.path]])  # type: ignore
+                elif route.path not in groups.values():  # type: ignore
+                    logger.info(f"[{method:<4}] {route.path}")  # type: ignore
+                logged.add(route.path)  # type: ignore
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
