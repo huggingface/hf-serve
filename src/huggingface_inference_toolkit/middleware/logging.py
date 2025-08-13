@@ -14,10 +14,10 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         if request.method == "POST":
             ct = request.headers.get("content-type", "")
             match ct:
-                case "application/json":
+                case _ if "application/json" in ct:
                     body = await request.body()
                     logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8')}")
-                case "multipart/form-data":
+                case _ if "multipart/form-data" in ct:
                     form = await request.form()
                     if form:
                         logger.info(f"Request: {request.method} {request.url.path} - Form: {form}")
