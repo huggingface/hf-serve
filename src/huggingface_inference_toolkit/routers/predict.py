@@ -88,22 +88,20 @@ def audio_router(
     @router.post("/predict", response_model=output_schema)
     async def predict(request: Request) -> output_schema:  # type: ignore
         ct = request.headers.get("content-type", "")
-        match ct:
-            case _ if "application/json" in ct:
-                payload = await request.json()
-                try:
-                    payload = input_schema(**payload)  # type: ignore
-                except Exception as e:
-                    raise HTTPException(status_code=422, detail=e.errors())
+        if "application/json" in ct:
+            payload = await request.json()
+            try:
+                payload = input_schema(**payload)  # type: ignore
+            except Exception as e:
+                raise HTTPException(status_code=422, detail=e.errors())
 
-                return await predict_json(payload=payload)
-            case _ if "multipart/form-data" in ct:
-                form = await request.form()
-                file = form.get("file")
+            return await predict_json(payload=payload)
+        elif "multipart/form-data" in ct:
+            form = await request.form()
+            file = form.get("file")
+            if not file:
+                raise HTTPException(status_code=400, detail="File not found in the request.")
 
-                if not file:
-                    raise HTTPException(status_code=400, detail="File not found in the request.")
-
-                return await predict_file(file=file)
+            return await predict_file(file=file)
 
     return router
