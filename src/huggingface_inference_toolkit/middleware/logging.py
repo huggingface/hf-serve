@@ -15,13 +15,11 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             ct = request.headers.get("content-type", "")
             if "application/json" in ct:
                 body = await request.body()
-                logger.info(f"Request: {request.method} {request.url.path} - Body: {body.decode('utf-8')}")
+                logger.info(f"Request: type=json path={request.url.path} method={request.method} - Body={body.decode()}")
+                # Reset body for downstream
+                request._receive = lambda: {"type": "http.request", "body": body, "more_body": False}
             elif "multipart/form-data" in ct:
-                form = await request.form()
-                if form:
-                    logger.info(f"Request: {request.method} {request.url.path} - Form: {form}")
-                else:
-                    logger.info(f"Request: {request.method} {request.url.path} - No form in payload")
+                logger.info(f"Request: type=multipart path={request.url.path} method={request.method}")
 
         response = await call_next(request)
         process_time = time.time() - start_time
