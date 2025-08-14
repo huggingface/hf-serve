@@ -15,7 +15,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             ct = request.headers.get("content-type", "")
             if "application/json" in ct:
                 body = await request.body()
-                logger.info(f"Request: type=json path={request.url.path} method={request.method} - Body={body.decode()}")
+                logger.info(
+                    f"Request: type=json path={request.url.path} method={request.method} - Body={body.decode()}"
+                )
                 # Reset body for downstream
                 request._receive = lambda: {"type": "http.request", "body": body, "more_body": False}
             elif "multipart/form-data" in ct:
