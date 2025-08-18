@@ -68,9 +68,8 @@ def media_router(
                     + ". Supported MIME types are: "
                     + ", ".join(accepted_mimetypes),
                 )
-            else:
-                await file.seek(0)
-                content = await file.read()
+            await file.seek(0)
+            content = await file.read()
 
             payload = input_schema(inputs=content, parameters=None)  # type: ignore
 
