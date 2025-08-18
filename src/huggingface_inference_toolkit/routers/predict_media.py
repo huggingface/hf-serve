@@ -91,7 +91,7 @@ def media_router(
             return await predict_json(payload=payload)
         elif "multipart/form-data" in ct:
             form = await request.form()
-            file = form.get("file")
+            file = form.get("file", None)
             if not file:
                 raise HTTPException(status_code=400, detail="File not found in the request.")
 
