@@ -307,12 +307,10 @@ def launch(
 
             app.include_router(
                 router=predict_media_router(
-                    predictor=ZeroShotAudioClassification(
-                        model_id=model_id or model_dir, dtype=dtype, device=device
-                    ),  # type: ignore
+                    predictor=ZeroShotAudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ZeroShotAudioClassificationInput,
                     output_schema=ZeroShotAudioClassificationOutput,
-                    media_type="audio",
+                    accepted_mimetypes=["audio/flac", "audio/xflac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm"],
                 )
             )
         case "audio-classification":
@@ -327,7 +325,7 @@ def launch(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=AudioClassificationInput,
                     output_schema=AudioClassificationOutput,
-                    media_type="audio",
+                    accepted_mimetypes=["audio/flac", "audio/xflac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm"],
                 )
             )
         case "automatic-speech-recognition":
@@ -343,7 +341,7 @@ def launch(
                     predictor=predictor,
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
-                    media_type="audio",
+                    accepted_mimetypes=["audio/flac", "audio/xflac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm"],
                 )
             )
         # transformers - image
@@ -359,7 +357,7 @@ def launch(
                     predictor=ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageClassificationInput,
                     output_schema=ImageClassificationOutput,
-                    media_type="image",
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],  # type: ignore
                 )
             )
         case "image-segmentation":
@@ -374,7 +372,7 @@ def launch(
                     predictor=ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageSegmentationInput,
                     output_schema=ImageSegmentationOutput,
-                    media_type="image",
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
                 )
             )
         case "object-detection":
@@ -389,7 +387,7 @@ def launch(
                     predictor=ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ObjectDetectionInput,
                     output_schema=ObjectDetectionOutput,
-                    media_type="image",
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
                 )
             )
         # custom
