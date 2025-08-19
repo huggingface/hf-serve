@@ -307,10 +307,20 @@ def launch(
 
             app.include_router(
                 router=predict_media_router(
-                    predictor=ZeroShotAudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=ZeroShotAudioClassification(
+                        model_id=model_id or model_dir, dtype=dtype, device=device
+                    ),  # type: ignore
                     input_schema=ZeroShotAudioClassificationInput,
                     output_schema=ZeroShotAudioClassificationOutput,
-                    accepted_mimetypes=["audio/flac", "audio/xflac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm"],
+                    accepted_mimetypes=[
+                        "audio/flac",
+                        "audio/xflac",
+                        "audio/mpeg",
+                        "audio/mp4",
+                        "audio/ogg",
+                        "audio/wav",
+                        "audio/webm",
+                    ],
                 )
             )
         case "audio-classification":
@@ -325,7 +335,15 @@ def launch(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=AudioClassificationInput,
                     output_schema=AudioClassificationOutput,
-                    accepted_mimetypes=["audio/flac", "audio/xflac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm"],
+                    accepted_mimetypes=[
+                        "audio/flac",
+                        "audio/xflac",
+                        "audio/mpeg",
+                        "audio/mp4",
+                        "audio/ogg",
+                        "audio/wav",
+                        "audio/webm",
+                    ],
                 )
             )
         case "automatic-speech-recognition":
@@ -341,7 +359,15 @@ def launch(
                     predictor=predictor,
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
-                    accepted_mimetypes=["audio/flac", "audio/xflac", "audio/mpeg", "audio/mp4", "audio/ogg", "audio/wav", "audio/webm"],
+                    accepted_mimetypes=[
+                        "audio/flac",
+                        "audio/xflac",
+                        "audio/mpeg",
+                        "audio/mp4",
+                        "audio/ogg",
+                        "audio/wav",
+                        "audio/webm",
+                    ],
                 )
             )
         # transformers - image
