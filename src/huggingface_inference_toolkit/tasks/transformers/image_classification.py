@@ -4,7 +4,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 import torch
 from transformers.pipelines import pipeline
 
-from huggingface_inference_toolkit.serde import Image
+from huggingface_inference_toolkit.serde import ImageInput
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -13,7 +13,7 @@ class ImageClassificationParameters(BaseModel):
     top_k: Optional[int] = None
 
 
-class ImageClassificationInput(BaseModel):
+class ImageClassificationInput(ImageInput):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ImageClassificationParameters] = None
 
@@ -21,7 +21,7 @@ class ImageClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/cats.jpg",
+                    "inputs": "https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png",
                     "parameters": {
                         "function_to_apply": "softmax",
                         "top_k": 5,
@@ -68,17 +68,6 @@ class ImageClassification(Predictor[ImageClassificationInput, ImageClassificatio
 
         image_input = payload.inputs
 
-        # Deserialize if the input is bytes or a base64 string
-        is_bytes = isinstance(image_input, bytes)
-        is_base64_string = (
-            isinstance(image_input, str)
-            and not image_input.startswith(("/", "http://", "https://"))
-            and "." not in image_input.split("/")[-1]
-        )
-        if is_bytes or is_base64_string:
-            image_input = Image.deserialize(image_input)
-
-        print("asdf")
         results = self.pipeline(image_input, **parameters)
 
         return ImageClassificationOutput(results=results)

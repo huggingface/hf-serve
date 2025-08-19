@@ -1,10 +1,10 @@
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 import torch
 from transformers.pipelines import pipeline
 
-from huggingface_inference_toolkit.serde import Image
+from huggingface_inference_toolkit.serde import ImageInput
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -12,7 +12,7 @@ class ObjectDetectionParameters(BaseModel):
     threshold: Optional[float] = None
 
 
-class ObjectDetectionInput(BaseModel):
+class ObjectDetectionInput(ImageInput):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ObjectDetectionParameters] = None
 
@@ -20,7 +20,7 @@ class ObjectDetectionInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/cats.jpg",
+                    "inputs": "https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png",
                     "parameters": {
                         "threshold": 0.9,
                     },
@@ -73,16 +73,6 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
             parameters = payload.parameters.model_dump(exclude_none=True)
 
         image_input = payload.inputs
-
-        # Deserialize if the input is bytes or a base64 string
-        is_bytes = isinstance(image_input, bytes)
-        is_base64_string = (
-            isinstance(image_input, str)
-            and not image_input.startswith(("/", "http://", "https://"))
-            and "." not in image_input.split("/")[-1]
-        )
-        if is_bytes or is_base64_string:
-            image_input = Image.deserialize(image_input)
 
         results = self.pipeline(image_input, **parameters)
 

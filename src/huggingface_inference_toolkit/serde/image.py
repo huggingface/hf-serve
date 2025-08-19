@@ -13,7 +13,8 @@ class Image:
             if isinstance(image_input, bytes):
                 return PILImage.open(BytesIO(image_input))
             elif isinstance(image_input, str):
-                return load_image(image_input)
+                img = load_image(image_input)
+                return img
             else:
                 raise ValueError("Unsupported image input type")
         except Exception as e:
