@@ -1,4 +1,3 @@
-from pathlib import Path
 from typing import Type, Union
 
 from fastapi import APIRouter, Body, HTTPException, UploadFile, Request
