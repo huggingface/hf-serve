@@ -14,13 +14,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         if request.method == "POST":
             ct = request.headers.get("content-type", "")
 
-            logger.info(f"Request: type={"json" if "application/json" in ct else "multipart"} path={request.url.path} method={request.method}")
-            
+            logger.info(
+                f"Request: type={'json' if 'application/json' in ct else 'multipart'} path={request.url.path} method={request.method}"
+            )
+
             if "application/json" in ct:
                 body = await request.body()
-                logger.info(
-                    f"Body={body.decode()}"
-                )
+                logger.info(f"Body={body.decode()}")
                 # Reset body for downstream
                 request._receive = lambda: {"type": "http.request", "body": body, "more_body": False}
 
