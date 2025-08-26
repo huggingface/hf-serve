@@ -16,8 +16,8 @@ from huggingface_inference_toolkit.routers import (
     custom_router,
     health_router,
     metrics_router,
+    predict_media_router,
     predict_router,
-    predict_audio_router,
 )
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
@@ -306,12 +306,21 @@ def launch(
             )
 
             app.include_router(
-                router=predict_audio_router(
+                router=predict_media_router(
                     predictor=ZeroShotAudioClassification(
                         model_id=model_id or model_dir, dtype=dtype, device=device
                     ),  # type: ignore
                     input_schema=ZeroShotAudioClassificationInput,
                     output_schema=ZeroShotAudioClassificationOutput,
+                    accepted_mimetypes=[
+                        "audio/flac",
+                        "audio/xflac",
+                        "audio/mpeg",
+                        "audio/mp4",
+                        "audio/ogg",
+                        "audio/wav",
+                        "audio/webm",
+                    ],
                 )
             )
         case "audio-classification":
@@ -322,10 +331,19 @@ def launch(
             )
 
             app.include_router(
-                router=predict_audio_router(
+                router=predict_media_router(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=AudioClassificationInput,
                     output_schema=AudioClassificationOutput,
+                    accepted_mimetypes=[
+                        "audio/flac",
+                        "audio/xflac",
+                        "audio/mpeg",
+                        "audio/mp4",
+                        "audio/ogg",
+                        "audio/wav",
+                        "audio/webm",
+                    ],
                 )
             )
         case "automatic-speech-recognition":
@@ -337,10 +355,65 @@ def launch(
 
             predictor = AutomaticSpeechRecognition(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
-                router=predict_audio_router(
+                router=predict_media_router(
                     predictor=predictor,
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
+                    accepted_mimetypes=[
+                        "audio/flac",
+                        "audio/xflac",
+                        "audio/mpeg",
+                        "audio/mp4",
+                        "audio/ogg",
+                        "audio/wav",
+                        "audio/webm",
+                    ],
+                )
+            )
+        # transformers - image
+        case "image-classification":
+            from huggingface_inference_toolkit.tasks.transformers.image_classification import (
+                ImageClassification,
+                ImageClassificationInput,
+                ImageClassificationOutput,
+            )
+
+            app.include_router(
+                router=predict_media_router(
+                    predictor=ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=ImageClassificationInput,
+                    output_schema=ImageClassificationOutput,
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],  # type: ignore
+                )
+            )
+        case "image-segmentation":
+            from huggingface_inference_toolkit.tasks.transformers.image_segmentation import (
+                ImageSegmentation,
+                ImageSegmentationInput,
+                ImageSegmentationOutput,
+            )
+
+            app.include_router(
+                router=predict_media_router(
+                    predictor=ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=ImageSegmentationInput,
+                    output_schema=ImageSegmentationOutput,
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
+                )
+            )
+        case "object-detection":
+            from huggingface_inference_toolkit.tasks.transformers.object_detection import (
+                ObjectDetection,
+                ObjectDetectionInput,
+                ObjectDetectionOutput,
+            )
+
+            app.include_router(
+                router=predict_media_router(
+                    predictor=ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=ObjectDetectionInput,
+                    output_schema=ObjectDetectionOutput,
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
                 )
             )
         # custom
