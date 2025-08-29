@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
-class SentenceEmbeddingsInput(BaseModel):
+class FeatureExtractionInput(BaseModel):
     sentences: Union[str, List[str]] = Field(
         validation_alias=AliasChoices("sentence", AliasPath("inputs", "sentence"))
     )
@@ -16,11 +16,11 @@ class SentenceEmbeddingsInput(BaseModel):
     )
 
 
-class SentenceEmbeddingsOutput(BaseModel):
+class FeatureExtractionOutput(BaseModel):
     embeddings: List[float]
 
 
-class SentenceEmbeddings(Predictor[SentenceEmbeddingsInput, SentenceEmbeddingsOutput]):
+class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutput]):
     def __init__(
         self,
         model_id: str,
@@ -41,7 +41,7 @@ class SentenceEmbeddings(Predictor[SentenceEmbeddingsInput, SentenceEmbeddingsOu
             },
         )
 
-    def __call__(self, payload: SentenceEmbeddingsInput) -> SentenceEmbeddingsOutput:
-        return SentenceEmbeddingsOutput(
+    def __call__(self, payload: FeatureExtractionInput) -> FeatureExtractionOutput:
+        return FeatureExtractionOutput(
             embeddings=self.pipeline.encode(payload.sentences, convert_to_tensor=True).tolist(),
         )

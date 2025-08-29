@@ -153,18 +153,18 @@ def launch(
                     output_schema=SentenceSimilarityOutput,
                 )
             )
-        case "sentence-embeddings" | "feature-extraction":
-            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_embeddings import (
-                SentenceEmbeddings,
-                SentenceEmbeddingsInput,
-                SentenceEmbeddingsOutput,
+        case "feature-extraction" | "sentence-embeddings" | "embeddings":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.feature_extraction import (
+                FeatureExtraction,
+                FeatureExtractionInput,
+                FeatureExtractionOutput,
             )
 
             app.include_router(
                 router=predict_router(
-                    predictor=SentenceEmbeddings(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=SentenceEmbeddingsInput,
-                    output_schema=SentenceEmbeddingsOutput,
+                    predictor=FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=FeatureExtractionInput,
+                    output_schema=FeatureExtractionOutput,
                 )
             )
         case "text-ranking" | "sentence-ranking":
