@@ -7,6 +7,7 @@ from sentence_transformers import CrossEncoder
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
+# TODO: it should accept inputs as a list of inputs to match the current Inference API
 class PredictInput(BaseModel):
     sentences: Union[Tuple[str, str], List[str], List[List[str]], List[Tuple[str, str]]]
 
@@ -15,6 +16,7 @@ class PredictOutput(BaseModel):
     scores: List[float]
 
 
+# TODO: it should accept inputs as a list of inputs to match the current Inference API
 class RankInput(BaseModel):
     query: str
     texts: List[str]
@@ -42,6 +44,7 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
         model_id: str,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = "float32",
         device: Optional[Literal["cpu", "cuda", "mps", "npu"]] = None,
+        backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = "eager",
     ) -> None:
         # TODO: maybe add support for every argument (?)
@@ -50,11 +53,12 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
         self.pipeline = CrossEncoder(
             model_id,
             device=device,
-            automodel_args={
+            backend=backend or "torch",  # type: ignore
+            model_kwargs={
                 "torch_dtype": dtype or "float32",
                 "attn_implementation": attn_implementation or "eager",
             },
-            default_activation_function=torch.nn.Sigmoid(),
+            activation_fn=torch.nn.Sigmoid(),
         )
 
     def __call__(self, payload: SentenceRankingInput) -> SentenceRankingOutput:
@@ -68,7 +72,10 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
                     payload.texts,
                     return_documents=payload.return_documents,  # type: ignore
                 )
-                # NOTE: here we rename "corpus_id" key to "index" for all scores to match TEI
+                # TODO: can the remapping of `corpus_id` be handled within the Pydantic schema instead?
+                # NOTE: here we rename "corpus_id" key to "index" for all scores to match the `/rerank` endpoint
+                # in Text Embeddings Inference (TEI)
+                # Reference: https://huggingface.github.io/text-embeddings-inference/
                 for score in scores:
                     score["index"] = score.pop("corpus_id")  # type: ignore
                 return RankOutput(scores=scores)  # type: ignore
