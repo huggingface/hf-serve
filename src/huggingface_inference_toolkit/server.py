@@ -20,6 +20,7 @@ from huggingface_inference_toolkit.routers import (
     predict_media_router,
     predict_router,
 )
+from huggingface_inference_toolkit.types import TaskTypes
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
 
@@ -40,7 +41,7 @@ def launch(
     # NOTE: on Inference Endpoints the model is downloaded in advance into the `/repository` directory
     # meaning that the `model_id` will always be None there, and the `model_dir` will be used instead
     model_dir: Union[str, None],
-    task: str,
+    task: TaskTypes,
     # TODO: maybe we should include `npu` too as supported by `sentence-transformers`?
     device: Optional[Literal["auto", "balanced", "cuda", "cpu", "mps"]] = "auto",
     # TODO: maybe the best default is no default, but handling that separately based on the library as it seems

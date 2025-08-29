@@ -3,7 +3,7 @@ import os
 
 from huggingface_inference_toolkit.backwards import check_backwards_compatibility
 from huggingface_inference_toolkit.server import launch
-from huggingface_inference_toolkit.utils import get_available_tasks
+from huggingface_inference_toolkit.types import TaskTypes
 
 # NOTE: required in order for the actual values for the environment variables
 # to be set before the defaults are provided to the `argparse` arguments
@@ -41,7 +41,7 @@ parser.add_argument(
     "--task",
     type=str,
     default=os.getenv("TASK", None),
-    choices=get_available_tasks(),
+    choices=TaskTypes,
     help="Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers, can also be set via the environment variable `TASK`",
 )
 parser.add_argument(
