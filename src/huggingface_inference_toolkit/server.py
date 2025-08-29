@@ -153,7 +153,7 @@ def launch(
                     output_schema=SentenceSimilarityOutput,
                 )
             )
-        case "sentence-embeddings":
+        case "sentence-embeddings" | "feature-extraction":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_embeddings import (
                 SentenceEmbeddings,
                 SentenceEmbeddingsInput,
@@ -167,7 +167,7 @@ def launch(
                     output_schema=SentenceEmbeddingsOutput,
                 )
             )
-        case "sentence-ranking":
+        case "sentence-ranking" | "text-ranking":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_ranking import (
                 SentenceRanking,
                 SentenceRankingInput,
