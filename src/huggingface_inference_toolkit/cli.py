@@ -1,5 +1,6 @@
 import argparse
 import os
+import typing
 
 from huggingface_inference_toolkit.backwards import check_backwards_compatibility
 from huggingface_inference_toolkit.server import launch
@@ -41,7 +42,7 @@ parser.add_argument(
     "--task",
     type=str,
     default=os.getenv("TASK", None),
-    choices=TaskTypes,
+    choices=typing.get_args(TaskTypes),
     help="Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers, can also be set via the environment variable `TASK`",
 )
 parser.add_argument(
