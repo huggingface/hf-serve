@@ -99,7 +99,7 @@ class ChatCompletions:
         )
 
     def __call__(
-        self, payload: ChatCompletionsInput
+        self, payload: ChatCompletionsInput, request_id: Optional[str] = None
     ) -> Union[Iterator[ChatCompletionsOutputChunk], ChatCompletionsOutput]:
         messages = []
         images = []  # NOTE: only required when the model is a VLM and the `processor` is provided
@@ -242,7 +242,7 @@ class ChatCompletions:
         if payload.stream is True:
             generation_kwargs["streamer"] = self.streamer  # type: ignore
 
-            id = f"chatcmpl-{uuid4().hex[:10]}"
+            id = f"chatcmpl-{request_id or uuid4().hex}"
             system_fingerprint = str(uuid4())
 
             with torch.no_grad():
@@ -316,7 +316,7 @@ class ChatCompletions:
                 finish_reason = "tool_calls"
 
             return ChatCompletionsOutput(
-                id=f"chatcmpl-{uuid4().hex[:10]}",
+                id=f"chatcmpl-{request_id or uuid4().hex}",
                 object="chat.completion",
                 created=int(time()),
                 model=payload.model,
