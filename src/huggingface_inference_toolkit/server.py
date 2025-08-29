@@ -11,6 +11,7 @@ from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
+    RequestIdMiddleware,
 )
 from huggingface_inference_toolkit.routers import (
     custom_router,
@@ -22,8 +23,12 @@ from huggingface_inference_toolkit.routers import (
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
 
-app.add_middleware(middleware_class=LoggingMiddleware)
+# NOTE: FastAPI runs the middlewares in reverse order
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
+app.add_middleware(
+    middleware_class=LoggingMiddleware, inference_paths=["/", "/predict", "/score", "/v1/chat/completions"]
+)
+app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
