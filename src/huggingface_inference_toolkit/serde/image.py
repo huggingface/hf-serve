@@ -14,8 +14,7 @@ class Image:
             if isinstance(image_input, bytes):
                 return ImageModule.open(BytesIO(image_input))
             elif isinstance(image_input, str):
-                img = load_image(image_input)
-                return img
+                return load_image(image_input)
         except Exception as e:
             raise ValueError(f"Failed to deserialize image: {e}")
 
