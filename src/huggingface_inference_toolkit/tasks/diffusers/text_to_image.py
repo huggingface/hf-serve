@@ -5,6 +5,7 @@ from PIL.Image import Image as PILImage
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from huggingface_inference_toolkit.logging import logger
+from huggingface_inference_toolkit.serde import Image
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -66,6 +67,11 @@ class TextToImageOutput(BaseModel):
     # at a time at the moment
     image: PILImage
 
+    model_config = ConfigDict(
+        json_encoders={PILImage: Image.serialize},  # type: ignore
+        arbitrary_types_allowed=True,
+    )
+
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
 class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
@@ -89,11 +95,13 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # /opt/huggingface/model all the contents for the given model should be downloaded and available
         # meaning that e.g. the fix for `diffusers` should be applied there
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
-        device_kwargs = {"device": device} if device not in {"balanced"} else {"device_map": device}
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
             torch_dtype=getattr(torch, dtype),
-            **device_kwargs,
+            device=device if device not in {"balanced"} else None,
+            device_map=device if device in {"balanced"} else None,
+            safety_checker=None,
+            requires_safety_checker=False,
         )
 
         if device == "cuda" and torch.cuda.is_available():
@@ -117,5 +125,5 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             payload_dump.pop("seed")
 
         # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
-        image = self.pipeline(**payload_dump)[0]
-        return TextToImageOutput(image=image)
+        images = self.pipeline(**payload_dump)[0]
+        return TextToImageOutput(image=images[0])
