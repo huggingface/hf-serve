@@ -34,11 +34,11 @@ class RankOutput(BaseModel):
 
 
 # NOTE: most likely not ideal, but we should support both scenarios, so needs to be like this in the meantime
-SentenceRankingInput = Union[PredictInput, RankInput]
-SentenceRankingOutput = Union[PredictOutput, RankOutput]
+TextRankingInput = Union[PredictInput, RankInput]
+TextRankingOutput = Union[PredictOutput, RankOutput]
 
 
-class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
+class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
     def __init__(
         self,
         model_id: str,
@@ -61,7 +61,7 @@ class SentenceRanking(Predictor[SentenceRankingInput, SentenceRankingOutput]):
             activation_fn=torch.nn.Sigmoid(),
         )
 
-    def __call__(self, payload: SentenceRankingInput) -> SentenceRankingOutput:
+    def __call__(self, payload: TextRankingInput) -> TextRankingOutput:
         match payload:
             case PredictInput():
                 scores = self.pipeline.predict(payload.sentences, convert_to_tensor=True).tolist()

@@ -167,18 +167,18 @@ def launch(
                     output_schema=SentenceEmbeddingsOutput,
                 )
             )
-        case "sentence-ranking" | "text-ranking":
-            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_ranking import (
-                SentenceRanking,
-                SentenceRankingInput,
-                SentenceRankingOutput,
+        case "text-ranking" | "sentence-ranking":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.text_ranking import (
+                TextRanking,
+                TextRankingInput,
+                TextRankingOutput,
             )
 
             app.include_router(
                 router=predict_router(
-                    predictor=SentenceRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=SentenceRankingInput,  # type: ignore
-                    output_schema=SentenceRankingOutput,  # type: ignore
+                    predictor=TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TextRankingInput,  # type: ignore
+                    output_schema=TextRankingOutput,  # type: ignore
                 )
             )
         # transformers
