@@ -1,32 +1,53 @@
 import time
-from typing import Callable
+from typing import Callable, List, Optional
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
 from huggingface_inference_toolkit.logging import logger
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
+    def __init__(
+        self,
+        app: ASGIApp,
+        *,
+        exclude_paths: Optional[List[str]] = None,
+        inference_paths: Optional[List[str]] = None,
+    ) -> None:
+        super().__init__(app)
+
+        self.exclude_paths = exclude_paths or []
+        self.inference_paths = inference_paths or []
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
-        start_time = time.time()
+        method = request.method
+        path = request.url.path
 
-        if request.method == "POST":
-            ct = request.headers.get("content-type", "")
+        if path in self.exclude_paths:
+            return await call_next(request)
 
+        start_time = time.perf_counter()
+
+        if path in self.inference_paths:
+            request_id = getattr(request.state, "request_id", None)
+            logger.info(f"[{request_id}] Request: {method} {path}")
+
+            response = await call_next(request)
+
+            process_time = (time.perf_counter() - start_time) * 1000
+            response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
+            request_id = getattr(request.state, "request_id", None)
             logger.info(
-                f"Request: type={'json' if 'application/json' in ct else 'multipart'} path={request.url.path} method={request.method}"
+                f"[{request_id}] Response: Status: {response.status_code} - Duration: {process_time:.2f}ms"
             )
+        else:
+            logger.info(f"Request: {method} {path}")
+            response = await call_next(request)
 
-            if "application/json" in ct:
-                body = await request.body()
-                logger.info(f"Body={body.decode()}")
-                # Reset body for downstream
-                request._receive = lambda: {"type": "http.request", "body": body, "more_body": False}
+            process_time = (time.perf_counter() - start_time) * 1000
+            response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
+            logger.info(f"Response: Status: {response.status_code} - Duration: {process_time:.2f}ms")
 
-        response = await call_next(request)
-        process_time = time.time() - start_time
-        logger.info(
-            f"Request: {request.method} {request.url.path} - Status: {response.status_code} - Duration: {process_time:.4f}s"
-        )
         return response
