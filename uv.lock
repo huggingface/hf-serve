@@ -312,7 +312,7 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "sentence-transformers", specifier = ">=5.1.0" },
     { name = "sentencepiece", specifier = ">=0.2.0" },
-    { name = "torch", specifier = ">=2.5.1,<2.7.0" },
+    { name = "torch", specifier = ">=2.5.1,<2.8.0" },
     { name = "transformers", git = "https://github.com/huggingface/transformers?rev=main" },
     { name = "uvicorn", specifier = ">=0.34.0" },
 ]
