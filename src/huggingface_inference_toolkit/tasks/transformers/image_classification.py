@@ -1,8 +1,9 @@
 from typing import List, Literal, Optional, Union
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from PIL.Image import Image as ImageType
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
-from huggingface_inference_toolkit.serde import ImageInput
+from huggingface_inference_toolkit.serde import Image
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -11,9 +12,14 @@ class ImageClassificationParameters(BaseModel):
     top_k: Optional[int] = None
 
 
-class ImageClassificationInput(ImageInput):
-    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
+class ImageClassificationInput(BaseModel):
+    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ImageClassificationParameters] = None
+
+    @field_validator("inputs")
+    @classmethod
+    def deserialize_inputs(cls, v: Union[str, bytes]) -> ImageType:
+        return Image.deserialize(v)
 
     model_config = ConfigDict(
         json_schema_extra={
