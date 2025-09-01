@@ -96,7 +96,9 @@ def launch(
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
-                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
+                app.include_router(
+                    router=models_router(model_id=model_id or model_dir, timestamp=int(time.time()))  # type: ignore
+                )
         case "text-generation" | "text2text-generation" | "conversational":
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
@@ -124,7 +126,9 @@ def launch(
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
-                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
+                app.include_router(
+                    router=models_router(model_id=model_id or model_dir, timestamp=int(time.time()))  # type: ignore
+                )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
@@ -145,9 +149,9 @@ def launch(
             from huggingface_inference_toolkit.openai.routers import images_generations_router, models_router
             from huggingface_inference_toolkit.openai.tasks.images_generations import ImagesGenerations
 
-            app.include_router(router=models_router(predictor=images, timestamp=int(time.time())))
             images = ImagesGenerations(pipeline=predictor.pipeline)
             app.include_router(router=images_generations_router(predictor=images))
+            app.include_router(router=models_router(model_id=model_id or model_dir, timestamp=int(time.time())))  # type: ignore
         # sentence-transformers
         case "sentence-similarity":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_similarity import (

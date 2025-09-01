@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Form, HTTPException, Request
+from fastapi import APIRouter, Body, HTTPException, Request
 from pydantic import ValidationError
 
 from huggingface_inference_toolkit.logging import logger
