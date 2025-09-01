@@ -1,8 +1,6 @@
 from typing import Optional
 
-import torch
 from pydantic import BaseModel, Field
-from transformers.pipelines import pipeline
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
@@ -42,10 +40,17 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
+        import torch
+        from transformers import pipeline
+        from transformers.pipelines.image_text_to_text import ImageTextToTextPipeline
+
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
+        # either add a check or just default to CUDA instead
         if device == "auto":
+            # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = pipeline(
+        self.pipeline: ImageTextToTextPipeline = pipeline(
             task="image-text-to-text",
             model=model_id,
             torch_dtype=getattr(torch, dtype),

@@ -1,9 +1,8 @@
-from typing import Any, Dict, List, Literal, Optional
-from huggingface_inference_toolkit.logging import logger
+from typing import Any, Dict, List, Literal, Optional, Set
 
-import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
 
+from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -61,9 +60,14 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline, AutoModelForSeq2SeqLM, AutoTokenizer  # type: ignore
+        import torch
+        from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, pipeline
+        from transformers.pipelines.text2text_generation import TranslationPipeline
 
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
+        # either add a check or just default to CUDA instead
         if device == "auto":
+            # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
         # Load model and tokenizer once
@@ -83,13 +87,14 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         logger.info(f"Available translation pairs: {list(self.translation_pairs.keys())}")
 
         # Initialize pipelines with shared model and tokenizer
-        self.pipelines = {}
+        self.pipelines: Set[TranslationPipeline] = {}
         for lang_pair in self.translation_pairs.keys():
-            self.pipelines[lang_pair] = transformers_pipeline(
+            self.pipelines[lang_pair] = pipeline(
                 task=f"translation_{lang_pair}",
                 model=self.model,
                 tokenizer=self.tokenizer,
                 device=device if device not in {"auto"} else None,
+                device_map=device if device in {"auto"} else None,
             )
 
         if torch.mps.is_available():
@@ -98,12 +103,12 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
 
         # Warmup each pipeline
         warmup_input = TranslationInput(**TranslationInput.model_json_schema().get("examples")[0])
-        for pipeline in self.pipelines.values():
-            pipeline(warmup_input.inputs)  # only pass the input str for easiness here
+        for p in self.pipelines.values():
+            p(warmup_input.inputs)  # only pass the input str for easiness here
 
-    def __call__(self, input: TranslationInput) -> TranslationOutput:
-        if input.src_lang and input.tgt_lang:
-            lang_pair = f"{input.src_lang}_to_{input.tgt_lang}"
+    def __call__(self, payload: TranslationInput) -> TranslationOutput:
+        if payload.src_lang and payload.tgt_lang:
+            lang_pair = f"{payload.src_lang}_to_{payload.tgt_lang}"
             logger.info(f"language pair specified {lang_pair}")
         else:
             lang_pair = next(iter(self.pipelines.keys()))
@@ -116,12 +121,12 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
 
         optional_params = {
             k: v
-            for k, v in input.model_dump().items()
+            for k, v in payload.model_dump().items()
             if k in ["clean_up_tokenization_spaces", "generate_parameters", "truncation"] and v is not None
         }
 
         pipeline_results = self.pipelines[lang_pair](
-            input.inputs, src_lang=input.src_lang, tgt_lang=input.tgt_lang, **optional_params
+            payload.inputs, src_lang=payload.src_lang, tgt_lang=payload.tgt_lang, **optional_params
         )  # type: ignore
 
         return TranslationOutput(root=pipeline_results)

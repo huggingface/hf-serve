@@ -1,6 +1,5 @@
 from typing import List
 
-import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -26,15 +25,17 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline  # type: ignore
+        import torch
+        from transformers import pipeline
+        from transformers.pipelines.text_classification import TextClassificationPipeline
 
-        # apparently some (not all) the models do not support the `device_map=auto` so we should probably
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
         if device == "auto":
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = transformers_pipeline(
+        self.pipeline: TextClassificationPipeline = pipeline(
             task="text-classification",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -51,5 +52,5 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
             "This was a masterpiece. Not completely faithful to the books, but enthralling from beginning to end. Might be my favorite of the three."
         )  # type: ignore
 
-    def __call__(self, input: TextClassificationInput) -> TextClassificationOutput:
-        return TextClassificationOutput(root=self.pipeline(**input.model_dump()))  # type: ignore
+    def __call__(self, payload: TextClassificationInput) -> TextClassificationOutput:
+        return TextClassificationOutput(root=self.pipeline(**payload.model_dump()))  # type: ignore

@@ -1,8 +1,6 @@
 from typing import List, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
-import torch
-from transformers.pipelines import pipeline
 
 from huggingface_inference_toolkit.serde import ImageInput
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -51,11 +49,17 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
-        # Handle device selection for models that don't support device_map
+        import torch
+        from transformers import pipeline
+        from transformers.pipelines.object_detection import ObjectDetectionPipeline
+
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
+        # either add a check or just default to CUDA instead
         if device == "auto":
+            # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = pipeline(
+        self.pipeline: ObjectDetectionPipeline = pipeline(
             task="object-detection",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -72,8 +76,5 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = payload.inputs
-
-        results = self.pipeline(image_input, **parameters)
-
+        results = self.pipeline(payload.inputs, **parameters)  # type: ignore
         return ObjectDetectionOutput(results=results)
