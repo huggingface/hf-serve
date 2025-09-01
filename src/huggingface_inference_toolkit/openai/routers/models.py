@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING, Union
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 
-from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
+if TYPE_CHECKING:
+    from huggingface_inference_toolkit.openai.tasks.chat_completions import ChatCompletions
+    from huggingface_inference_toolkit.openai.tasks.images import Images
 
 
-def router(predictor: ChatCompletions, timestamp: int) -> APIRouter:
+def router(predictor: Union["ChatCompletions", "Images"], timestamp: int) -> APIRouter:
     router = APIRouter()
 
     @router.get("/v1/models")

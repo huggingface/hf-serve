@@ -1,6 +1,6 @@
 import base64
 from io import BytesIO
-from typing import Union
+from typing import Literal, Union
 
 from PIL import Image as ImageModule
 from PIL.Image import Image as ImageType
@@ -20,7 +20,7 @@ class Image:
             raise ValueError(f"Failed to deserialize image: {e}")
 
     @staticmethod
-    def serialize(image: ImageType) -> str:
+    def serialize(image: ImageType, format: Literal["png", "jpeg", "webp"] = "png") -> str:
         buffered = BytesIO()
-        image.save(buffered, format="PNG")
-        return base64.b64encode(buffered.getvalue()).decode()
+        image.save(buffered, format=format)
+        return base64.b64encode(buffered.getvalue()).decode("utf-8")

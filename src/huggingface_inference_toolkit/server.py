@@ -27,7 +27,8 @@ app = FastAPI(title="Hugging Face Inference Toolkit")
 # NOTE: FastAPI runs the middlewares in reverse order
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
 app.add_middleware(
-    middleware_class=LoggingMiddleware, inference_paths=["/", "/predict", "/score", "/v1/chat/completions"]
+    middleware_class=LoggingMiddleware,
+    inference_paths=["/", "/predict", "/score", "/v1/chat/completions", "/v1/images/generations"],
 )
 app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
 
@@ -132,13 +133,21 @@ def launch(
                 TextToImageOutput,
             )
 
+            predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
                 router=predict_router(
-                    predictor=TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=TextToImageInput,
                     output_schema=TextToImageOutput,
                 )
             )
+
+            from huggingface_inference_toolkit.openai.routers import images_router, models_router
+            from huggingface_inference_toolkit.openai.tasks.images import Images
+
+            images = Images(pipeline=predictor.pipeline)
+            app.include_router(router=images_router(predictor=images))
+            app.include_router(router=models_router(predictor=images, timestamp=int(time.time())))
         # sentence-transformers
         case "sentence-similarity":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_similarity import (

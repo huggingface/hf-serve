@@ -45,7 +45,7 @@ def router(predictor: ChatCompletions) -> APIRouter:
 
             return output
 
-        except ValidationError as e:
+        except (ValueError, ValidationError) as e:
             logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
