@@ -1,7 +1,6 @@
 from typing import List, Literal, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
-import torch
 
 from huggingface_inference_toolkit.serde import ImageInput
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -44,6 +43,7 @@ class ImageClassification(Predictor[ImageClassificationInput, ImageClassificatio
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
+        import torch
         from transformers import pipeline
         from transformers.pipelines.image_classification import ImageClassificationPipeline
 
