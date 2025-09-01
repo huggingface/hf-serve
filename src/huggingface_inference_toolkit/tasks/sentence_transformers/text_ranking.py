@@ -1,9 +1,8 @@
 from typing import List, Literal, Optional, Tuple, Union
 
-import torch
 from pydantic import BaseModel
-from sentence_transformers import CrossEncoder
 
+from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -47,8 +46,16 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
         backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = "eager",
     ) -> None:
-        # TODO: maybe add support for every argument (?)
         super().__init__()
+
+        import torch
+        from sentence_transformers import CrossEncoder
+
+        if device == "mps" and not attn_implementation:
+            logger.warning(
+                "Device is set to `mps`, so setting `attn_implementation='eager'` by default to prevent potential SDPA-related issues as per https://github.com/UKPLab/sentence-transformers/issues/3498."
+            )
+            attn_implementation = "eager"
 
         self.pipeline = CrossEncoder(
             model_id,
@@ -56,7 +63,8 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
             backend=backend or "torch",  # type: ignore
             model_kwargs={
                 "torch_dtype": dtype or "float32",
-                "attn_implementation": attn_implementation or "eager",
+                # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
+                "attn_implementation": attn_implementation or "sdpa",
             },
             activation_fn=torch.nn.Sigmoid(),
         )

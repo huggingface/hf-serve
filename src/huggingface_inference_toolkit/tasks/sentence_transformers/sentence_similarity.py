@@ -1,8 +1,8 @@
 from typing import List, Literal, Optional
 
 from pydantic import AliasChoices, AliasPath, BaseModel, Field
-from sentence_transformers import SentenceTransformer
 
+from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -36,12 +36,21 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
     ) -> None:
         super().__init__()
 
+        from sentence_transformers import SentenceTransformer
+
+        if device == "mps" and not attn_implementation:
+            logger.warning(
+                "Device is set to `mps`, so setting `attn_implementation='eager'` by default to prevent potential SDPA-related issues as per https://github.com/UKPLab/sentence-transformers/issues/3498."
+            )
+            attn_implementation = "eager"
+
         self.pipeline = SentenceTransformer(
             model_id,
             device=device,
             backend=backend or "torch",  # type: ignore
             model_kwargs={
                 "torch_dtype": dtype or "float32",
+                # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
                 "attn_implementation": attn_implementation or "sdpa",
             },
             similarity_fn_name=similarity_fn_name or "cosine",
