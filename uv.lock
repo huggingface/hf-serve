@@ -124,8 +124,8 @@ wheels = [
 
 [[package]]
 name = "diffusers"
-version = "0.35.1"
-source = { registry = "https://pypi.org/simple" }
+version = "0.36.0.dev0"
+source = { git = "https://github.com/huggingface/diffusers?rev=main#0ff1aa910cf3d87193af79ec1ae4487be542e872" }
 dependencies = [
     { name = "filelock" },
     { name = "huggingface-hub" },
@@ -136,10 +136,6 @@ dependencies = [
     { name = "regex" },
     { name = "requests" },
     { name = "safetensors" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/49/05/c4c8736c14e0efe9a835fb91c6ff5e1abddf9894a2f2a28fffe6429378a6/diffusers-0.35.1.tar.gz", hash = "sha256:6f4dc0c9d309a4c4914a2179646f2bc801b5e395a43295fff3b5f9dbd3e28fd3", size = 3369127, upload-time = "2025-08-20T04:16:10.668Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/06/a7/c53f294f34d9e1584388721b3d7aa024ea1ac46e86d0c302fc3db40ed960/diffusers-0.35.1-py3-none-any.whl", hash = "sha256:fe29ff10200970c7c5934c6488c213e2a77a03dad5e6fa00bbd8e1d04234cb0e", size = 4121424, upload-time = "2025-08-20T04:16:08.359Z" },
 ]
 
 [[package]]
@@ -298,7 +294,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "accelerate", specifier = ">=1.2.1" },
-    { name = "diffusers", specifier = ">=0.32.1" },
+    { name = "diffusers", git = "https://github.com/huggingface/diffusers?rev=main" },
     { name = "fastapi", specifier = ">=0.115.6" },
     { name = "huggingface-hub", extras = ["hf-transfer", "hf-xet"], specifier = ">=0.27.1" },
     { name = "open-clip-torch", specifier = ">=2.32.0" },
@@ -1362,7 +1358,7 @@ wheels = [
 [[package]]
 name = "transformers"
 version = "4.57.0.dev0"
-source = { git = "https://github.com/huggingface/transformers?rev=main#3bccb02616a232cf97e4ebfd879c82a7ac0ec0df" }
+source = { git = "https://github.com/huggingface/transformers?rev=main#c99d43e6ece3984b58801f7c8ecaf27601118f7a" }
 dependencies = [
     { name = "filelock" },
     { name = "huggingface-hub" },

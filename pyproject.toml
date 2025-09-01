@@ -43,3 +43,4 @@ line-length = 112
 
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
+diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
