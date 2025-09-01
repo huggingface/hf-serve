@@ -1,8 +1,6 @@
 from typing import List, Optional, Union
 
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
-import torch
-from transformers.pipelines import pipeline
 
 from huggingface_inference_toolkit.serde import Audio
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -45,11 +43,17 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
-        # Handle device selection for models that don't support device_map
+        import torch
+        from transformers.pipelines import pipeline
+        from transformers.pipelines.audio_classification import AudioClassificationPipeline
+
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
+        # either add a check or just default to CUDA instead
         if device == "auto":
+            # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = pipeline(
+        self.pipeline: AudioClassificationPipeline = pipeline(
             task="audio-classification",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -75,5 +79,4 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
                 audio_input = Audio.deserialize(audio_input)
 
         results = self.pipeline(audio_input, **parameters)
-
-        return AudioClassificationOutput(results=results)
+        return AudioClassificationOutput(results=results)  # type: ignore

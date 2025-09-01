@@ -16,12 +16,7 @@ REQUEST_IN_PROGRESS = Gauge("http_requests_in_progress", "HTTP Requests in progr
 
 
 class PrometheusMiddleware(BaseHTTPMiddleware):
-    def __init__(
-        self,
-        app: ASGIApp,
-        *,
-        exclude_paths: Optional[List[str]] = None,
-    ):
+    def __init__(self, app: ASGIApp, *, exclude_paths: Optional[List[str]] = None):
         super().__init__(app)
 
         self.exclude_paths = exclude_paths or []

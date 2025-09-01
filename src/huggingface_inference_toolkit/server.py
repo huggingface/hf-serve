@@ -11,6 +11,7 @@ from huggingface_inference_toolkit.logging import logger
 from huggingface_inference_toolkit.middleware import (
     LoggingMiddleware,
     PrometheusMiddleware,
+    RequestIdMiddleware,
 )
 from huggingface_inference_toolkit.routers import (
     custom_router,
@@ -19,11 +20,16 @@ from huggingface_inference_toolkit.routers import (
     predict_media_router,
     predict_router,
 )
+from huggingface_inference_toolkit.types import TaskTypes
 
 app = FastAPI(title="Hugging Face Inference Toolkit")
 
-app.add_middleware(middleware_class=LoggingMiddleware)
+# NOTE: FastAPI runs the middlewares in reverse order
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
+app.add_middleware(
+    middleware_class=LoggingMiddleware, inference_paths=["/", "/predict", "/score", "/v1/chat/completions"]
+)
+app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
@@ -35,7 +41,7 @@ def launch(
     # NOTE: on Inference Endpoints the model is downloaded in advance into the `/repository` directory
     # meaning that the `model_id` will always be None there, and the `model_dir` will be used instead
     model_dir: Union[str, None],
-    task: str,
+    task: TaskTypes,
     # TODO: maybe we should include `npu` too as supported by `sentence-transformers`?
     device: Optional[Literal["auto", "balanced", "cuda", "cpu", "mps"]] = "auto",
     # TODO: maybe the best default is no default, but handling that separately based on the library as it seems
@@ -148,32 +154,32 @@ def launch(
                     output_schema=SentenceSimilarityOutput,
                 )
             )
-        case "sentence-embeddings":
-            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_embeddings import (
-                SentenceEmbeddings,
-                SentenceEmbeddingsInput,
-                SentenceEmbeddingsOutput,
+        case "feature-extraction" | "sentence-embeddings" | "embeddings":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.feature_extraction import (
+                FeatureExtraction,
+                FeatureExtractionInput,
+                FeatureExtractionOutput,
             )
 
             app.include_router(
                 router=predict_router(
-                    predictor=SentenceEmbeddings(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=SentenceEmbeddingsInput,
-                    output_schema=SentenceEmbeddingsOutput,
+                    predictor=FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=FeatureExtractionInput,
+                    output_schema=FeatureExtractionOutput,
                 )
             )
-        case "sentence-ranking":
-            from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_ranking import (
-                SentenceRanking,
-                SentenceRankingInput,
-                SentenceRankingOutput,
+        case "text-ranking" | "sentence-ranking":
+            from huggingface_inference_toolkit.tasks.sentence_transformers.text_ranking import (
+                TextRanking,
+                TextRankingInput,
+                TextRankingOutput,
             )
 
             app.include_router(
                 router=predict_router(
-                    predictor=SentenceRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=SentenceRankingInput,  # type: ignore
-                    output_schema=SentenceRankingOutput,  # type: ignore
+                    predictor=TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    input_schema=TextRankingInput,  # type: ignore
+                    output_schema=TextRankingOutput,  # type: ignore
                 )
             )
         # transformers
@@ -308,8 +314,10 @@ def launch(
             app.include_router(
                 router=predict_media_router(
                     predictor=ZeroShotAudioClassification(
-                        model_id=model_id or model_dir, dtype=dtype, device=device
-                    ),  # type: ignore
+                        model_id=model_id or model_dir,  # type: ignore
+                        dtype=dtype,  # type: ignore
+                        device=device,  # type: ignore
+                    ),
                     input_schema=ZeroShotAudioClassificationInput,
                     output_schema=ZeroShotAudioClassificationOutput,
                     accepted_mimetypes=[
@@ -472,20 +480,7 @@ def launch(
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
 
-    logger.info("Available API routes:")
-    groups = {"/docs": "/docs/oauth2-redirect", "/openapi.json": "/swagger.json", "/": "/predict"}
-    logged = set()
-
-    for route in app.routes:
-        if hasattr(route, "methods") and hasattr(route, "path") and route.path not in logged:  # type: ignore
-            methods = [m for m in sorted(route.methods) if m != "HEAD"]  # type: ignore
-            for method in methods:
-                if route.path in groups:  # type: ignore
-                    logger.info(f"[{method:<4}] {route.path}, {groups[route.path]}")  # type: ignore
-                    logged.update([route.path, groups[route.path]])  # type: ignore
-                elif route.path not in groups.values():  # type: ignore
-                    logger.info(f"[{method:<4}] {route.path}")  # type: ignore
-                logged.add(route.path)  # type: ignore
+    log_available_routes()
 
     uvicorn.run(
         "huggingface_inference_toolkit.server:app",
@@ -496,3 +491,44 @@ def launch(
         use_colors=True,
         workers=1,
     )
+
+
+def log_available_routes() -> None:
+    logger.info("Available API routes:")
+
+    route_groups = {
+        "predict": ["/", "/predict", "/score"],
+        "docs": ["/docs", "/docs/oauth2-redirect"],
+        "openapi": ["/openapi.json", "/swagger.json"],
+    }
+
+    logged = set()
+    grouped_routes = {}
+
+    for route in app.routes:
+        if hasattr(route, "methods") and hasattr(route, "path"):  # type: ignore
+            path = route.path  # type: ignore
+            methods = [m for m in sorted(route.methods) if m != "HEAD"]  # type: ignore
+
+            for method in methods:
+                group_found = False
+                for group_name, group_paths in route_groups.items():
+                    if path in group_paths:
+                        if group_name not in grouped_routes:
+                            grouped_routes[group_name] = {"method": method, "paths": []}
+                        if path not in grouped_routes[group_name]["paths"]:
+                            grouped_routes[group_name]["paths"].append(path)
+                        group_found = True
+                        break
+
+                if not group_found and path not in logged:
+                    logger.info(f"[{method:<4}] {path}")
+                    logged.add(path)
+
+    for group_name, group_data in grouped_routes.items():
+        if len(group_data["paths"]) > 1:
+            paths_str = ", ".join(group_data["paths"])
+            logger.info(f"[{group_data['method']:<4}] {paths_str}")
+        else:
+            logger.info(f"[{group_data['method']:<4}] {group_data['paths'][0]}")
+        logged.update(group_data["paths"])

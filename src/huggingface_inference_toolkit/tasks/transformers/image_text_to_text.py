@@ -1,8 +1,6 @@
 from typing import Optional
 
-import torch
-from pydantic import AliasChoices, AliasPath, BaseModel, Field
-from transformers.pipelines import pipeline
+from pydantic import BaseModel, Field
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
@@ -24,8 +22,13 @@ class ImageTextToTextParameters(BaseModel):
     typical_p: Optional[float] = Field(default=1.0)
 
 
+class ImageTextToTextInputs(BaseModel):
+    text: str
+    image: str
+
+
 class ImageTextToTextInput(BaseModel):
-    inputs: str = Field(validation_alias=AliasChoices("inputs", AliasPath("text")))
+    inputs: ImageTextToTextInputs
     parameters: Optional[ImageTextToTextParameters] = Field(default=None)
 
 
@@ -37,10 +40,17 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
+        import torch
+        from transformers import pipeline
+        from transformers.pipelines.image_text_to_text import ImageTextToTextPipeline
+
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
+        # either add a check or just default to CUDA instead
         if device == "auto":
+            # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = pipeline(
+        self.pipeline: ImageTextToTextPipeline = pipeline(
             task="image-text-to-text",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -57,5 +67,5 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        generated_text = self.pipeline(payload.inputs, **parameters)[0]["generated_text"]
-        return ImageTextToTextOutput(generated_text=generated_text)
+        output = self.pipeline(payload.inputs.image, text=payload.inputs.text, **parameters)
+        return ImageTextToTextOutput(generated_text=output[0]["generated_text"])

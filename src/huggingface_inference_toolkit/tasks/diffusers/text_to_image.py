@@ -1,10 +1,11 @@
 from typing import Optional
 
-import torch
+import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as PILImage
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from huggingface_inference_toolkit.logging import logger
+from huggingface_inference_toolkit.serde import Image
 from huggingface_inference_toolkit.tasks.predictor import Predictor
 
 
@@ -66,6 +67,11 @@ class TextToImageOutput(BaseModel):
     # at a time at the moment
     image: PILImage
 
+    model_config = ConfigDict(
+        json_encoders={PILImage: Image.serialize},  # type: ignore
+        arbitrary_types_allowed=True,
+    )
+
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
 class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
@@ -88,34 +94,37 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # NOTE: it appears that the `model_id` on Inference Endpoints pre-downloads the files, meaning that in
         # /opt/huggingface/model all the contents for the given model should be downloaded and available
         # meaning that e.g. the fix for `diffusers` should be applied there
-        # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
-        device_kwargs = {"device": device} if device not in {"balanced"} else {"device_map": device}
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
             torch_dtype=getattr(torch, dtype),
-            **device_kwargs,
+            device=device if device != "balanced" else None,
+            device_map=device if device == "balanced" else None,
+            # NOTE: these are disabled to prevent generating black images
+            safety_checker=None,
+            requires_safety_checker=False,
         )
 
-        if device == "cuda" and torch.cuda.is_available():
-            self.pipeline.enable_model_cpu_offload()
-        elif device == "mps" and torch.mps.is_available():
-            torch.mps.empty_cache()
-            torch.mps.set_per_process_memory_fraction(0.9)
-            if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
-                self.pipeline.enable_attention_slicing()
+        # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
+        if device != "balanced":
+            if device == "cuda" and torch.cuda.is_available():
+                self.pipeline.enable_model_cpu_offload()
+            elif device == "mps" and torch.mps.is_available():
+                torch.mps.empty_cache()
+                torch.mps.set_per_process_memory_fraction(0.9)
+                if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
+                    self.pipeline.enable_attention_slicing()
 
         # first-time "warmup" pass to ensure that the model is ready to start serving requets
         # TODO: better validation and more meaningful errors on warmup
         self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
-        payload_dump = payload.model_dump(exclude_defaults=True)
+        payload = payload.model_dump(exclude_defaults=True)  # type: ignore
 
         # TODO: explore if can be integrated within the schema itself
-        if "seed" in payload_dump:
-            payload_dump["generator"] = torch.Generator().manual_seed(int(payload_dump["seed"]))
-            payload_dump.pop("seed")
+        if seed := payload.pop("seed", None):  # type: ignore
+            payload["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
 
         # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
-        image = self.pipeline(**payload_dump)[0]
-        return TextToImageOutput(image=image)
+        images = self.pipeline(**payload)[0]
+        return TextToImageOutput(image=images[0])

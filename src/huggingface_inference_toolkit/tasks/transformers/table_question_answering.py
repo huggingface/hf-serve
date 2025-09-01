@@ -1,6 +1,5 @@
 from typing import Annotated, Dict, List, Literal, Optional
 
-import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, BeforeValidator, ConfigDict, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -58,15 +57,17 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline  # type: ignore
+        import torch
+        from transformers import pipeline
+        from transformers.pipelines.table_question_answering import TableQuestionAnsweringPipeline
 
-        # apparently some (not all) the models do not support the `device_map=auto` so we should probably
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
         if device == "auto":
             # Many tqa models don't support MPS without CPU fallback
             device = "cuda" if torch.cuda.is_available() else "cpu"
 
-        self.pipeline = transformers_pipeline(
+        self.pipeline: TableQuestionAnsweringPipeline = pipeline(
             task="table-question-answering",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -81,16 +82,16 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
 
         self(warmup_input)
 
-    def __call__(self, input: TableQuestionAnsweringInput) -> TableQuestionAnsweringOutput:
+    # TODO: update
+    def __call__(self, payload: TableQuestionAnsweringInput) -> TableQuestionAnsweringOutput:
         optional_params = {
             k: v
-            for k, v in input.model_dump().items()
+            for k, v in payload.model_dump().items()
             if k in ["padding", "sequential", "truncation"] and v is not None
         }
 
         results = self.pipeline(
-            query=input.question,
-            table=input.table,
+            **payload.inputs,
             **optional_params,
         )
 

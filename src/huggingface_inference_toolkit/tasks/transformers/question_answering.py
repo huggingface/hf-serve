@@ -58,15 +58,16 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline  # type: ignore
+        from transformers import pipeline
+        from transformers.pipelines.question_answering import QuestionAnsweringPipeline
 
-        # apparently some (not all) the models do not support the `device_map=auto` so we should probably
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
         if device == "auto":
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = transformers_pipeline(
+        self.pipeline: QuestionAnsweringPipeline = pipeline(
             task="question-answering",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -82,8 +83,8 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
         warmup_input = QuestionAnsweringInput(**QuestionAnsweringInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
-    def __call__(self, input: QuestionAnsweringInput) -> QuestionAnsweringOutput:
-        payload = input.model_dump(exclude_none=True)
+    def __call__(self, payload: QuestionAnsweringInput) -> QuestionAnsweringOutput:
+        payload = payload.model_dump(exclude_none=True)  # type: ignore
 
         # Flatten the inputs dictionary into the payload
         if "inputs" in payload:

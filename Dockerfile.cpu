@@ -4,7 +4,7 @@ LABEL maintainer="Hugging Face"
 SHELL ["/bin/bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade --yes && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     build-essential \
@@ -34,8 +34,6 @@ WORKDIR /home/huggingface/app
 COPY --chown=huggingface:huggingface . .
 
 RUN uv sync --frozen && uv pip install .
-
-ENV HF_HUB_USER_AGENT_ORIGIN=azure:maap:cpu:inference:inference-toolkit
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh

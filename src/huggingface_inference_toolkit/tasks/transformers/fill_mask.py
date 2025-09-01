@@ -1,6 +1,5 @@
 from typing import List, Optional
 
-import torch
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
 
 from huggingface_inference_toolkit.tasks.predictor import Predictor
@@ -47,15 +46,17 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
         super().__init__()
 
-        from transformers import pipeline as transformers_pipeline  # type: ignore
+        import torch
+        from transformers import pipeline
+        from transformers.pipelines.fill_mask import FillMaskPipeline
 
-        # apparently some (not all) the models do not support the `device_map=auto` so we should probably
+        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
         if device == "auto":
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = transformers_pipeline(
+        self.pipeline: FillMaskPipeline = pipeline(
             task="fill-mask",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -71,8 +72,8 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
         warmup_input = FillMaskInput(**FillMaskInput.model_json_schema().get("examples")[0])
         _ = self(warmup_input)
 
-    def __call__(self, input: FillMaskInput) -> FillMaskOutput:
-        payload = input.model_dump(exclude_none=True)
+    def __call__(self, payload: FillMaskInput) -> FillMaskOutput:
+        payload = payload.model_dump(exclude_none=True)  # type: ignore
 
         # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
         if "parameters" in payload:
