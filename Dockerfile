@@ -36,8 +36,6 @@ COPY --chown=huggingface:huggingface . .
 RUN uv sync --frozen && uv pip install .
 RUN uv pip install packaging ninja --upgrade && uv pip install --no-build-isolation "flash-attn==2.7.3"
 
-ENV HF_HUB_USER_AGENT_ORIGIN=azure:maap:gpu-cuda:inference:inference-toolkit
-
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
 
