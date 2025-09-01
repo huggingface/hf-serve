@@ -1,6 +1,6 @@
 from typing import Optional
 
-import torch
+import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as PILImage
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
@@ -117,13 +117,12 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))  # type: ignore
 
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
-        payload_dump = payload.model_dump(exclude_defaults=True)
+        payload = payload.model_dump(exclude_defaults=True)  # type: ignore
 
         # TODO: explore if can be integrated within the schema itself
-        if "seed" in payload_dump:
-            payload_dump["generator"] = torch.Generator().manual_seed(int(payload_dump["seed"]))
-            payload_dump.pop("seed")
+        if seed := payload.pop("seed", None):  # type: ignore
+            payload["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
 
         # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
-        images = self.pipeline(**payload_dump)[0]
+        images = self.pipeline(**payload)[0]
         return TextToImageOutput(image=images[0])
