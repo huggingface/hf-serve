@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from PIL.Image import Image as PILImage
 
 from huggingface_inference_toolkit.logging import logger
-from huggingface_inference_toolkit.openai.schemas.images import (
+from huggingface_inference_toolkit.openai.schemas.images_generations import (
     ImagesGenerationsInput,
     ImagesGenerationsOutput,
 )
@@ -16,10 +16,7 @@ if TYPE_CHECKING:
     from diffusers.pipelines.pipeline_utils import DiffusionPipeline
 
 
-UNSUPPORTED_PARAMETERS = {}
-
-
-class Images:
+class ImagesGenerations:
     def __init__(self, pipeline: "DiffusionPipeline") -> None:
         super().__init__()
 

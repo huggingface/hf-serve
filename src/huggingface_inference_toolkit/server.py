@@ -142,12 +142,12 @@ def launch(
                 )
             )
 
-            from huggingface_inference_toolkit.openai.routers import images_router, models_router
-            from huggingface_inference_toolkit.openai.tasks.images import Images
+            from huggingface_inference_toolkit.openai.routers import images_generations_router, models_router
+            from huggingface_inference_toolkit.openai.tasks.images_generations import ImagesGenerations
 
-            images = Images(pipeline=predictor.pipeline)
-            app.include_router(router=images_router(predictor=images))
             app.include_router(router=models_router(predictor=images, timestamp=int(time.time())))
+            images = ImagesGenerations(pipeline=predictor.pipeline)
+            app.include_router(router=images_generations_router(predictor=images))
         # sentence-transformers
         case "sentence-similarity":
             from huggingface_inference_toolkit.tasks.sentence_transformers.sentence_similarity import (

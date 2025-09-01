@@ -1,21 +1,18 @@
-from fastapi import APIRouter, Body, HTTPException, Request
+from fastapi import APIRouter, Body, Form, HTTPException, Request
 from pydantic import ValidationError
 
 from huggingface_inference_toolkit.logging import logger
-from huggingface_inference_toolkit.openai.schemas.images import (
+from huggingface_inference_toolkit.openai.schemas.images_generations import (
     ImagesGenerationsInput,
     ImagesGenerationsOutput,
 )
-from huggingface_inference_toolkit.openai.tasks.images import Images
+from huggingface_inference_toolkit.openai.tasks.images_generations import ImagesGenerations
 
 
-def router(predictor: Images) -> APIRouter:
+def router(predictor: ImagesGenerations) -> APIRouter:
     router = APIRouter()
 
-    @router.post(
-        "/v1/images/generations",
-        response_model=ImagesGenerationsOutput,
-    )
+    @router.post("/v1/images/generations", response_model=ImagesGenerationsOutput)
     async def images_generations(
         request: Request,
         payload: ImagesGenerationsInput = Body(...),
