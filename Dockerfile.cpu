@@ -4,7 +4,7 @@ LABEL maintainer="Hugging Face"
 SHELL ["/bin/bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade --yes && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     build-essential \
