@@ -1,5 +1,5 @@
 [project]
-name = "huggingface-inference-toolkit"
+name = "hf-serve"
 version = "0.1.0"
 description = "Production-ready inference API on top of Hugging Face (Transformers, Diffusers, and Sentence-Transformers)"
 readme = "README.md"
@@ -36,7 +36,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project.scripts]
-huggingface-inference-toolkit = "huggingface_inference_toolkit.cli:main"
+hf-serve = "hf_serve.cli:main"
 
 [tool.ruff]
 line-length = 112

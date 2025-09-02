@@ -50,4 +50,4 @@ if [[ -n "${MODEL_DIR:-}" ]]; then
     fi
 fi
 
-exec huggingface-inference-toolkit "$@"
+exec hf-serve "$@"

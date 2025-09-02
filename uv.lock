@@ -204,6 +204,53 @@ wheels = [
 ]
 
 [[package]]
+name = "hf-serve"
+version = "0.1.0"
+source = { editable = "." }
+dependencies = [
+    { name = "accelerate" },
+    { name = "diffusers" },
+    { name = "fastapi" },
+    { name = "huggingface-hub", extra = ["hf-transfer", "hf-xet"] },
+    { name = "open-clip-torch" },
+    { name = "peft" },
+    { name = "pillow" },
+    { name = "prometheus-client" },
+    { name = "protobuf" },
+    { name = "pydantic" },
+    { name = "pydub" },
+    { name = "python-magic" },
+    { name = "python-multipart" },
+    { name = "sentence-transformers" },
+    { name = "sentencepiece" },
+    { name = "torch" },
+    { name = "transformers" },
+    { name = "uvicorn" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "accelerate", specifier = ">=1.2.1" },
+    { name = "diffusers", git = "https://github.com/huggingface/diffusers?rev=main" },
+    { name = "fastapi", specifier = ">=0.115.6" },
+    { name = "huggingface-hub", extras = ["hf-transfer", "hf-xet"], specifier = ">=0.27.1" },
+    { name = "open-clip-torch", specifier = ">=2.32.0" },
+    { name = "peft", specifier = ">=0.14.0" },
+    { name = "pillow", specifier = ">=11.1.0" },
+    { name = "prometheus-client", specifier = ">=0.21.1" },
+    { name = "protobuf", specifier = ">=5.29.3" },
+    { name = "pydantic", specifier = ">=2.10.5" },
+    { name = "pydub", specifier = ">=0.25.0" },
+    { name = "python-magic", specifier = ">=0.4.27" },
+    { name = "python-multipart", specifier = ">=0.0.20" },
+    { name = "sentence-transformers", specifier = ">=5.1.0" },
+    { name = "sentencepiece", specifier = ">=0.2.0" },
+    { name = "torch", specifier = ">=2.5.1,<2.8.0" },
+    { name = "transformers", git = "https://github.com/huggingface/transformers?rev=main" },
+    { name = "uvicorn", specifier = ">=0.34.0" },
+]
+
+[[package]]
 name = "hf-transfer"
 version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
@@ -264,53 +311,6 @@ hf-transfer = [
 ]
 hf-xet = [
     { name = "hf-xet" },
-]
-
-[[package]]
-name = "huggingface-inference-toolkit"
-version = "0.1.0"
-source = { editable = "." }
-dependencies = [
-    { name = "accelerate" },
-    { name = "diffusers" },
-    { name = "fastapi" },
-    { name = "huggingface-hub", extra = ["hf-transfer", "hf-xet"] },
-    { name = "open-clip-torch" },
-    { name = "peft" },
-    { name = "pillow" },
-    { name = "prometheus-client" },
-    { name = "protobuf" },
-    { name = "pydantic" },
-    { name = "pydub" },
-    { name = "python-magic" },
-    { name = "python-multipart" },
-    { name = "sentence-transformers" },
-    { name = "sentencepiece" },
-    { name = "torch" },
-    { name = "transformers" },
-    { name = "uvicorn" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "accelerate", specifier = ">=1.2.1" },
-    { name = "diffusers", git = "https://github.com/huggingface/diffusers?rev=main" },
-    { name = "fastapi", specifier = ">=0.115.6" },
-    { name = "huggingface-hub", extras = ["hf-transfer", "hf-xet"], specifier = ">=0.27.1" },
-    { name = "open-clip-torch", specifier = ">=2.32.0" },
-    { name = "peft", specifier = ">=0.14.0" },
-    { name = "pillow", specifier = ">=11.1.0" },
-    { name = "prometheus-client", specifier = ">=0.21.1" },
-    { name = "protobuf", specifier = ">=5.29.3" },
-    { name = "pydantic", specifier = ">=2.10.5" },
-    { name = "pydub", specifier = ">=0.25.0" },
-    { name = "python-magic", specifier = ">=0.4.27" },
-    { name = "python-multipart", specifier = ">=0.0.20" },
-    { name = "sentence-transformers", specifier = ">=5.1.0" },
-    { name = "sentencepiece", specifier = ">=0.2.0" },
-    { name = "torch", specifier = ">=2.5.1,<2.8.0" },
-    { name = "transformers", git = "https://github.com/huggingface/transformers?rev=main" },
-    { name = "uvicorn", specifier = ">=0.34.0" },
 ]
 
 [[package]]
