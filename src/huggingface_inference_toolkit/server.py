@@ -27,7 +27,8 @@ app = FastAPI(title="Hugging Face Inference Toolkit")
 # NOTE: FastAPI runs the middlewares in reverse order
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
 app.add_middleware(
-    middleware_class=LoggingMiddleware, inference_paths=["/", "/predict", "/score", "/v1/chat/completions"]
+    middleware_class=LoggingMiddleware,
+    inference_paths=["/", "/predict", "/score", "/v1/chat/completions", "/v1/images/generations"],
 )
 app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
 
@@ -95,7 +96,9 @@ def launch(
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
-                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
+                app.include_router(
+                    router=models_router(model_id=chat_completions.model_id, timestamp=int(time.time()))  # type: ignore
+                )
         case "text-generation" | "text2text-generation" | "conversational":
             from huggingface_inference_toolkit.tasks.transformers.text_generation import (
                 TextGeneration,
@@ -123,7 +126,9 @@ def launch(
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
-                app.include_router(router=models_router(predictor=chat_completions, timestamp=int(time.time())))
+                app.include_router(
+                    router=models_router(model_id=chat_completions.model_id, timestamp=int(time.time()))  # type: ignore
+                )
         # diffusers
         case "text-to-image":
             from huggingface_inference_toolkit.tasks.diffusers.text_to_image import (
@@ -132,12 +137,22 @@ def launch(
                 TextToImageOutput,
             )
 
+            predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
                 router=predict_router(
-                    predictor=TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=TextToImageInput,
                     output_schema=TextToImageOutput,
                 )
+            )
+
+            from huggingface_inference_toolkit.openai.routers import images_generations_router, models_router
+            from huggingface_inference_toolkit.openai.tasks.images_generations import ImagesGenerations
+
+            images_generations = ImagesGenerations(pipeline=predictor.pipeline)
+            app.include_router(router=images_generations_router(predictor=images_generations))
+            app.include_router(
+                router=models_router(model_id=images_generations.model_id, timestamp=int(time.time()))  # type: ignore
             )
         # sentence-transformers
         case "sentence-similarity":

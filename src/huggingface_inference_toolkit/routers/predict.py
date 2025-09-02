@@ -24,7 +24,7 @@ def router(
         try:
             logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
             return predictor(payload=payload)
-        except ValidationError as e:
+        except (ValueError, ValidationError) as e:
             logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
             raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
