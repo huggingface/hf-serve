@@ -20,11 +20,14 @@ class Embeddings:
     @property
     @lru_cache(maxsize=1)
     def model_id(self) -> Union[str, None]:
-        return (
-            self.pipeline.config._name_or_path  # type: ignore
-            if self.pipeline.config is not None and not Path(self.pipeline.config._name_or_path).exists()  # type: ignore
-            else os.getenv("MODEL_ID", os.getenv("MODEL_DIR"))
-        )
+        if self.pipeline.model_card_data is not None:
+            model_id = self.pipeline.model_card_data.model_id
+            if model_id is not None and not Path(model_id).exists():
+                return model_id
+            base_model = self.pipeline.model_card_data.base_model
+            if base_model is not None and not Path(base_model).exists():
+                return base_model
+        return os.getenv("MODEL_ID", os.getenv("MODEL_DIR"))
 
     def __call__(self, payload: EmbeddingsInput, request_id: Optional[str] = None) -> EmbeddingsOutput:
         # NOTE: The `user` parameter is only supported within OpenAI, so reporting those to let the user know
