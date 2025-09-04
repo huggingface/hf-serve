@@ -59,6 +59,7 @@ class ZeroShotAudioClassification(
 
         import torch
         from transformers.pipelines import pipeline
+        from transformers.pipelines.zero_shot_audio_classification import ZeroShotAudioClassificationPipeline
 
         # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
@@ -66,7 +67,7 @@ class ZeroShotAudioClassification(
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = pipeline(
+        self.pipeline: ZeroShotAudioClassificationPipeline = pipeline(
             task="zero-shot-audio-classification",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
