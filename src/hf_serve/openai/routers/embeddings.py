@@ -9,7 +9,7 @@ from hf_serve.openai.tasks.embeddings import Embeddings
 def router(predictor: Embeddings) -> APIRouter:
     router = APIRouter()
 
-    @router.post("/v1/images/generations", response_model=EmbeddingsOutput, response_model_by_alias=True)
+    @router.post("/v1/embeddings", response_model=EmbeddingsOutput, response_model_by_alias=True)
     async def embeddings(request: Request, payload: EmbeddingsInput = Body(...)) -> EmbeddingsOutput:
         request_id = getattr(request.state, "request_id", None)
 
