@@ -59,6 +59,7 @@ class ZeroShotAudioClassification(
 
         import torch
         from transformers.pipelines import pipeline
+        from transformers.pipelines.zero_shot_audio_classification import ZeroShotAudioClassificationPipeline
 
         # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
         # either add a check or just default to CUDA instead
@@ -66,7 +67,7 @@ class ZeroShotAudioClassification(
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.pipeline = pipeline(
+        self.pipeline: ZeroShotAudioClassificationPipeline = pipeline(
             task="zero-shot-audio-classification",
             model=model_id,
             torch_dtype=getattr(torch, dtype),
@@ -83,14 +84,12 @@ class ZeroShotAudioClassification(
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        audio_input = payload.inputs
-        if isinstance(audio_input, str):
-            # Check if it's a base64-encoded string (not a file path/URL)
-            if (
-                not audio_input.startswith(("/", "http://", "https://"))
-                and "." not in audio_input.split("/")[-1]
-            ):
-                audio_input = Audio.deserialize(audio_input)
+        audio = payload.inputs
+        if isinstance(audio, str):
+            # NOTE: Deserialize it into `bytes` if it's a base64-encoded `str`, or leave it as is if it's either
+            # a URL or a filepath as it will be automatically handled by the `AutoPipeline.__call__`
+            if not audio.startswith(("/", "http://", "https://")) and "." not in audio.split("/")[-1]:
+                audio = Audio.deserialize(audio)
 
-        results = self.pipeline(audio_input, candidate_labels=payload.candidate_labels, **parameters)
+        results = self.pipeline(audio, candidate_labels=payload.candidate_labels, **parameters)
         return ZeroShotAudioClassificationOutput(results=results)  # type: ignore

@@ -1,6 +1,7 @@
 import json
 import os
 import re
+from functools import lru_cache
 from pathlib import Path
 from threading import Thread
 from time import time
@@ -91,6 +92,7 @@ class ChatCompletions:
         self.streamer = TextIteratorStreamer(self.tokenizer, skip_prompt=True)
 
     @property
+    @lru_cache(maxsize=1)
     def model_id(self) -> Union[str, None]:
         return (
             self.model.config._name_or_path  # type: ignore

@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -23,10 +24,11 @@ class ImagesGenerations:
         self.pipeline = pipeline
 
     @property
+    @lru_cache(maxsize=1)
     def model_id(self) -> Union[str, None]:
         return (
-            self.model.config._name_or_path  # type: ignore
-            if self.model.config is not None and not Path(self.model.config._name_or_path).exists()  # type: ignore
+            self.pipeline.config._name_or_path  # type: ignore
+            if self.pipeline.config is not None and not Path(self.pipeline.config._name_or_path).exists()  # type: ignore
             else os.getenv("MODEL_ID", os.getenv("MODEL_DIR"))
         )
 
@@ -53,12 +55,12 @@ class ImagesGenerations:
                 setattr(payload, parameter, None)
 
         if hasattr(payload, "stream") and getattr(payload, "stream") is True:
-            message = "[{request_id}] `stream=True` was provided, but it's not supported. Please make sure you set it to `False`."
+            message = f"[{request_id}] `stream=True` was provided, but it's not supported. Please make sure you set it to `False`."
             logger.error(message)
             raise ValueError(message)
 
         if hasattr(payload, "response_format") and getattr(payload, "response_format") == "url":
-            message = "[{request_id}] `response_format='url'` is not supported, only `response_format='b64_json'` is supported."
+            message = f"[{request_id}] `response_format='url'` is not supported, only `response_format='b64_json'` is supported."
             logger.error(message)
             raise ValueError(message)
 

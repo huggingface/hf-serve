@@ -20,6 +20,7 @@ from hf_serve.routers import (
     predict_media_router,
     predict_router,
 )
+from hf_serve.server_utils import log_available_routes
 from hf_serve.types import TaskTypes
 
 app = FastAPI(title="Hugging Face Serve API")
@@ -162,12 +163,22 @@ def launch(
                 SentenceSimilarityOutput,
             )
 
+            predictor = SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
                 router=predict_router(
-                    predictor=SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=SentenceSimilarityInput,
                     output_schema=SentenceSimilarityOutput,
                 )
+            )
+
+            from hf_serve.openai.routers import embeddings_router, models_router
+            from hf_serve.openai.tasks.embeddings import Embeddings
+
+            embeddings = Embeddings(pipeline=predictor.pipeline)
+            app.include_router(router=embeddings_router(predictor=embeddings))
+            app.include_router(
+                router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
         case "feature-extraction" | "sentence-embeddings" | "embeddings":
             from hf_serve.tasks.sentence_transformers.feature_extraction import (
@@ -176,12 +187,22 @@ def launch(
                 FeatureExtractionOutput,
             )
 
+            predictor = FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
                 router=predict_router(
-                    predictor=FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=FeatureExtractionInput,
                     output_schema=FeatureExtractionOutput,
                 )
+            )
+
+            from hf_serve.openai.routers import embeddings_router, models_router
+            from hf_serve.openai.tasks.embeddings import Embeddings
+
+            embeddings = Embeddings(pipeline=predictor.pipeline)
+            app.include_router(router=embeddings_router(predictor=embeddings))
+            app.include_router(
+                router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
         case "text-ranking" | "sentence-ranking":
             from hf_serve.tasks.sentence_transformers.text_ranking import (
@@ -495,7 +516,7 @@ def launch(
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
 
-    log_available_routes()
+    log_available_routes(app=app)
 
     uvicorn.run(
         "hf_serve.server:app",
@@ -506,44 +527,3 @@ def launch(
         use_colors=True,
         workers=1,
     )
-
-
-def log_available_routes() -> None:
-    logger.info("Available API routes:")
-
-    route_groups = {
-        "predict": ["/", "/predict", "/score"],
-        "docs": ["/docs", "/docs/oauth2-redirect"],
-        "openapi": ["/openapi.json", "/swagger.json"],
-    }
-
-    logged = set()
-    grouped_routes = {}
-
-    for route in app.routes:
-        if hasattr(route, "methods") and hasattr(route, "path"):  # type: ignore
-            path = route.path  # type: ignore
-            methods = [m for m in sorted(route.methods) if m != "HEAD"]  # type: ignore
-
-            for method in methods:
-                group_found = False
-                for group_name, group_paths in route_groups.items():
-                    if path in group_paths:
-                        if group_name not in grouped_routes:
-                            grouped_routes[group_name] = {"method": method, "paths": []}
-                        if path not in grouped_routes[group_name]["paths"]:
-                            grouped_routes[group_name]["paths"].append(path)
-                        group_found = True
-                        break
-
-                if not group_found and path not in logged:
-                    logger.info(f"[{method:<4}] {path}")
-                    logged.add(path)
-
-    for group_name, group_data in grouped_routes.items():
-        if len(group_data["paths"]) > 1:
-            paths_str = ", ".join(group_data["paths"])
-            logger.info(f"[{group_data['method']:<4}] {paths_str}")
-        else:
-            logger.info(f"[{group_data['method']:<4}] {group_data['paths'][0]}")
-        logged.update(group_data["paths"])

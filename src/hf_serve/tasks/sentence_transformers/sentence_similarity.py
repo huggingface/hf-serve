@@ -49,7 +49,9 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
             device=device,
             backend=backend or "torch",  # type: ignore
             model_kwargs={
-                "torch_dtype": dtype or "float32",
+                # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
+                # and Sentence Transformers raises a warning starting on 5.1.0
+                "dtype": dtype or "float32",
                 # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
                 "attn_implementation": attn_implementation or "sdpa",
             },

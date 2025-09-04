@@ -70,13 +70,12 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        audio_input = payload.inputs
-        if isinstance(audio_input, str):
-            if (
-                not audio_input.startswith(("/", "http://", "https://"))
-                and "." not in audio_input.split("/")[-1]
-            ):
-                audio_input = Audio.deserialize(audio_input)
+        audio = payload.inputs
+        if isinstance(audio, str):
+            # NOTE: Deserialize it into `bytes` if it's a base64-encoded `str`, or leave it as is if it's either
+            # a URL or a filepath as it will be automatically handled by the `AutoPipeline.__call__`
+            if not audio.startswith(("/", "http://", "https://")) and "." not in audio.split("/")[-1]:
+                audio = Audio.deserialize(audio)
 
-        results = self.pipeline(audio_input, **parameters)
+        results = self.pipeline(audio, **parameters)
         return AudioClassificationOutput(results=results)  # type: ignore
