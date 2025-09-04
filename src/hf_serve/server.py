@@ -177,12 +177,22 @@ def launch(
                 FeatureExtractionOutput,
             )
 
+            predictor = FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
                 router=predict_router(
-                    predictor=FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
+                    predictor=predictor,
                     input_schema=FeatureExtractionInput,
                     output_schema=FeatureExtractionOutput,
                 )
+            )
+
+            from hf_serve.openai.routers import embeddings_router, models_router
+            from hf_serve.openai.tasks.embeddings import Embeddings
+
+            embeddings = Embeddings(pipeline=predictor.pipeline)
+            app.include_router(router=embeddings_router(predictor=embeddings))
+            app.include_router(
+                router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
         case "text-ranking" | "sentence-ranking":
             from hf_serve.tasks.sentence_transformers.text_ranking import (
