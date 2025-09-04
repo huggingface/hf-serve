@@ -27,8 +27,8 @@ class ImagesGenerations:
     @lru_cache(maxsize=1)
     def model_id(self) -> Union[str, None]:
         return (
-            self.model.config._name_or_path  # type: ignore
-            if self.model.config is not None and not Path(self.model.config._name_or_path).exists()  # type: ignore
+            self.pipeline.config._name_or_path  # type: ignore
+            if self.pipeline.config is not None and not Path(self.pipeline.config._name_or_path).exists()  # type: ignore
             else os.getenv("MODEL_ID", os.getenv("MODEL_DIR"))
         )
 
