@@ -1,4 +1,5 @@
 import os
+from functools import lru_cache
 from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
@@ -23,6 +24,7 @@ class ImagesGenerations:
         self.pipeline = pipeline
 
     @property
+    @lru_cache(maxsize=1)
     def model_id(self) -> Union[str, None]:
         return (
             self.model.config._name_or_path  # type: ignore
