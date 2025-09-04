@@ -516,7 +516,7 @@ def launch(
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
 
-    log_available_routes()
+    log_available_routes(app=app)
 
     uvicorn.run(
         "hf_serve.server:app",
