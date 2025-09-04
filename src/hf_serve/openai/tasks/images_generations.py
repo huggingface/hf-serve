@@ -55,12 +55,12 @@ class ImagesGenerations:
                 setattr(payload, parameter, None)
 
         if hasattr(payload, "stream") and getattr(payload, "stream") is True:
-            message = "[{request_id}] `stream=True` was provided, but it's not supported. Please make sure you set it to `False`."
+            message = f"[{request_id}] `stream=True` was provided, but it's not supported. Please make sure you set it to `False`."
             logger.error(message)
             raise ValueError(message)
 
         if hasattr(payload, "response_format") and getattr(payload, "response_format") == "url":
-            message = "[{request_id}] `response_format='url'` is not supported, only `response_format='b64_json'` is supported."
+            message = f"[{request_id}] `response_format='url'` is not supported, only `response_format='b64_json'` is supported."
             logger.error(message)
             raise ValueError(message)
 
