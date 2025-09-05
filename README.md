@@ -1,16 +1,45 @@
-# Hugging Face Toolkit
-A server to run easily run a wide variety of models from the Hugging Face Hub.
+# Hugging Face Serve API
 
+> [!WARNING]
+> This project is still an experimental and early attempt of refactoring the former
+> [`hf-serve`](https://github.com/huggingface/hf-serve), and it might ship breaking changes until stable.
 
-## Getting started
+## Installation
 
-1. Clone the repo
 ```bash
-git clone git@github.com:huggingface/inference-toolkit.git
+uv venv --python 3.12
+source .venv/bin/activate
+uv pip install -e .
 ```
 
-2. Then run `uv pip install --no-cache-dir .`
+## Example
 
-3. Activate the venv e.g. `source ./venv/bin/activate`
+```console
+$ uv run hf-serve --help
+usage: hf-serve [-h] [--host HOST] [--port PORT] [--model-id MODEL_ID] [--model-dir MODEL_DIR]
+                [--task {image-text-to-text,text-generation,text2text-generation,conversational,chat-completion,text-to-image,sentence-similarity,feature-extraction,sentence-embeddings,embeddings,text-ranking,sentence-ranking,text-classification,fill-mask,question-answering,summarization,zero-shot-classification,token-classification,table-question-answering,translation,translation_xx_to_yy,zero-shot-audio-classification,audio-classification,automatic-speech-recognition,image-classification,image-segmentation,object-detection,custom}]
+                [--device {auto,balanced,cuda,cpu,mps}] [--dtype {float32,float16,bfloat16,float8,int8,int4}]
 
-4. Use the toolkit CLI `huggingface-inference-toolkit --help`
+Hugging Face Serve API
+
+options:
+  -h, --help            show this help message and exit
+  --host HOST           The host into which the FastAPI API will be deployed to, defaults to 0.0.0.0, can also be set via the environment variable `HOST`
+  --port PORT           The port in which the FastAPI API will listen to, defaults to 8080, can also be set via the environment variable `PORT`
+  --model-id MODEL_ID   The model ID on the Hugging Face Hub, can also be set via the environment variable `MODEL_ID`
+  --model-dir MODEL_DIR
+                        A local directory that contains a Hugging Face compatible model, can also be set via the environment variable `MODEL_DIR`
+  --task {image-text-to-text,text-generation,text2text-generation,conversational,chat-completion,text-to-image,sentence-similarity,feature-extraction,sentence-embeddings,embeddings,text-ranking,sentence-ranking,text-classification,fill-mask,question-answering,summarization,zero-shot-classification,token-classification,table-question-answering,translation,translation_xx_to_yy,zero-shot-audio-classification,audio-classification,automatic-speech-recognition,image-classification,image-segmentation,object-detection,custom}
+                        Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers, can also be set via the environment variable `TASK`
+  --device {auto,balanced,cuda,cpu,mps}
+                        The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU, can also be set via the
+                        environment variable `DEVICE`
+  --dtype {float32,float16,bfloat16,float8,int8,int4}
+                        The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`
+```
+
+### Run SmolLM3 with an OpenAI API
+
+```bash
+uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dtype float16
+```

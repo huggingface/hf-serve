@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.6.0-devel-ubuntu24.04
+FROM ubuntu:24.04
 LABEL maintainer="Hugging Face"
 
 SHELL ["/bin/bash", "-c"]
@@ -34,7 +34,6 @@ WORKDIR /home/huggingface/app
 COPY --chown=huggingface:huggingface . .
 
 RUN uv sync --frozen && uv pip install .
-RUN uv pip install packaging ninja --upgrade && uv pip install --no-build-isolation "flash-attn==2.7.3"
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
