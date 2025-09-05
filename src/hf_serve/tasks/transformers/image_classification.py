@@ -13,7 +13,7 @@ class ImageClassificationParameters(BaseModel):
 
 
 class ImageClassificationInput(BaseModel):
-    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ImageClassificationParameters] = None
 
     @field_validator("inputs")
