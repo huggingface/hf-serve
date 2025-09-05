@@ -2,8 +2,9 @@ from typing import Type, Union
 
 from fastapi import APIRouter, Body, HTTPException, UploadFile, Request
 import magic
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
+from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 
 
@@ -16,10 +17,17 @@ def media_router(
     router = APIRouter()
 
     @router.post("/predict-json", response_model=output_schema)
-    async def predict_json(payload: input_schema = Body(...)) -> output_schema:  # type: ignore
+    async def predict_json(request: Request, payload: input_schema = Body(...)) -> output_schema:  # type: ignore
+        request_id = getattr(request.state, "request_id", None)
+
         try:
+            logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
             return predictor(payload=payload)
+        except (ValueError, ValidationError) as e:
+            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
+            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @router.post("/predict-file", response_model=output_schema)
