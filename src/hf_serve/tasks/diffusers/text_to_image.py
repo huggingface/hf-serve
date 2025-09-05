@@ -2,47 +2,46 @@ from typing import Optional
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as PILImage
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator
 
 from hf_serve.logging import logger
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
 
 
-class TextToImageInput(BaseModel):
-    prompt: str = Field(
-        validation_alias=AliasChoices("prompt", AliasPath("inputs"), AliasPath("inputs", "prompt"))
-    )
+class TextToImageParameters(BaseModel):
+    negative_prompt: Optional[str] = Field(default=None)
     width: Optional[int] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "width", AliasPath("parameters", "width"), AliasPath("parameters", "target_size", "width")
-        ),
+        default=None,
+        validation_alias=AliasChoices("width", AliasPath("target_size", "width")),
     )
     height: Optional[int] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "height", AliasPath("parameters", "height"), AliasPath("parameters", "target_size", "height")
-        ),
+        default=None,
+        validation_alias=AliasChoices("height", AliasPath("target_size", "height")),
     )
-    guidance_scale: Optional[float] = Field(
-        7.5,
-        validation_alias=AliasChoices("guidance_scale", AliasPath("parameters", "guidance_scale")),
-    )
-    negative_prompt: Optional[str] = Field(
-        None,
-        validation_alias=AliasChoices("negative_prompt", AliasPath("parameters", "negative_prompt")),
-    )
-    num_inference_steps: Optional[int] = Field(
-        None,
-        validation_alias=AliasChoices("num_inference_steps", AliasPath("parameters", "num_inference_steps")),
-    )
-    seed: Optional[int] = Field(
-        None,
-        validation_alias=AliasChoices("seed", AliasPath("parameters", "seed")),
-    )
-    # TODO: unsure about how the scheduler is provided / used
-    # scheduler: Optional[str] = Field()
+    num_inference_steps: Optional[int] = Field(default=None)
+    guidance_scale: Optional[float] = Field(default=None)
+    num_images_per_prompt: int = Field(default=1)
+    seed: Optional[int] = Field(default=None)
+
+    @field_validator("num_images_per_prompt")
+    @classmethod
+    def validate_num_images_per_prompt(cls, v: int) -> int:
+        if v != 1:
+            logger.warning(
+                f"num_images_per_prompt={v} provided, but only num_images_per_prompt=1 is supported. "
+                "Setting num_images_per_prompt=1 instead. Any other value won't have any effect."
+            )
+            return 1
+        return v
+
+
+class TextToImageInput(BaseModel):
+    # NOTE: if we plan on adding full support, even if still compatible with the Inference API we should most
+    # likely add and handle the `prompt` and `prompt_2` as inputs, as well as the `negative_prompt` and
+    # `negative_prompt_2` parameters
+    inputs: str
+    parameters: Optional[TextToImageParameters] = Field(default=None)
 
     # NOTE: these examples are prepared in a way so that those appear in the Swagger API docs
     # with compatibility for Inference Endpoints, but any of the aliases above can be used instead
@@ -114,17 +113,15 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
                 if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
                     self.pipeline.enable_attention_slicing()
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        # TODO: better validation and more meaningful errors on warmup
-        self(TextToImageInput(**TextToImageInput.model_config["json_schema_extra"]["examples"][0]))  # type: ignore
-
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
-        payload = payload.model_dump(exclude_defaults=True)  # type: ignore
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_defaults=True, exclude_none=True)
 
-        # TODO: explore if can be integrated within the schema itself
-        if seed := payload.pop("seed", None):  # type: ignore
-            payload["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
+        # NOTE: given that `seed` is not natively supported, we need to set the `seed` within a `torch.Generator`
+        # in advance and provide that to the `DiffusionPipeline.__call__`
+        if seed := parameters.pop("seed", None):
+            parameters["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
 
-        # TODO: add custom error to inform the user about either pipeline for i/o formatting failures
-        images = self.pipeline(**payload)[0]
+        images = self.pipeline(prompt=payload.inputs, **parameters)[0]
         return TextToImageOutput(image=images[0])
