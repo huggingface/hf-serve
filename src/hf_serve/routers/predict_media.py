@@ -1,8 +1,9 @@
-from typing import Type, Union
+from typing import Annotated, Type, Union
 
-from fastapi import APIRouter, Body, HTTPException, UploadFile, Request
+from fastapi import APIRouter, Body, File, HTTPException, UploadFile, Request
 import magic
 from pydantic import BaseModel, ValidationError
+from starlette.datastructures import UploadFile as StarletteUploadFile
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
@@ -30,11 +31,16 @@ def media_router(
             logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    @router.post("/predict-file", response_model=output_schema)
-    async def predict_file(file: UploadFile) -> output_schema:  # type: ignore
+    @router.post("/predict-form-file", response_model=output_schema)
+    async def predict_form_file(request: Request, file: UploadFile) -> output_schema:  # type: ignore
+        request_id = getattr(request.state, "request_id", None)
+
         try:
             chunk = await file.read(2048)
+            await file.seek(0)
             mime_type = magic.from_buffer(chunk, mime=True)
+
+            # validator
 
             if mime_type not in accepted_mimetypes:
                 raise HTTPException(
@@ -43,13 +49,36 @@ def media_router(
                     + "Supported MIME types are: "
                     + ", ".join(accepted_mimetypes),
                 )
-            await file.seek(0)
+            
             content = await file.read()
-
             payload = input_schema(inputs=content, parameters=None)  # type: ignore
 
             return predictor(payload=payload)
+        except (ValueError, ValidationError) as e:
+            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
+            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
+            raise HTTPException(status_code=500, detail=str(e))
+
+    @router.post("/predict-bytes-file", response_model=output_schema)
+    async def predict_bytes_file(request: Request, file: Annotated[bytes, File()]) -> output_schema: # type: ignore
+        request_id = getattr(request.state, "request_id", None)
+
+        try:
+            chunk = file[:2048]
+            mime_type = magic.from_buffer(chunk, mime=True)
+
+            # validator
+
+            payload = input_schema(inputs=file, parameters=None)
+
+            return predictor(payload=payload)
+        except (ValueError, ValidationError) as e:
+            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
+        except Exception as e:
+            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
     @router.post("/", response_model=output_schema)
@@ -63,13 +92,16 @@ def media_router(
             except Exception as e:
                 raise HTTPException(status_code=422, detail=e.errors())
 
-            return await predict_json(payload=payload)
-        elif "multipart/form-data" in ct:
+            return await predict_json(request=request, payload=payload)
+        else:
             form = await request.form()
             file = form.get("file", None)
             if not file:
-                raise HTTPException(status_code=400, detail="File not found in the request.")
-
-            return await predict_file(file=file)
+               # file sent as bytes inside body
+               body = await request.body()
+               
+               return await predict_bytes_file(request=request, file=body)
+            
+            return await predict_form_file(request=request, file=file)
 
     return router
