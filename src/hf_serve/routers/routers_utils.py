@@ -1,4 +1,3 @@
-
 from typing import Dict, List
 
 import magic
@@ -18,13 +17,12 @@ class DocumentValidator:
             result["errors"].append(
                 f"File size exceeded ({file_size:,} bytes). Maximum: {self.max_size:,} bytes."
             )
-        
+
         mime_type = magic.from_buffer(file, mime=True)
         if mime_type not in self.accepted_mimetypes:
             result["valid"] = False
             result["errors"].append(
-                f"File MIME type not allowed for this task ({mime_type}). Allowed MIME types: {", ".join(self.accepted_mimetypes)}."
+                f"File MIME type not allowed for this task ({mime_type}). Allowed MIME types: {', '.join(self.accepted_mimetypes)}."
             )
-        
-        return result
 
+        return result

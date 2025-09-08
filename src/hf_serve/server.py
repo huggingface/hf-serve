@@ -29,14 +29,16 @@ app = FastAPI(title="Hugging Face Serve API")
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
 app.add_middleware(
     middleware_class=LoggingMiddleware,
-    inference_paths=["/",
-    "/predict",
-    "/predict-bytes-file",
-    "/predict-form-file",
-    "/predict-json",
-    "/score",
-    "/v1/chat/completions",
-    "/v1/images/generations"],
+    inference_paths=[
+        "/",
+        "/predict",
+        "/predict-bytes-file",
+        "/predict-form-file",
+        "/predict-json",
+        "/score",
+        "/v1/chat/completions",
+        "/v1/images/generations",
+    ],
 )
 app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
 
