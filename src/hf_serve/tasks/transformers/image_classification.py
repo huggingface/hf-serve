@@ -13,15 +13,16 @@ class ImageClassificationParameters(BaseModel):
 
 
 class ImageClassificationInput(BaseModel):
-    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
+    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ImageClassificationParameters] = None
 
-    @field_validator("inputs")
+    @field_validator("inputs", mode="before")
     @classmethod
     def deserialize_inputs(cls, v: Union[str, bytes]) -> ImageType:
         return Image.deserialize(v)
 
     model_config = ConfigDict(
+        arbitrary_types_allowed=True,
         json_schema_extra={
             "examples": [
                 {
@@ -32,7 +33,7 @@ class ImageClassificationInput(BaseModel):
                     },
                 }
             ]
-        }
+        },
     )
 
 
