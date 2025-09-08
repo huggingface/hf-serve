@@ -365,6 +365,7 @@ def launch(
                         "audio/wav",
                         "audio/webm",
                     ],
+                    max_document_size=None,
                 )
             )
         case "audio-classification":
@@ -388,6 +389,7 @@ def launch(
                         "audio/wav",
                         "audio/webm",
                     ],
+                    max_document_size=None,
                 )
             )
         case "automatic-speech-recognition":
@@ -412,6 +414,7 @@ def launch(
                         "audio/wav",
                         "audio/webm",
                     ],
+                    max_document_size=None,
                 )
             )
         # transformers - image
@@ -427,7 +430,8 @@ def launch(
                     predictor=ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageClassificationInput,
                     output_schema=ImageClassificationOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],  # type: ignore
+                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
+                    max_document_size=None,
                 )
             )
         case "image-segmentation":
@@ -443,6 +447,7 @@ def launch(
                     input_schema=ImageSegmentationInput,
                     output_schema=ImageSegmentationOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
+                    max_document_size=None,
                 )
             )
         case "object-detection":
@@ -458,6 +463,7 @@ def launch(
                     input_schema=ObjectDetectionInput,
                     output_schema=ObjectDetectionOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
+                    max_document_size=None,
                 )
             )
         # custom
