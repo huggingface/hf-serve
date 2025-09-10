@@ -1,6 +1,6 @@
 from typing import Annotated, Type, Union
 
-from fastapi import APIRouter, Body, HTTPException, UploadFile, Request
+from fastapi import APIRouter, Body, Form, HTTPException, Request
 
 from pydantic import BaseModel, ValidationError
 
@@ -12,13 +12,14 @@ from hf_serve.routers.routers_utils import FileValidator
 def media_router(
     predictor: Predictor,
     input_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
+    input_form_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
     output_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
     accepted_mimetypes: list[str],
     max_document_size: int,
 ) -> APIRouter:
     router = APIRouter()
 
-    doc_validator = FileValidator(accepted_mimetypes=accepted_mimetypes, max_size=max_document_size)
+    file_validator = FileValidator(accepted_mimetypes=accepted_mimetypes, max_size=max_document_size)
 
     @router.post("/predict-json", response_model=output_schema)
     async def predict_json(request: Request, payload: input_schema = Body(...)) -> output_schema:  # type: ignore
@@ -35,17 +36,32 @@ def media_router(
             raise HTTPException(status_code=500, detail=str(e))
 
     @router.post("/predict-form-file", response_model=output_schema)
-    async def predict_form_file(request: Request, file: UploadFile) -> output_schema:  # type: ignore
+    async def predict_form_file(request: Request, form: Annotated[input_form_schema, Form()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
 
         try:
-            content = await file.read()
-
-            res = await doc_validator.validate_file(content)
+            res = await file_validator.validate_file(form.file)
             if not res["valid"]:
                 raise ValueError(f"Invalid file: {'\n'.join(res['errors'])}")
 
-            payload = input_schema(inputs=content, parameters=None)
+            # dump form into input schema
+            form = form.model_dump()
+            payload = {
+                "inputs": form.pop("file"),
+                "parameters": {},
+            }
+
+            # NOTE: Identify 'parameters' add non-'parameters' args in the schema (e.g. 'candidate_labels' in ZeroShotAudioClassification)
+            # and manage each case accordingly.
+            for field in input_schema.model_fields.keys():
+                if field not in ("inputs", "parameters") and field in form:
+                    print("asdf", field)
+                    payload[field] = form.pop(field)
+            if form:
+                payload["parameters"] = form
+
+            print(payload)
+            payload = input_schema(**payload)  # type: ignore
 
             return predictor(payload=payload)
         except (ValueError, ValidationError) as e:
@@ -60,7 +76,7 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         try:
-            res = await doc_validator.validate_file(file)
+            res = await file_validator.validate_file(file)
             if not res["valid"]:
                 raise ValueError(f"Invalid file: {'\n'.join(res['errors'])}")
 

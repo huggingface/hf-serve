@@ -1,5 +1,6 @@
-from typing import List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
+from fastapi import File, Form
 import PIL
 from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_serializer
@@ -40,6 +41,15 @@ class ImageSegmentationInput(BaseModel):
             ]
         },
     )
+
+
+class ImageSegmentationFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    mask_threshold: Optional[Annotated[float, Form()]] = None
+    overlap_mask_area_threshold: Optional[Annotated[float, Form()]] = None
+    subtask: Optional[Annotated[Literal["instance", "panoptic", "semantic"], Form()]] = None
+    threshold: Optional[Annotated[float, Form()]] = None
+    model_config = ConfigDict(extra="forbid")
 
 
 class ImageSegmentationOutputValue(BaseModel):

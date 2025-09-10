@@ -1,5 +1,6 @@
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
+from fastapi import File, Form
 from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_serializer
 
@@ -33,6 +34,12 @@ class ObjectDetectionInput(BaseModel):
             ]
         },
     )
+
+
+class ObjectDetectionFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    threshold: Optional[Annotated[float, Form()]] = Field(default=None)
+    model_config = ConfigDict(extra="forbid")
 
 
 class BoundingBox(BaseModel):

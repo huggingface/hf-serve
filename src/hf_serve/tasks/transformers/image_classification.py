@@ -1,5 +1,6 @@
-from typing import List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
+from fastapi import File, Form
 from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_serializer
 
@@ -8,13 +9,13 @@ from hf_serve.tasks.predictor import Predictor
 
 
 class ImageClassificationParameters(BaseModel):
-    function_to_apply: Optional[Literal["sigmoid", "softmax", "none"]] = None
-    top_k: Optional[int] = None
+    function_to_apply: Optional[Literal["sigmoid", "softmax", "none"]] = Field(default=None)
+    top_k: Optional[int] = Field(default=None)
 
 
 class ImageClassificationInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
-    parameters: Optional[ImageClassificationParameters] = None
+    parameters: Optional[ImageClassificationParameters] = Field(default=None)
 
     @field_serializer("inputs")
     @classmethod
@@ -35,6 +36,13 @@ class ImageClassificationInput(BaseModel):
             ]
         },
     )
+
+
+class ImageClassificationFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    function_to_apply: Optional[Annotated[Literal["sigmoid", "softmax", "none"], Form()]] = None
+    top_k: Optional[Annotated[int, Form()]] = None
+    model_config = ConfigDict(extra="forbid")
 
 
 class ImageClassificationOutputValue(BaseModel):

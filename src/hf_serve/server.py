@@ -353,6 +353,7 @@ def launch(
             from hf_serve.tasks.transformers.zero_shot_audio_classification import (
                 ZeroShotAudioClassification,
                 ZeroShotAudioClassificationInput,
+                ZeroShotAudioClassificationFormInput,
                 ZeroShotAudioClassificationOutput,
             )
 
@@ -364,6 +365,7 @@ def launch(
                         device=device,  # type: ignore
                     ),
                     input_schema=ZeroShotAudioClassificationInput,
+                    input_form_schema=ZeroShotAudioClassificationFormInput,
                     output_schema=ZeroShotAudioClassificationOutput,
                     accepted_mimetypes=[
                         "audio/flac",
@@ -381,6 +383,7 @@ def launch(
             from hf_serve.tasks.transformers.audio_classification import (
                 AudioClassification,
                 AudioClassificationInput,
+                AudioClassificationFormInput,
                 AudioClassificationOutput,
             )
 
@@ -388,6 +391,7 @@ def launch(
                 router=predict_media_router(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=AudioClassificationInput,
+                    input_form_schema=AudioClassificationFormInput,
                     output_schema=AudioClassificationOutput,
                     accepted_mimetypes=[
                         "audio/flac",
@@ -405,6 +409,7 @@ def launch(
             from hf_serve.tasks.transformers.automatic_speech_recognition import (
                 AutomaticSpeechRecognition,
                 AutomaticSpeechRecognitionInput,
+                AutomaticSpeechRecognitionFormInput,
                 AutomaticSpeechRecognitionOutput,
             )
 
@@ -414,6 +419,7 @@ def launch(
                     predictor=predictor,
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
+                    input_form_schema=AutomaticSpeechRecognitionFormInput,
                     accepted_mimetypes=[
                         "audio/flac",
                         "audio/xflac",
@@ -431,6 +437,7 @@ def launch(
             from hf_serve.tasks.transformers.image_classification import (
                 ImageClassification,
                 ImageClassificationInput,
+                ImageClassificationFormInput,
                 ImageClassificationOutput,
             )
 
@@ -438,6 +445,7 @@ def launch(
                 router=predict_media_router(
                     predictor=ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageClassificationInput,
+                    input_form_schema=ImageClassificationFormInput,
                     output_schema=ImageClassificationOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
                     max_document_size=None,
@@ -447,6 +455,7 @@ def launch(
             from hf_serve.tasks.transformers.image_segmentation import (
                 ImageSegmentation,
                 ImageSegmentationInput,
+                ImageSegmentationFormInput,
                 ImageSegmentationOutput,
             )
 
@@ -454,6 +463,7 @@ def launch(
                 router=predict_media_router(
                     predictor=ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageSegmentationInput,
+                    input_form_schema=ImageSegmentationFormInput,
                     output_schema=ImageSegmentationOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
                     max_document_size=None,
@@ -463,6 +473,7 @@ def launch(
             from hf_serve.tasks.transformers.object_detection import (
                 ObjectDetection,
                 ObjectDetectionInput,
+                ObjectDetectionFormInput,
                 ObjectDetectionOutput,
             )
 
@@ -470,6 +481,7 @@ def launch(
                 router=predict_media_router(
                     predictor=ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ObjectDetectionInput,
+                    input_form_schema=ObjectDetectionFormInput,
                     output_schema=ObjectDetectionOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
                     max_document_size=None,

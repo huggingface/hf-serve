@@ -1,5 +1,6 @@
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
+from fastapi import File, Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Audio
@@ -28,6 +29,13 @@ class AudioClassificationInput(BaseModel):
             ]
         }
     )
+
+
+class AudioClassificationFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    top_k: Annotated[Optional[int], Form()] = None
+    function_to_apply: Annotated[Optional[str], Form()] = None
+    model_config = ConfigDict(extra="forbid")
 
 
 class AudioClassificationOutputValue(BaseModel):

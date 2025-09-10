@@ -1,7 +1,8 @@
 import logging
 from io import BytesIO
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
+from fastapi import File, Form
 import requests
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from pydub import AudioSegment
@@ -51,6 +52,27 @@ class AutomaticSpeechRecognitionInput(BaseModel):
             ]
         }
     )
+
+
+class AutomaticSpeechRecognitionFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    temperature: Optional[Annotated[float, Form()]] = None
+    top_k: Optional[Annotated[int, Form()]] = None
+    top_p: Optional[Annotated[float, Form()]] = None
+    typical_p: Optional[Annotated[float, Form()]] = None
+    epsilon_cutoff: Optional[Annotated[float, Form()]] = None
+    eta_cutoff: Optional[Annotated[float, Form()]] = None
+    max_length: Optional[Annotated[int, Form()]] = None
+    max_new_tokens: Optional[Annotated[int, Form()]] = None
+    min_length: Optional[Annotated[int, Form()]] = None
+    min_new_tokens: Optional[Annotated[int, Form()]] = None
+    do_sample: Optional[Annotated[bool, Form()]] = None
+    early_stopping: Optional[Annotated[Union[str, bool], Form()]] = None
+    num_beams: Optional[Annotated[int, Form()]] = None
+    num_beam_groups: Optional[Annotated[int, Form()]] = None
+    penalty_alpha: Optional[Annotated[float, Form()]] = None
+    use_cache: Optional[Annotated[bool, Form()]] = None
+    model_config = ConfigDict(extra="forbid")
 
 
 class Chunk(BaseModel):

@@ -4,7 +4,7 @@ import magic
 
 
 class FileValidator:
-    def __init__(self, accepted_mimetypes: List[str], max_size: int = 10 * 1024 * 1024):
+    def __init__(self, accepted_mimetypes: List[str], max_size: int = None):
         self.accepted_mimetypes = accepted_mimetypes
         self.max_size = max_size
 
