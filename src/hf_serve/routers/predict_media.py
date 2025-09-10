@@ -1,4 +1,4 @@
-from typing import Annotated, Type, Union
+from typing import Annotated, List, Optional, Type, Union
 
 from fastapi import APIRouter, Body, Form, HTTPException, Request
 
@@ -14,8 +14,8 @@ def media_router(
     input_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
     input_form_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
     output_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
-    accepted_mimetypes: list[str],
-    max_document_size: int,
+    accepted_mimetypes: List[str],
+    max_file_size: Optional[int] = None,
 ) -> APIRouter:
     router = APIRouter()
 
@@ -40,9 +40,9 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         try:
-            res = await file_validator.validate_file(form.file)
-            if not res["valid"]:
-                raise ValueError(f"Invalid file: {'\n'.join(res['errors'])}")
+            errors = await file_validator.validate_file(form.file)
+            if errors:
+                raise ValueError(f"Invalid file: {'\n'.join(errors)}")
 
             # dump form into input schema
             form = form.model_dump()
@@ -74,11 +74,11 @@ def media_router(
     @router.post("/predict-bytes-file", response_model=output_schema)
     async def predict_bytes_file(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
-
+    
         try:
-            res = await file_validator.validate_file(file)
-            if not res["valid"]:
-                raise ValueError(f"Invalid file: {'\n'.join(res['errors'])}")
+            errors = await file_validator.validate_file(file)
+            if errors:
+                raise ValueError(f"Invalid file: {'\n'.join(errors)}")
 
             payload = input_schema(inputs=file, parameters=None)
 
@@ -104,11 +104,11 @@ def media_router(
             return await predict_json(request=request, payload=payload)
         else:
             form = await request.form()
-            file = form.get("file", None)
-            if not file:
+            if form:
+                form_schema = input_form_schema(**form)  # type: ignore
+                return await predict_form_file(request=request, form=form_schema)
+            else:
                 body_file = await request.body()
                 return await predict_bytes_file(request=request, file=body_file)
-
-            return await predict_form_file(request=request, file=file)
 
     return router
