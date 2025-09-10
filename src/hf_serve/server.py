@@ -32,8 +32,8 @@ app.add_middleware(
     inference_paths=[
         "/",
         "/predict",
-        "/predict-bytes-file",
-        "/predict-form-file",
+        "/predict-bytes",
+        "/predict-form",
         "/predict-json",
         "/score",
         "/v1/chat/completions",

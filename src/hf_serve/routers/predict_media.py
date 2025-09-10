@@ -35,8 +35,8 @@ def media_router(
             logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    @router.post("/predict-form-file", response_model=output_schema)
-    async def predict_form_file(request: Request, form: Annotated[input_form_schema, Form()]) -> output_schema:  # type: ignore
+    @router.post("/predict-form", response_model=output_schema)
+    async def predict_form(request: Request, form: Annotated[input_form_schema, Form()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
 
         try:
@@ -71,8 +71,8 @@ def media_router(
             logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    @router.post("/predict-bytes-file", response_model=output_schema)
-    async def predict_bytes_file(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
+    @router.post("/predict-bytes", response_model=output_schema)
+    async def predict_bytes(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
     
         try:
@@ -106,9 +106,9 @@ def media_router(
             form = await request.form()
             if form:
                 form_schema = input_form_schema(**form)  # type: ignore
-                return await predict_form_file(request=request, form=form_schema)
+                return await predict_form(request=request, form=form_schema)
             else:
                 body_file = await request.body()
-                return await predict_bytes_file(request=request, file=body_file)
+                return await predict_bytes(request=request, file=body_file)
 
     return router
