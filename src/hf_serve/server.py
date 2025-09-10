@@ -376,7 +376,7 @@ def launch(
                         "audio/wav",
                         "audio/webm",
                     ],
-                    max_document_size=None,
+                    max_file_size=None,
                 )
             )
         case "audio-classification":
@@ -402,7 +402,7 @@ def launch(
                         "audio/wav",
                         "audio/webm",
                     ],
-                    max_document_size=None,
+                    max_file_size=None,
                 )
             )
         case "automatic-speech-recognition":
@@ -429,7 +429,7 @@ def launch(
                         "audio/wav",
                         "audio/webm",
                     ],
-                    max_document_size=None,
+                    max_file_size=None,
                 )
             )
         # transformers - image
@@ -448,7 +448,7 @@ def launch(
                     input_form_schema=ImageClassificationFormInput,
                     output_schema=ImageClassificationOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
-                    max_document_size=None,
+                    max_file_size=None,
                 )
             )
         case "image-segmentation":
@@ -466,7 +466,7 @@ def launch(
                     input_form_schema=ImageSegmentationFormInput,
                     output_schema=ImageSegmentationOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
-                    max_document_size=None,
+                    max_file_size=None,
                 )
             )
         case "object-detection":
@@ -484,7 +484,7 @@ def launch(
                     input_form_schema=ObjectDetectionFormInput,
                     output_schema=ObjectDetectionOutput,
                     accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
-                    max_document_size=None,
+                    max_file_size=None,
                 )
             )
         # custom
