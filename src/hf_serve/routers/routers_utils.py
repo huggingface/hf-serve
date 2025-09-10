@@ -3,7 +3,7 @@ from typing import Dict, List
 import magic
 
 
-class DocumentValidator:
+class FileValidator:
     def __init__(self, accepted_mimetypes: List[str], max_size: int = 10 * 1024 * 1024):
         self.accepted_mimetypes = accepted_mimetypes
         self.max_size = max_size

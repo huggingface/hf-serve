@@ -6,7 +6,7 @@ from pydantic import BaseModel, ValidationError
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
-from hf_serve.routers.routers_utils import DocumentValidator
+from hf_serve.routers.routers_utils import FileValidator
 
 
 def media_router(
@@ -18,7 +18,7 @@ def media_router(
 ) -> APIRouter:
     router = APIRouter()
 
-    doc_validator = DocumentValidator(accepted_mimetypes=accepted_mimetypes, max_size=max_document_size)
+    doc_validator = FileValidator(accepted_mimetypes=accepted_mimetypes, max_size=max_document_size)
 
     @router.post("/predict-json", response_model=output_schema)
     async def predict_json(request: Request, payload: input_schema = Body(...)) -> output_schema:  # type: ignore
