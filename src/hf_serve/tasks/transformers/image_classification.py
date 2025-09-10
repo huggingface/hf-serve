@@ -1,7 +1,7 @@
 from typing import List, Literal, Optional, Union
 
 from PIL.Image import Image as ImageType
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_serializer
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
@@ -13,10 +13,10 @@ class ImageClassificationParameters(BaseModel):
 
 
 class ImageClassificationInput(BaseModel):
-    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ImageClassificationParameters] = None
 
-    @field_validator("inputs", mode="before")
+    @field_serializer("inputs")
     @classmethod
     def deserialize_inputs(cls, v: Union[str, bytes]) -> ImageType:
         return Image.deserialize(v)
@@ -73,11 +73,9 @@ class ImageClassification(Predictor[ImageClassificationInput, ImageClassificatio
             torch.mps.set_per_process_memory_fraction(0.9)
 
     def __call__(self, payload: ImageClassificationInput) -> ImageClassificationOutput:
-        parameters = {}
-        if payload.parameters:
-            parameters = payload.parameters.model_dump(exclude_none=True)
-
-        image_input = payload.inputs
+        payload = payload.model_dump(exclude_none=True)  # dumping model to trigger @field_serializer.
+        parameters = payload.get("parameters", {})
+        image_input = payload.get("inputs")
 
         results = self.pipeline(image_input, **parameters)
 
