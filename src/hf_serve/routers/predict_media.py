@@ -1,8 +1,6 @@
 from typing import Annotated, List, Optional, Type, Union
 
 from fastapi import APIRouter, Body, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse
-
 from pydantic import BaseModel, ValidationError
 
 from hf_serve.logging import logger
