@@ -1,6 +1,7 @@
 from typing import Annotated, List, Optional, Type, Union
 
 from fastapi import APIRouter, Body, Form, HTTPException, Request
+from fastapi.responses import RedirectResponse
 
 from pydantic import BaseModel, ValidationError
 
@@ -19,7 +20,7 @@ def media_router(
 ) -> APIRouter:
     router = APIRouter()
 
-    file_validator = FileValidator(accepted_mimetypes=accepted_mimetypes, max_size=max_document_size)
+    file_validator = FileValidator(accepted_mimetypes=accepted_mimetypes, max_size=max_file_size)
 
     @router.post("/predict-json", response_model=output_schema)
     async def predict_json(request: Request, payload: input_schema = Body(...)) -> output_schema:  # type: ignore
@@ -55,12 +56,10 @@ def media_router(
             # and manage each case accordingly.
             for field in input_schema.model_fields.keys():
                 if field not in ("inputs", "parameters") and field in form:
-                    print("asdf", field)
                     payload[field] = form.pop(field)
             if form:
                 payload["parameters"] = form
 
-            print(payload)
             payload = input_schema(**payload)  # type: ignore
 
             return predictor(payload=payload)
@@ -74,7 +73,7 @@ def media_router(
     @router.post("/predict-bytes", response_model=output_schema)
     async def predict_bytes(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
-    
+
         try:
             errors = await file_validator.validate_file(file)
             if errors:
@@ -90,6 +89,8 @@ def media_router(
             logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
+    # NOTE: This schema is not a good practice. Endpoints should be independent, no redirected.
+    # Keeping this for now for backward compatibility with inference-toolkit.
     @router.post("/", response_model=output_schema)
     @router.post("/predict", response_model=output_schema)
     async def predict(request: Request) -> output_schema:  # type: ignore
@@ -105,7 +106,8 @@ def media_router(
         else:
             form = await request.form()
             if form:
-                form_schema = input_form_schema(**form)  # type: ignore
+                file = await form.file.read()  # convert UploadFile to bytes
+                form_schema = input_form_schema(file=file, **form)  # type: ignore
                 return await predict_form(request=request, form=form_schema)
             else:
                 body_file = await request.body()

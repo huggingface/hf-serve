@@ -13,9 +13,7 @@ class FileValidator:
 
         file_size = len(file)
         if self.max_size and (file_size > self.max_size):
-            errors.append(
-                f"File size exceeded ({file_size:,} bytes). Maximum: {self.max_size:,} bytes."
-            )
+            errors.append(f"File size exceeded ({file_size:,} bytes). Maximum: {self.max_size:,} bytes.")
 
         mime_type = magic.from_buffer(file, mime=True)
         if mime_type not in self.accepted_mimetypes:
