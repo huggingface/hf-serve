@@ -35,6 +35,7 @@ class AudioClassificationFormInput(BaseModel):
     file: Annotated[bytes, File(...)]
     top_k: Annotated[Optional[int], Form()] = None
     function_to_apply: Annotated[Optional[str], Form()] = None
+
     model_config = ConfigDict(extra="forbid")
 
 

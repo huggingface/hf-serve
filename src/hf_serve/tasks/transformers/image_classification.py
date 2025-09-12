@@ -35,6 +35,7 @@ class ImageClassificationFormInput(BaseModel):
     file: Annotated[bytes, File(...)]
     function_to_apply: Optional[Annotated[Literal["sigmoid", "softmax", "none"], Form()]] = None
     top_k: Optional[Annotated[int, Form()]] = None
+
     model_config = ConfigDict(extra="forbid")
 
 
