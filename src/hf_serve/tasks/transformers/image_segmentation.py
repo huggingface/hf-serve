@@ -42,6 +42,7 @@ class ImageSegmentationFormInput(BaseModel):
     overlap_mask_area_threshold: Optional[Annotated[float, Form()]] = None
     subtask: Optional[Annotated[Literal["instance", "panoptic", "semantic"], Form()]] = None
     threshold: Optional[Annotated[float, Form()]] = None
+
     model_config = ConfigDict(extra="forbid")
 
 
