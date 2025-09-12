@@ -5,7 +5,7 @@ from pydantic import BaseModel, ValidationError
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
-from hf_serve.routers.routers_utils import FileValidator
+from hf_serve.routers._file_validator import FileValidator
 
 
 def media_router(
@@ -39,9 +39,7 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         try:
-            errors = await file_validator.validate_file(form.file)
-            if errors:
-                raise ValueError(f"Invalid file: {'\n'.join(errors)}")
+            file_validator(form.file)
 
             # dump form into input schema
             form = form.model_dump()
@@ -73,9 +71,7 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         try:
-            errors = await file_validator.validate_file(file)
-            if errors:
-                raise ValueError(f"Invalid file: {'\n'.join(errors)}")
+            file_validator(file)
 
             payload = input_schema(inputs=file, parameters=None)
 
