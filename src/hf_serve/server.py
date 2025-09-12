@@ -32,7 +32,7 @@ app.add_middleware(
     inference_paths=[
         "/",
         "/predict",
-        "/predict-bytes",
+        "/predict-file",
         "/predict-form",
         "/predict-json",
         "/score",
