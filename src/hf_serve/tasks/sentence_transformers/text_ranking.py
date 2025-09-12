@@ -1,6 +1,6 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import List, Literal, Optional, Union
 
-from pydantic import BaseModel
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
@@ -8,7 +8,21 @@ from hf_serve.tasks.predictor import Predictor
 
 # TODO: it should accept inputs as a list of inputs to match the current Inference API
 class PredictInput(BaseModel):
-    sentences: Union[Tuple[str, str], List[str], List[List[str]], List[Tuple[str, str]]]
+    # NOTE: this originally allows tuples too, but that's invalid in JSON, hence removed
+    sentences: Union[List[str], List[List[str]]]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "sentences": ["What is Deep Learning?", "What is not Deep Learning?"],
+                },
+                {
+                    "sentences": [["What is Deep Learning?", "What is not Deep Learning?"]],
+                },
+            ]
+        }
+    )
 
 
 class PredictOutput(BaseModel):
@@ -16,14 +30,34 @@ class PredictOutput(BaseModel):
 
 
 # TODO: it should accept inputs as a list of inputs to match the current Inference API
+# TODO: given that the requests can increase in size we should try to truncate all the str fields
+# to e.g. 500 characters when logging those as e.g. `query: ...[TRUNCATED]`
 class RankInput(BaseModel):
     query: str
     texts: List[str]
-    return_documents: Optional[bool] = False
+    return_documents: bool = Field(
+        default=False,
+        validation_alias=AliasChoices("return_documents", AliasPath("parameters", "return_documents")),
+    )
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "query": "What is Deep Learning?",
+                    "texts": ["Deep Learning is...", "Deep Learning is not ..."],
+                    "parameters": {"return_documents": True},
+                },
+            ]
+        }
+    )
 
 
 class Score(BaseModel):
-    index: int
+    # NOTE: here we rename "corpus_id" key to "index" for all scores to match the `/rerank` endpoint
+    # in Text Embeddings Inference (TEI)
+    # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/rerank
+    index: int = Field(validation_alias=AliasChoices("index", "corpus_id"))
     score: float
     text: str
 
@@ -74,18 +108,14 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
     def __call__(self, payload: TextRankingInput) -> TextRankingOutput:
         match payload:
             case PredictInput():
-                scores = self.pipeline.predict(payload.sentences, convert_to_tensor=True).tolist()
-                return PredictOutput(scores=scores)
+                scores = self.pipeline.predict(payload.sentences, convert_to_tensor=True)
+                if scores.ndim < 2:
+                    scores = scores.unsqueeze(dim=0)
+                return PredictOutput(scores=scores.tolist())
             case RankInput():
                 scores = self.pipeline.rank(
                     payload.query,
                     payload.texts,
                     return_documents=payload.return_documents,  # type: ignore
                 )
-                # TODO: can the remapping of `corpus_id` be handled within the Pydantic schema instead?
-                # NOTE: here we rename "corpus_id" key to "index" for all scores to match the `/rerank` endpoint
-                # in Text Embeddings Inference (TEI)
-                # Reference: https://huggingface.github.io/text-embeddings-inference/
-                for score in scores:
-                    score["index"] = score.pop("corpus_id")  # type: ignore
                 return RankOutput(scores=scores)  # type: ignore
