@@ -1,7 +1,6 @@
 from typing import Annotated, List, Optional, Union
 
 from fastapi import File, Form
-from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image

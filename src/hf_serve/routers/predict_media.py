@@ -7,8 +7,6 @@ from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.routers.routers_utils import FileValidator
 
-from starlette.requests import FormData
-
 
 def media_router(
     predictor: Predictor,
@@ -118,9 +116,11 @@ def media_router(
                     form_schema = input_form_schema(file=file, **form)  # type: ignore
                 except Exception as e:
                     raise HTTPException(status_code=422, detail=str(e))
-    
+
                 return await predict_form(request=request, form=form_schema)
-            case _ if ct in accepted_mimetypes:  # NOTE: Manage files sent direclty which any valid content-type.
+            case _ if (
+                ct in accepted_mimetypes
+            ):  # NOTE: Manage files sent direclty which any valid content-type.
                 body_file = await request.body()
                 return await predict_file(request=request, file=body_file)
             case _:

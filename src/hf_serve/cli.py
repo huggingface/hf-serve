@@ -78,6 +78,7 @@ parser.add_argument(
     help="The maximum file size in bytes for file uploads (e.g 10485760 for 10MB). By default, no file size limit is considered. This can also be set via the environment variable `MAX_FILE_SIZE`.",
 )
 
+
 def main() -> None:
     args = parser.parse_args()
 
