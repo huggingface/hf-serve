@@ -70,8 +70,8 @@ def media_router(
             logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    @router.post("/predict-bytes", response_model=output_schema)
-    async def predict_bytes(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
+    @router.post("/predict-file", response_model=output_schema)
+    async def predict_file(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
 
         try:
@@ -121,7 +121,7 @@ def media_router(
                 return await predict_form(request=request, form=form_schema)
             case _ if ct in accepted_mimetypes:  # NOTE: Manage files sent direclty which any valid content-type.
                 body_file = await request.body()
-                return await predict_bytes(request=request, file=body_file)
+                return await predict_file(request=request, file=body_file)
             case _:
                 raise HTTPException(
                     status_code=415,
