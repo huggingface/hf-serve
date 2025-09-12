@@ -5,6 +5,10 @@ from typing import Literal, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
 
 from hf_serve.clouds.azure import router as azure_router
 from hf_serve.logging import logger
@@ -36,6 +40,19 @@ app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
 app.include_router(router=azure_router)
+
+
+# NOTE: If not defined, then the FastAPI responses when validation via e.g. `payload: Payload = Body(...)`
+# will just show a vague unreadable error, this way the error is a readable JSON with an actionable outcome
+# Reference: https://fastapi.tiangolo.com/tutorial/handling-errors/#use-the-requestvalidationerror-body
+# TODO: Given that the error is still not perfect, investigate on another potential way of handling those
+# even if manually to keep those as simple as e.g. "Required 'X' but not provided in payload 'Y'"
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
 
 
 def launch(
