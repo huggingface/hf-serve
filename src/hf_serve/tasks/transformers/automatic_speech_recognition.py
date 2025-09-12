@@ -1,14 +1,15 @@
 import logging
 from io import BytesIO
-from typing import Annotated, List, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
-from fastapi import File, Form
+from fastapi import Form
 import requests
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 from pydub import AudioSegment
 
 from hf_serve.serde import Audio
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types import BoolForm, FileForm, FloatForm, IntForm
 
 
 class AutomaticSpeechRecognitionGenerationParameters(BaseModel):
@@ -23,7 +24,7 @@ class AutomaticSpeechRecognitionGenerationParameters(BaseModel):
     min_length: Optional[int] = None
     min_new_tokens: Optional[int] = None
     do_sample: Optional[bool] = None
-    early_stopping: Optional[Union[str, bool]] = None
+    early_stopping: Optional[Literal["never", True, False]] = None
     num_beams: Optional[int] = None
     num_beam_groups: Optional[int] = None
     penalty_alpha: Optional[float] = None
@@ -55,23 +56,23 @@ class AutomaticSpeechRecognitionInput(BaseModel):
 
 
 class AutomaticSpeechRecognitionFormInput(BaseModel):
-    file: Annotated[bytes, File(...)]
-    temperature: Optional[Annotated[float, Form()]] = None
-    top_k: Optional[Annotated[int, Form()]] = None
-    top_p: Optional[Annotated[float, Form()]] = None
-    typical_p: Optional[Annotated[float, Form()]] = None
-    epsilon_cutoff: Optional[Annotated[float, Form()]] = None
-    eta_cutoff: Optional[Annotated[float, Form()]] = None
-    max_length: Optional[Annotated[int, Form()]] = None
-    max_new_tokens: Optional[Annotated[int, Form()]] = None
-    min_length: Optional[Annotated[int, Form()]] = None
-    min_new_tokens: Optional[Annotated[int, Form()]] = None
-    do_sample: Optional[Annotated[bool, Form()]] = None
-    early_stopping: Optional[Annotated[Union[str, bool], Form()]] = None
-    num_beams: Optional[Annotated[int, Form()]] = None
-    num_beam_groups: Optional[Annotated[int, Form()]] = None
-    penalty_alpha: Optional[Annotated[float, Form()]] = None
-    use_cache: Optional[Annotated[bool, Form()]] = None
+    file: FileForm
+    temperature: Optional[FloatForm] = None
+    top_k: Optional[IntForm] = None
+    top_p: Optional[FloatForm] = None
+    typical_p: Optional[FloatForm] = None
+    epsilon_cutoff: Optional[FloatForm] = None
+    eta_cutoff: Optional[FloatForm] = None
+    max_length: Optional[IntForm] = None
+    max_new_tokens: Optional[IntForm] = None
+    min_length: Optional[IntForm] = None
+    min_new_tokens: Optional[IntForm] = None
+    do_sample: Optional[BoolForm] = None
+    early_stopping: Optional[Annotated[Literal["never", True, False], Form()]] = None
+    num_beams: Optional[IntForm] = None
+    num_beam_groups: Optional[IntForm] = None
+    penalty_alpha: Optional[FloatForm] = None
+    use_cache: Optional[BoolForm] = None
 
     model_config = ConfigDict(extra="forbid")
 

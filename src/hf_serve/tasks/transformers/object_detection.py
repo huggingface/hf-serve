@@ -1,10 +1,10 @@
-from typing import Annotated, List, Optional, Union
+from typing import List, Optional, Union
 
-from fastapi import File, Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types import FileForm, FloatForm
 
 
 class ObjectDetectionParameters(BaseModel):
@@ -30,8 +30,8 @@ class ObjectDetectionInput(BaseModel):
 
 
 class ObjectDetectionFormInput(BaseModel):
-    file: Annotated[bytes, File(...)]
-    threshold: Optional[Annotated[float, Form()]] = Field(default=None)
+    file: FileForm
+    threshold: Optional[FloatForm] = None
 
     model_config = ConfigDict(extra="forbid")
 

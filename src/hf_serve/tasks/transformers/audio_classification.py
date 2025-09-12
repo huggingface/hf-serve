@@ -1,14 +1,15 @@
-from typing import Annotated, List, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
-from fastapi import File, Form
+from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Audio
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types import FileForm, IntForm
 
 
 class AudioClassificationParameters(BaseModel):
-    function_to_apply: Optional[str] = None
+    function_to_apply: Optional[Literal["sigmoid", "softmax", None]] = Field(default=None)
     top_k: Optional[int] = None
 
 
@@ -32,9 +33,9 @@ class AudioClassificationInput(BaseModel):
 
 
 class AudioClassificationFormInput(BaseModel):
-    file: Annotated[bytes, File(...)]
-    top_k: Annotated[Optional[int], Form()] = None
-    function_to_apply: Annotated[Optional[str], Form()] = None
+    file: FileForm
+    function_to_apply: Optional[Annotated[Literal["sigmoid", "softmax", None], Form()]] = None
+    top_k: Optional[IntForm] = None
 
     model_config = ConfigDict(extra="forbid")
 
