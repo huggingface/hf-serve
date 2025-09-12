@@ -8,7 +8,7 @@ class FileValidator:
         self.accepted_mimetypes = accepted_mimetypes
         self.max_size = max_size
 
-    async def validate_file(self, file: bytes) -> List:
+    async def validate_file(self, file: bytes) -> List[str]:
         errors = []
 
         file_size = len(file)
