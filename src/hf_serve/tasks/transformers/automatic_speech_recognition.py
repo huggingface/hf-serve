@@ -72,6 +72,7 @@ class AutomaticSpeechRecognitionFormInput(BaseModel):
     num_beam_groups: Optional[Annotated[int, Form()]] = None
     penalty_alpha: Optional[Annotated[float, Form()]] = None
     use_cache: Optional[Annotated[bool, Form()]] = None
+
     model_config = ConfigDict(extra="forbid")
 
 
