@@ -7,6 +7,8 @@ from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.routers.routers_utils import FileValidator
 
+from starlette.requests import FormData
+
 
 def media_router(
     predictor: Predictor,
@@ -87,28 +89,43 @@ def media_router(
             logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
-    # NOTE: This schema is not a good practice. Endpoints should be independent, no redirected.
-    # Keeping this for now for backward compatibility with inference-toolkit.
+    # NOTE: This endpoint schema is not a good practice. Endpoints should be independent per input type.
     @router.post("/", response_model=output_schema)
     @router.post("/predict", response_model=output_schema)
     async def predict(request: Request) -> output_schema:  # type: ignore
-        ct = request.headers.get("content-type", "")
-        if "application/json" in ct:
-            payload = await request.json()
-            try:
-                payload = input_schema(**payload)  # type: ignore
-            except Exception as e:
-                raise HTTPException(status_code=422, detail=e.errors())
+        ct = request.headers.get("content-type", "").split(";")[0]
+        match ct:
+            case "application/json":
+                payload = await request.json()
+                try:
+                    payload = input_schema(**payload)  # type: ignore
+                except Exception as e:
+                    raise HTTPException(status_code=422, detail=e.errors())
 
-            return await predict_json(request=request, payload=payload)
-        else:
-            form = await request.form()
-            if form:
-                file = await form.file.read()  # convert UploadFile to bytes
-                form_schema = input_form_schema(file=file, **form)  # type: ignore
+                return await predict_json(request=request, payload=payload)
+            case "multipart/form-data":
+                form = await request.form()
+                try:
+                    # NOTE: Since we are calling `predict_form()` manually (again, not a good practice),
+                    # we need to parse the form and create a `input_form_schema`.
+                    # File needs to be manually read and converted from `UploadFile` to expected bytes.
+                    form = dict(form)
+
+                    file = form.pop("file", None)
+                    file = await file.read()
+
+                    form_schema = input_form_schema(file=file, **form)  # type: ignore
+                except Exception as e:
+                    raise HTTPException(status_code=422, detail=str(e))
+    
                 return await predict_form(request=request, form=form_schema)
-            else:
+            case _ if ct in accepted_mimetypes:  # NOTE: Manage files sent direclty which any valid content-type.
                 body_file = await request.body()
                 return await predict_bytes(request=request, file=body_file)
+            case _:
+                raise HTTPException(
+                    status_code=415,
+                    detail=f"Unsupported Content-Type '{ct}'. Supported Content-Types are: 'application/json', 'multipart/form-data' or any of {accepted_mimetypes}",
+                )
 
     return router
