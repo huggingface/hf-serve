@@ -94,6 +94,7 @@ def media_router(
     @router.post("/predict", response_model=output_schema)
     async def predict(request: Request) -> output_schema:  # type: ignore
         ct = request.headers.get("content-type", "").split(";")[0]
+        # TODO: Revisit this logic.
         match ct:
             case "application/json":
                 payload = await request.json()

@@ -61,7 +61,22 @@ parser.add_argument(
     required=False,
     help="The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`",
 )
-
+# TODO(juanjucm): validate accepted_mimetypes values based on the task.
+# Check processor's accepted file formats (e.g. ffmpeg for audio (https://www.ffmpeg.org/general.html#File-Formats))
+parser.add_argument(
+    "--accepted-mimetypes",
+    type=str,
+    default=os.getenv("ACCEPTED_MIMETYPES", None),
+    required=False,
+    help="A comma-separated list of accepted MIME types for file uploads. By default, each task will have all valid MIME types (e.g. audio/* for audio tasks, image/* for image tasks). This can also be set via the environment variable `ACCEPTED_MIMETYPES`",
+)
+parser.add_argument(
+    "--max-file-size",
+    type=int,
+    default=os.getenv("MAX_FILE_SIZE", None),
+    required=False,
+    help="The maximum file size in bytes for file uploads (e.g 10485760 for 10MB). By default, no file size limit is considered. This can also be set via the environment variable `MAX_FILE_SIZE`.",
+)
 
 def main() -> None:
     args = parser.parse_args()
@@ -74,4 +89,6 @@ def main() -> None:
         task=args.task,
         device=args.device,
         dtype=args.dtype,
+        accepted_mimetypes=args.accepted_mimetypes.split(",") if args.accepted_mimetypes else None,
+        max_file_size=args.max_file_size,
     )

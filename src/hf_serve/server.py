@@ -1,7 +1,7 @@
 import os
 import time
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, List, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
@@ -59,6 +59,8 @@ def launch(
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
     dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
+    accepted_mimetypes: Optional[List[str]] = None,
+    max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
 ) -> None:
@@ -367,16 +369,8 @@ def launch(
                     input_schema=ZeroShotAudioClassificationInput,
                     input_form_schema=ZeroShotAudioClassificationFormInput,
                     output_schema=ZeroShotAudioClassificationOutput,
-                    accepted_mimetypes=[
-                        "audio/flac",
-                        "audio/xflac",
-                        "audio/mpeg",
-                        "audio/mp4",
-                        "audio/ogg",
-                        "audio/wav",
-                        "audio/webm",
-                    ],
-                    max_file_size=None,
+                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "audio-classification":
@@ -393,16 +387,8 @@ def launch(
                     input_schema=AudioClassificationInput,
                     input_form_schema=AudioClassificationFormInput,
                     output_schema=AudioClassificationOutput,
-                    accepted_mimetypes=[
-                        "audio/flac",
-                        "audio/xflac",
-                        "audio/mpeg",
-                        "audio/mp4",
-                        "audio/ogg",
-                        "audio/wav",
-                        "audio/webm",
-                    ],
-                    max_file_size=None,
+                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "automatic-speech-recognition":
@@ -420,16 +406,8 @@ def launch(
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
                     input_form_schema=AutomaticSpeechRecognitionFormInput,
-                    accepted_mimetypes=[
-                        "audio/flac",
-                        "audio/xflac",
-                        "audio/mpeg",
-                        "audio/mp4",
-                        "audio/ogg",
-                        "audio/wav",
-                        "audio/webm",
-                    ],
-                    max_file_size=None,
+                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                    max_file_size=max_file_size,
                 )
             )
         # transformers - image
@@ -447,8 +425,8 @@ def launch(
                     input_schema=ImageClassificationInput,
                     input_form_schema=ImageClassificationFormInput,
                     output_schema=ImageClassificationOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
-                    max_file_size=None,
+                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "image-segmentation":
@@ -465,8 +443,8 @@ def launch(
                     input_schema=ImageSegmentationInput,
                     input_form_schema=ImageSegmentationFormInput,
                     output_schema=ImageSegmentationOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
-                    max_file_size=None,
+                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "object-detection":
@@ -483,8 +461,8 @@ def launch(
                     input_schema=ObjectDetectionInput,
                     input_form_schema=ObjectDetectionFormInput,
                     output_schema=ObjectDetectionOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
-                    max_file_size=None,
+                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                    max_file_size=max_file_size,
                 )
             )
         # custom
