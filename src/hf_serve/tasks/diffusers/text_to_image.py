@@ -51,7 +51,7 @@ class TextToImageInput(BaseModel):
                 {
                     "inputs": "a photo of an astronaut riding a horse on mars",
                     "parameters": {
-                        "target_size": {"width": 512, "height": 512},
+                        "target_size": {"width": 64, "height": 64},
                         "num_inference_steps": 1,
                         "seed": 42,
                     },
