@@ -32,6 +32,7 @@ class ObjectDetectionInput(BaseModel):
 class ObjectDetectionFormInput(BaseModel):
     file: Annotated[bytes, File(...)]
     threshold: Optional[Annotated[float, Form()]] = Field(default=None)
+
     model_config = ConfigDict(extra="forbid")
 
 
