@@ -47,6 +47,7 @@ class ZeroShotAudioClassificationFormInput(BaseModel):
     file: Annotated[bytes, File(...)]
     candidate_labels: Annotated[List[str], Form()]
     hypothesis_template: Optional[Annotated[str, Form()]] = None
+
     model_config = ConfigDict(extra="forbid")
 
 
