@@ -108,14 +108,15 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
     def __call__(self, payload: TextRankingInput) -> TextRankingOutput:
         match payload:
             case PredictInput():
-                scores = self.pipeline.predict(payload.sentences, convert_to_tensor=True)
+                scores = self.pipeline.predict(sentences=payload.sentences, convert_to_tensor=True)
                 if scores.ndim < 2:
                     scores = scores.unsqueeze(dim=0)
                 return PredictOutput(scores=scores.tolist())
+
             case RankInput():
                 scores = self.pipeline.rank(
-                    payload.query,
-                    payload.texts,
-                    return_documents=payload.return_documents,  # type: ignore
+                    query=payload.query,
+                    documents=payload.texts,
+                    return_documents=payload.return_documents,
                 )
                 return RankOutput(scores=scores)  # type: ignore
