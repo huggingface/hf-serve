@@ -6,8 +6,9 @@ from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 
 
-# NOTE: won't define e.g. `FeatureExtractionParameters` per se to keep parity with
-# Text Embeddings Inference (TEI)
+# NOTE: `FeatureExtraction` won't define the input payload as `inputs` and `parameters` to keep parity with the
+# Text Embeddings Inference (TEI) counterpart which is the default on Inference Endpoints API, whilst still adding
+# the required aliases to prevent from being disruptive with the rest of the input payloads along `hf-serve`
 # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/embed
 class FeatureExtractionInput(BaseModel):
     sentences: Union[str, List[str]] = Field(
