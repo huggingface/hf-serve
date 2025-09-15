@@ -196,6 +196,12 @@ def launch(
             app.include_router(
                 router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
         case "feature-extraction" | "sentence-embeddings" | "embeddings":
             from hf_serve.tasks.sentence_transformers.feature_extraction import (
                 FeatureExtraction,
@@ -220,6 +226,12 @@ def launch(
             app.include_router(
                 router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
         case "text-ranking" | "sentence-ranking":
             from hf_serve.tasks.sentence_transformers.text_ranking import (
                 TextRanking,
@@ -234,6 +246,12 @@ def launch(
                     output_schema=TextRankingOutput,  # type: ignore
                 )
             )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
         # transformers
         case "text-classification":
             from hf_serve.tasks.transformers.text_classification import (
