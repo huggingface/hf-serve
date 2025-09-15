@@ -1,25 +1,21 @@
-from typing import List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
-from PIL.Image import Image as ImageType
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from fastapi import Form
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types import FileForm, IntForm
 
 
 class ImageClassificationParameters(BaseModel):
-    function_to_apply: Optional[Literal["sigmoid", "softmax", "none"]] = None
-    top_k: Optional[int] = None
+    function_to_apply: Optional[Literal["sigmoid", "softmax", None]] = Field(default=None)
+    top_k: Optional[int] = Field(default=None)
 
 
 class ImageClassificationInput(BaseModel):
-    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
-    parameters: Optional[ImageClassificationParameters] = None
-
-    @field_validator("inputs")
-    @classmethod
-    def deserialize_inputs(cls, v: Union[str, bytes]) -> ImageType:
-        return Image.deserialize(v)
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
+    parameters: Optional[ImageClassificationParameters] = Field(default=None)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -32,8 +28,16 @@ class ImageClassificationInput(BaseModel):
                     },
                 }
             ]
-        }
+        },
     )
+
+
+class ImageClassificationFormInput(BaseModel):
+    file: FileForm
+    function_to_apply: Optional[Annotated[Literal["sigmoid", "softmax", None], Form()]] = None
+    top_k: Optional[IntForm] = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class ImageClassificationOutputValue(BaseModel):
@@ -76,7 +80,7 @@ class ImageClassification(Predictor[ImageClassificationInput, ImageClassificatio
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = payload.inputs
+        image_input = Image.deserialize(payload.inputs)
 
         results = self.pipeline(image_input, **parameters)
 
