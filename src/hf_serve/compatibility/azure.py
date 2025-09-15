@@ -10,5 +10,5 @@ async def swagger_json(request: Request) -> JSONResponse:
 
 
 @router.post("/score")
-async def score(request: Request) -> RedirectResponse:  # type: ignore
+async def score(request: Request) -> RedirectResponse:
     return RedirectResponse(url="/predict")
