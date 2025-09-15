@@ -1,5 +1,6 @@
-from typing import List, Optional, Union
+from typing import Annotated, List, Optional, Union
 
+from fastapi import File, Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from hf_serve.serde import Audio
@@ -40,6 +41,14 @@ class ZeroShotAudioClassificationInput(BaseModel):
         if not v:
             raise ValueError("candidate_labels must contain at least one label")
         return v
+
+
+class ZeroShotAudioClassificationFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    candidate_labels: Annotated[List[str], Form()]
+    hypothesis_template: Optional[Annotated[str, Form()]] = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class ZeroShotAudioClassificationOutputValue(BaseModel):

@@ -1,7 +1,7 @@
 import os
 import time
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Literal, List, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
@@ -35,6 +35,9 @@ app.add_middleware(
     inference_paths=[
         "/",
         "/predict",
+        "/predict-file",
+        "/predict-form",
+        "/predict-json",
         "/score",
         "/v1/chat/completions",
         "/v1/images/generations",
@@ -72,6 +75,8 @@ def launch(
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
     dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
+    accepted_mimetypes: Optional[List[str]] = None,
+    max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
     cloud: Optional[Literal["azure"]] = None,
@@ -385,6 +390,7 @@ def launch(
             from hf_serve.tasks.transformers.zero_shot_audio_classification import (
                 ZeroShotAudioClassification,
                 ZeroShotAudioClassificationInput,
+                ZeroShotAudioClassificationFormInput,
                 ZeroShotAudioClassificationOutput,
             )
 
@@ -396,22 +402,17 @@ def launch(
                         device=device,  # type: ignore
                     ),
                     input_schema=ZeroShotAudioClassificationInput,
+                    input_form_schema=ZeroShotAudioClassificationFormInput,
                     output_schema=ZeroShotAudioClassificationOutput,
-                    accepted_mimetypes=[
-                        "audio/flac",
-                        "audio/xflac",
-                        "audio/mpeg",
-                        "audio/mp4",
-                        "audio/ogg",
-                        "audio/wav",
-                        "audio/webm",
-                    ],
+                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "audio-classification":
             from hf_serve.tasks.transformers.audio_classification import (
                 AudioClassification,
                 AudioClassificationInput,
+                AudioClassificationFormInput,
                 AudioClassificationOutput,
             )
 
@@ -419,22 +420,17 @@ def launch(
                 router=predict_media_router(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=AudioClassificationInput,
+                    input_form_schema=AudioClassificationFormInput,
                     output_schema=AudioClassificationOutput,
-                    accepted_mimetypes=[
-                        "audio/flac",
-                        "audio/xflac",
-                        "audio/mpeg",
-                        "audio/mp4",
-                        "audio/ogg",
-                        "audio/wav",
-                        "audio/webm",
-                    ],
+                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "automatic-speech-recognition":
             from hf_serve.tasks.transformers.automatic_speech_recognition import (
                 AutomaticSpeechRecognition,
                 AutomaticSpeechRecognitionInput,
+                AutomaticSpeechRecognitionFormInput,
                 AutomaticSpeechRecognitionOutput,
             )
 
@@ -444,15 +440,9 @@ def launch(
                     predictor=predictor,
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
-                    accepted_mimetypes=[
-                        "audio/flac",
-                        "audio/xflac",
-                        "audio/mpeg",
-                        "audio/mp4",
-                        "audio/ogg",
-                        "audio/wav",
-                        "audio/webm",
-                    ],
+                    input_form_schema=AutomaticSpeechRecognitionFormInput,
+                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                    max_file_size=max_file_size,
                 )
             )
         # transformers - image
@@ -460,6 +450,7 @@ def launch(
             from hf_serve.tasks.transformers.image_classification import (
                 ImageClassification,
                 ImageClassificationInput,
+                ImageClassificationFormInput,
                 ImageClassificationOutput,
             )
 
@@ -467,14 +458,17 @@ def launch(
                 router=predict_media_router(
                     predictor=ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageClassificationInput,
+                    input_form_schema=ImageClassificationFormInput,
                     output_schema=ImageClassificationOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],  # type: ignore
+                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "image-segmentation":
             from hf_serve.tasks.transformers.image_segmentation import (
                 ImageSegmentation,
                 ImageSegmentationInput,
+                ImageSegmentationFormInput,
                 ImageSegmentationOutput,
             )
 
@@ -482,14 +476,17 @@ def launch(
                 router=predict_media_router(
                     predictor=ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ImageSegmentationInput,
+                    input_form_schema=ImageSegmentationFormInput,
                     output_schema=ImageSegmentationOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
+                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                    max_file_size=max_file_size,
                 )
             )
         case "object-detection":
             from hf_serve.tasks.transformers.object_detection import (
                 ObjectDetection,
                 ObjectDetectionInput,
+                ObjectDetectionFormInput,
                 ObjectDetectionOutput,
             )
 
@@ -497,8 +494,10 @@ def launch(
                 router=predict_media_router(
                     predictor=ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
                     input_schema=ObjectDetectionInput,
+                    input_form_schema=ObjectDetectionFormInput,
                     output_schema=ObjectDetectionOutput,
-                    accepted_mimetypes=["image/jpeg", "image/png", "image/bmp", "image/webp"],
+                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                    max_file_size=max_file_size,
                 )
             )
         # custom
