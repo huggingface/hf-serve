@@ -4,15 +4,20 @@ LABEL maintainer="Hugging Face"
 SHELL ["/bin/bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get upgrade --yes && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     build-essential \
     git \
     ffmpeg \
     libmagic \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# NOTE: Inference Endpoints API writes the Hugging Face Hub repository in
+# `/repository` hence it should allow any user to read from it
+RUN mkdir -p /repository && chmod 755 /repository
 
 RUN groupadd --gid 1000 huggingface \
     && useradd --uid 1000 --gid huggingface --shell /bin/bash --create-home huggingface
