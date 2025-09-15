@@ -2,13 +2,13 @@ import argparse
 import os
 import typing
 
-from hf_serve.backwards import check_backwards_compatibility
+from hf_serve.compatibility.backwards import ensure_backwards_compatibility
 from hf_serve.server import launch
 from hf_serve.types import TaskTypes
 
 # NOTE: required in order for the actual values for the environment variables
 # to be set before the defaults are provided to the `argparse` arguments
-check_backwards_compatibility()
+ensure_backwards_compatibility()
 
 parser = argparse.ArgumentParser(description="Hugging Face Serve API")
 parser.add_argument(
