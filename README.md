@@ -39,11 +39,27 @@ options:
                         The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`
 ```
 
-### 🤏🏻 Run SmolLM3 with an OpenAI API
+### 🤏 Run `HuggingFaceTB/SmolLM3-3B` with an OpenAI API
 
 ```bash
 uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dtype float16
 ```
+
+### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
+
+```bash
+uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentence-similarity --dtype float32 --cloud azure
+```
+
+> [!WARNING]
+> Given that Azure AI Foundry and Azure ML expect the inference route to be `/score`
+> rather than `/predict`, which is the standard for Inference Endpoints API, and since
+> `/score` is a redirect to `/predict`, then we need to send the `curl` request with the
+> `-L/--location` flag so that it follows the redirect, otherwise we get an HTTP 307.
+>
+> ```bash
+> curl -L http://localhost:8080/score -H "Content-Type: application/json" -d '{"inputs":{"source_sentence":"What is Deep Learning?","sentences":["Deep Learning is...","Deep Learning is not..."]}}'
+> ```
 
 ## 🔮 Upcoming
 
