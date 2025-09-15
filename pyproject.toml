@@ -34,6 +34,7 @@ dependencies = [
 [project.optional-dependencies]
 cpu = ["torch>=2.5.1,<2.8.0"]
 cuda = ["torch>=2.5.1,<2.8.0"]
+flash-attn = ["flash-attn==2.8.3"]
 
 [build-system]
 requires = ["hatchling"]
@@ -70,3 +71,9 @@ explicit = true
 name = "pytorch-cu126"
 url = "https://download.pytorch.org/whl/cu126"
 explicit = true
+
+[tool.uv.extra-build-dependencies]
+flash-attn = [{ requirement = "torch", match-runtime = true }]
+
+[tool.uv.extra-build-variables]
+flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }
