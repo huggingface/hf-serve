@@ -70,3 +70,5 @@ uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentenc
 - [ ] Add a memory estimation tool prior loading the model to identify whether the model will fit or not and provide the user with meaningful feedback on the requirements for the given model
 
 - [ ] Improve error messages when input data validation fails, to make those more readable as default Pydantic errors are not so easy to read and there's not a clear action for the user
+
+- [ ] Validate that the given model can be loaded with the provided `--task` otherwise fail and suggest the `--task` value
