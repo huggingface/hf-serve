@@ -17,6 +17,8 @@ dependencies = [
     "protobuf>=5.29.3",
     "sentence-transformers>=5.1.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
+    # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
+    # but still has the cap on `transformers<4.56.0` which prevents us from relying on `main`
     # "sentence-transformers[onnx]>=5.0.0",
     # NOTE: for GPU that'd be the following
     # "sentence-transformers[onnx-gpu]>=5.0.0",
