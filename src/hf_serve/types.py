@@ -1,4 +1,6 @@
-from typing import Literal
+from typing import Annotated, Literal
+
+from fastapi import File, Form
 
 TaskTypes = Literal[
     "image-text-to-text",
@@ -30,3 +32,11 @@ TaskTypes = Literal[
     "object-detection",
     "custom",  # NOTE: ideally not recommended for production use-cases as it requires `trust_remote_code=True`, but here to ensure compatibility with the former `huggingface-inference-toolkit`
 ]
+
+IntForm = Annotated[int, Form()]
+
+FloatForm = Annotated[float, Form()]
+
+BoolForm = Annotated[bool, Form()]
+
+FileForm = Annotated[bytes, File(...)]

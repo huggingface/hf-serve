@@ -1,8 +1,8 @@
-from typing import List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
+from fastapi import File, Form
 import PIL
-from PIL.Image import Image as ImageType
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
@@ -16,13 +16,8 @@ class ImageSegmentationParameters(BaseModel):
 
 
 class ImageSegmentationInput(BaseModel):
-    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ImageSegmentationParameters] = None
-
-    @field_validator("inputs")
-    @classmethod
-    def deserialize_inputs(cls, v: Union[str, bytes]) -> ImageType:
-        return Image.deserialize(v)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -37,8 +32,18 @@ class ImageSegmentationInput(BaseModel):
                     },
                 }
             ]
-        }
+        },
     )
+
+
+class ImageSegmentationFormInput(BaseModel):
+    file: Annotated[bytes, File(...)]
+    mask_threshold: Optional[Annotated[float, Form()]] = None
+    overlap_mask_area_threshold: Optional[Annotated[float, Form()]] = None
+    subtask: Optional[Annotated[Literal["instance", "panoptic", "semantic"], Form()]] = None
+    threshold: Optional[Annotated[float, Form()]] = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class ImageSegmentationOutputValue(BaseModel):
@@ -82,7 +87,7 @@ class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutpu
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = payload.inputs
+        image_input = Image.deserialize(payload.inputs)
 
         results = self.pipeline(image_input, **parameters)
 

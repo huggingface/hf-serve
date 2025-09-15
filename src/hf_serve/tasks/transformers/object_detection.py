@@ -1,10 +1,10 @@
 from typing import List, Optional, Union
 
-from PIL.Image import Image as ImageType
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types import FileForm, FloatForm
 
 
 class ObjectDetectionParameters(BaseModel):
@@ -12,13 +12,8 @@ class ObjectDetectionParameters(BaseModel):
 
 
 class ObjectDetectionInput(BaseModel):
-    inputs: ImageType = Field(validation_alias=AliasChoices("inputs", "image"))
+    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[ObjectDetectionParameters] = None
-
-    @field_validator("inputs")
-    @classmethod
-    def deserialize_inputs(cls, v: Union[str, bytes]) -> ImageType:
-        return Image.deserialize(v)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -32,6 +27,13 @@ class ObjectDetectionInput(BaseModel):
             ]
         },
     )
+
+
+class ObjectDetectionFormInput(BaseModel):
+    file: FileForm
+    threshold: Optional[FloatForm] = None
+
+    model_config = ConfigDict(extra="forbid")
 
 
 class BoundingBox(BaseModel):
@@ -82,5 +84,8 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        results = self.pipeline(payload.inputs, **parameters)  # type: ignore
+        image_input = Image.deserialize(payload.inputs)
+
+        results = self.pipeline(image_input, **parameters)
+
         return ObjectDetectionOutput(results=results)
