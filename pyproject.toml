@@ -31,6 +31,10 @@ dependencies = [
     "open-clip-torch>=2.32.0",
 ]
 
+[project.optional-dependencies]
+cpu = ["torch>=2.5.1,<2.8.0"]
+cuda = ["torch>=2.5.1,<2.8.0"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -41,6 +45,28 @@ hf-serve = "hf_serve.cli:main"
 [tool.ruff]
 line-length = 112
 
+[tool.uv]
+conflicts = [
+    [
+      { extra = "cpu" },
+      { extra = "cuda" },
+    ],
+]
+
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
 diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
+torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
