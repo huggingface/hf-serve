@@ -52,3 +52,5 @@ uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dty
 - [ ] Add support for OpenAI Responses API for `text-generation`
 
 - [ ] Add a memory estimation tool prior loading the model to identify whether the model will fit or not and provide the user with meaningful feedback on the requirements for the given model
+
+- [ ] Improve error messages when input data validation fails, to make those more readable as default Pydantic errors are not so easy to read and there's not a clear action for the user
