@@ -17,6 +17,8 @@ class Predictor(ABC, Generic[InputType, OutputType]):
     @abstractmethod
     def __call__(self, payload: InputType) -> OutputType: ...
 
+    # TODO: works fine, but the code is not so clean, so we might need to redesign this
+    # whilst adding comments all the way through
     def warmup(self) -> None:
         start_time = time.perf_counter()
         logger.info("Warming up model...")
