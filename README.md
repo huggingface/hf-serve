@@ -7,11 +7,45 @@
 
 ## 🛠️ Installation
 
+First you need to setup your environment with [`uv`](https://github.com/astral-sh/uv),
+or with your preferred Python environment manager.
+
 ```bash
 uv venv --python 3.12
 source .venv/bin/activate
-uv pip install -e .
 ```
+
+> [!NOTE]
+> Due to the need of `--preview-features extra-build-dependencies` to install
+> [`flash-attn`](https://github.com/Dao-AILab/flash-attention) with `uv` without
+> compiling it, but rather relying on the pre-built binaries, you need to use
+> `uv` v0.8.13 (or higher, but beware on major updates since the feature is
+> still experimental, so < v0.9.0 is recommended until stable).
+>
+> Reference: https://docs.astral.sh/uv/concepts/projects/config/#augmenting-build-dependencies
+>
+> To update `uv` once installed if `uv version` is lower than v0.8.13, simply
+> `uv self update`.
+
+Install it from the `uv.lock` file for CPU / MPS as follows:
+
+```bash
+uv sync --active --frozen --extra cpu
+```
+
+Alternatively, install it on NVIDIA CUDA as follows:
+
+```bash
+uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+```
+
+> [!WARNING]
+> The default registry for the NVIDIA CUDA wheels for PyTorch is set to CUDA 12.6. If
+> you want to install another PyTorch version as per the CUDA compatibility, then
+> run e.g. `uv pip install -e . --torch-backend cu128`, but note it won't be relying
+> on the `uv.lock` so some dependencies might mismatch.
+>
+> Reference: https://docs.astral.sh/uv/guides/integration/pytorch/#automatic-backend-selection
 
 ## 💻 Example
 
