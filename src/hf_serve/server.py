@@ -91,11 +91,6 @@ def launch(
         f"Starting toolkit server for model {model_id or model_dir=} with task {task=} on device {device=}"
     )
 
-    if cloud is not None and cloud == "azure":
-        from hf_serve.compatibility.azure import router as azure_router
-
-        app.include_router(router=azure_router)
-
     match task:
         # openai-compatible
         case "image-text-to-text":
@@ -561,6 +556,11 @@ def launch(
                         logger.info(f"Loaded custom router for {model_id=}")
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
+
+    if cloud is not None and cloud == "azure":
+        from hf_serve.compatibility.azure import router as azure_router
+
+        app.include_router(router=azure_router)
 
     log_available_routes(app=app)
 
