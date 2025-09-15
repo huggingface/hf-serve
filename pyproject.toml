@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.115.6",
     "prometheus-client>=0.21.1",
     "torch>=2.5.1,<2.8.0",
+    "torchvision",
     "diffusers>=0.32.1",
     "transformers>=4.53.2",
     "pydantic>=2.10.5",
@@ -34,8 +35,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = ["torch>=2.5.1,<2.8.0"]
-cuda = ["torch>=2.5.1,<2.8.0"]
+cpu = ["torch>=2.5.1,<2.8.0", "torchvision"]
+cuda = ["torch>=2.5.1,<2.8.0", "torchvision"]
 flash-attn = ["flash-attn==2.8.3"]
 
 [build-system]
@@ -60,6 +61,10 @@ conflicts = [
 transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
 diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
 torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+]
+torchvision = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
 ]
