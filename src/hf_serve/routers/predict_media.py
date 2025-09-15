@@ -1,6 +1,7 @@
 from typing import Annotated, List, Optional, Type, Union
 
 from fastapi import APIRouter, Body, Form, HTTPException, Request
+from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ValidationError
 
 from hf_serve.logging import logger
@@ -91,38 +92,23 @@ def media_router(
         # TODO: Revisit this logic.
         match ct:
             case "application/json":
-                payload = await request.json()
                 try:
-                    payload = input_schema(**payload)  # type: ignore
+                    return RedirectResponse(url="/predict-json")
                 except Exception as e:
                     raise HTTPException(status_code=422, detail=e.errors())
-
-                return await predict_json(request=request, payload=payload)
             case "multipart/form-data":
-                form = await request.form()
                 try:
-                    # NOTE: Since we are calling `predict_form()` manually (again, not a good practice),
-                    # we need to parse the form and create a `input_form_schema`.
-                    # File needs to be manually read and converted from `UploadFile` to expected bytes.
-                    form = dict(form)
-
-                    file = form.pop("file", None)
-                    file = await file.read()
-
-                    form_schema = input_form_schema(file=file, **form)  # type: ignore
+                    return RedirectResponse(url="/predict-form")
                 except Exception as e:
                     raise HTTPException(status_code=422, detail=str(e))
 
-                return await predict_form(request=request, form=form_schema)
-            case _ if (
-                ct in accepted_mimetypes
-            ):  # NOTE: Manage files sent direclty which any valid content-type.
-                body_file = await request.body()
-                return await predict_file(request=request, file=body_file)
+            # NOTE: All other content-types are managed as binary files.
+            # MIME type checking will happen inside `predict-file()`.
+            # TODO (juanjucm/alvarobartt): Revisit this logic.
             case _:
-                raise HTTPException(
-                    status_code=415,
-                    detail=f"Unsupported Content-Type '{ct}'. Supported Content-Types are: 'application/json', 'multipart/form-data' or any of {accepted_mimetypes}",
-                )
+                try:
+                    return RedirectResponse(url="/predict-file")
+                except Exception as e:
+                    raise HTTPException(status_code=422, detail=str(e))
 
     return router
