@@ -1,10 +1,11 @@
-# Hugging Face Serve API
+# `hf-serve`
 
 > [!WARNING]
 > This project is still an experimental and early attempt of refactoring the former
-> [`hf-serve`](https://github.com/huggingface/hf-serve), and it might ship breaking changes until stable.
+> [`huggingface-inference-toolkit`](https://github.com/huggingface/huggingface-inference-toolkit),
+> and it might ship breaking changes until stable.
 
-## Installation
+## 🛠️ Installation
 
 ```bash
 uv venv --python 3.12
@@ -12,7 +13,7 @@ source .venv/bin/activate
 uv pip install -e .
 ```
 
-## Example
+## 💻 Example
 
 ```console
 $ uv run hf-serve --help
@@ -38,8 +39,16 @@ options:
                         The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`
 ```
 
-### Run SmolLM3 with an OpenAI API
+### 🤏🏻 Run SmolLM3 with an OpenAI API
 
 ```bash
 uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dtype float16
 ```
+
+## 🔮 Upcoming
+
+- [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-serve sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
+
+- [ ] Add support for OpenAI Responses API for `text-generation`
+
+- [ ] Add a memory estimation tool prior loading the model to identify whether the model will fit or not and provide the user with meaningful feedback on the requirements for the given model
