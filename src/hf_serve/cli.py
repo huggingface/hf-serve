@@ -61,6 +61,14 @@ parser.add_argument(
     required=False,
     help="The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`",
 )
+parser.add_argument(
+    "--cloud",
+    type=str,
+    default=None,
+    choices=["azure"],
+    required=False,
+    help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments.",
+)
 
 
 def main() -> None:
@@ -74,4 +82,5 @@ def main() -> None:
         task=args.task,
         device=args.device,
         dtype=args.dtype,
+        cloud=args.cloud,
     )
