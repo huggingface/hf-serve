@@ -10,7 +10,6 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
-from hf_serve.clouds.azure import router as azure_router
 from hf_serve.logging import logger
 from hf_serve.middleware import (
     LoggingMiddleware,
@@ -39,7 +38,6 @@ app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
-app.include_router(router=azure_router)
 
 
 # NOTE: If not defined, then the FastAPI responses when validation via e.g. `payload: Payload = Body(...)`
@@ -69,6 +67,7 @@ def launch(
     dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
+    cloud: Optional[Literal["azure"]] = None,
 ) -> None:
     if model_id and model_dir:
         logger.warning(
@@ -532,6 +531,11 @@ def launch(
                         logger.info(f"Loaded custom router for {model_id=}")
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
+
+    if cloud is not None and cloud == "azure":
+        from hf_serve.compatibility.azure import router as azure_router
+
+        app.include_router(router=azure_router)
 
     log_available_routes(app=app)
 
