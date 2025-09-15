@@ -19,8 +19,10 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
 # `/repository` hence it should allow any user to read from it
 RUN mkdir -p /repository && chmod 755 /repository
 
-RUN groupadd --gid 1000 huggingface \
-    && useradd --uid 1000 --gid huggingface --shell /bin/bash --create-home huggingface
+# NOTE: GID and UID set to 1001 instead of standard 1000, given that's reserved
+# for the default non-root Ubuntu user
+RUN groupadd --gid 1001 huggingface \
+    && useradd --uid 1001 --gid huggingface --shell /bin/bash --create-home huggingface
 
 USER huggingface
 WORKDIR /home/huggingface
