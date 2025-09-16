@@ -1,10 +1,13 @@
 import logging
+import warnings
 from io import BytesIO
 from typing import Annotated, List, Literal, Optional, Union
 
-from fastapi import Form
 import requests
+from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+
+warnings.filterwarnings("ignore", category=SyntaxWarning, module="pydub")
 from pydub import AudioSegment
 
 from hf_serve.serde import Audio

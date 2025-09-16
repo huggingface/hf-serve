@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from fastapi.responses import Response
-from prometheus_client import generate_latest, REGISTRY, CONTENT_TYPE_LATEST
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
 
 router = APIRouter()
 
