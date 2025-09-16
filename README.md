@@ -141,6 +141,28 @@ curl -L http://localhost:8080/predict \
 > The OpenAI Audio Transcriptions API is still not yet part of `hf-serve` but it's
 > on the roadmap and it will be released soon, stay tuned!
 
+### 🔈 Run `facebook/wav2vec2-lv-60-espeak-cv-ft` (with `phonemizer` and `espeak`)
+
+> [!NOTE]
+> Some models as e.g. `facebook/wav2vec2-lv-60-espeak-cv-ft`, rely on `phonemizer` for
+> the "phonemization" of words and texts in many languages, based at the same time on
+> different Text-To-Speech (TTS) backends as e.g. `espeak-ng` which is supports a lot
+> of languages and IPA (International Phonetic Alphabet). This being said, such models
+> require custom dependencies that need to be installed beforehand as those don't come
+> as default `hf-serve` dependencies; whilst those can be installed as e.g. on MacOS:
+>
+> ```bash
+> brew install ffmpeg
+> brew install espeak
+> uv pip install phonemizer --upgrade
+> ```
+
+To run `facebook/wav2vec2-lv-60-espeak-cv-ft` on e.g. MacOS, you need to run the following:
+
+```bash
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
+```
+
 ## 🔮 Upcoming
 
 - [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-serve sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
