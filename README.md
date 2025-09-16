@@ -88,6 +88,13 @@ options:
 uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dtype float16
 ```
 
+> [!NOTE]
+> If you are running on an instance with NVIDIA GPU, it's recommended to install `hf-serve`
+> with `flash-attn` extra in order to benefit from accelerated inference:
+> ```bash
+> uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+> ```
+
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 
 ```bash
@@ -175,6 +182,8 @@ DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook
 - [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-serve sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
 
 - [ ] Add support for OpenAI Responses API for `text-generation`
+
+- [ ] Add support for OpenAI Audio Transcriptions API for `automatic-speech-recognition`
 
 - [ ] Add a memory estimation tool prior loading the model to identify whether the model will fit or not and provide the user with meaningful feedback on the requirements for the given model
 
