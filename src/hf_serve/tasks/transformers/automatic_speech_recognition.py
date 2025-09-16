@@ -89,11 +89,23 @@ class AutomaticSpeechRecognitionOutput(BaseModel):
     chunks: Optional[List[Chunk]] = None
 
 
-# TODO: given that for audio we need quite some specific stuff, should we install those
-# libraries on the fly instead? e.g., `apt-get install espeak-ng`, `uv pip install phonemizers`, ...
 class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, AutomaticSpeechRecognitionOutput]):
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
+
+        from hf_serve.installer import DynamicInstaller
+
+        installer = DynamicInstaller()
+
+        match installer.system:
+            case "linux":
+                installer.apt(["espeak-ng"])
+            case "darwin":
+                installer.brew(["espeak"])
+            case _:
+                pass
+
+        installer.pip(["phonemizer"], reload_modules=["phonemizer"])
 
         import torch
         from transformers import pipeline
