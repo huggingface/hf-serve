@@ -151,11 +151,11 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         )
 
         result = self.pipeline(
-            audio_input,
+            audio_enc,  # type: ignore
             return_timestamps=parameters.get("return_timestamps", None),
             chunk_length_s=self.chunk_length_s,
             batch_size=int(audio_length // self.chunk_length_s + 1),
-            generate_kwargs=parameters.get("generation_parameters", None),
+            generate_kwargs=parameters.get("generation_parameters", {}),
         )
 
         return AutomaticSpeechRecognitionOutput(
