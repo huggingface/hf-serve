@@ -93,12 +93,12 @@ class ZeroShotAudioClassification(
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        audio = payload.inputs
-        if isinstance(audio, str):
-            # NOTE: Deserialize it into `bytes` if it's a base64-encoded `str`, or leave it as is if it's either
-            # a URL or a filepath as it will be automatically handled by the `AutoPipeline.__call__`
-            if not audio.startswith(("/", "http://", "https://")) and "." not in audio.split("/")[-1]:
-                audio = Audio.deserialize(audio)
+        # NOTE: Handle different input types: bytes, URL, file path, or base64; no need to handle others given that
+        # `Pydantic` already validates that the `inputs` is either `bytes` or `str`
+        if isinstance(payload.inputs, bytes):
+            audio_bytes = payload.inputs
+        elif isinstance(payload.inputs, str):
+            audio_bytes = Audio.deserialize(payload.inputs)
 
-        results = self.pipeline(audio, candidate_labels=payload.candidate_labels, **parameters)
+        results = self.pipeline(audio_bytes, candidate_labels=payload.candidate_labels, **parameters)  # type: ignore
         return ZeroShotAudioClassificationOutput(results=results)  # type: ignore
