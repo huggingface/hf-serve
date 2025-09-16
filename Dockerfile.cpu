@@ -10,7 +10,8 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     build-essential \
     git \
     # NOTE: `ffmpeg` and `libmagic-dev` are required for audio related tasks
-    ffmpeg \
+    # NOTE: `ffmpeg` version is constrained < 8, as it's a `torchcodec` requirement
+    ffmpeg=7:* \
     libmagic-dev \
     && apt-get autoremove -y \
     && apt-get clean \
