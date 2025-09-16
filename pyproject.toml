@@ -52,6 +52,12 @@ hf-serve = "hf_serve.cli:main"
 [tool.ruff]
 line-length = 112
 
+[tool.ruff.lint]
+select = ["I"]
+
+[tool.ruff.lint.isort]
+force-single-line = false
+
 [tool.uv]
 conflicts = [
     [
