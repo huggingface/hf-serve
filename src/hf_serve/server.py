@@ -1,7 +1,7 @@
 import os
 import time
 from pathlib import Path
-from typing import Literal, List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
@@ -391,8 +391,8 @@ def launch(
         case "zero-shot-audio-classification":
             from hf_serve.tasks.transformers.zero_shot_audio_classification import (
                 ZeroShotAudioClassification,
-                ZeroShotAudioClassificationInput,
                 ZeroShotAudioClassificationFormInput,
+                ZeroShotAudioClassificationInput,
                 ZeroShotAudioClassificationOutput,
             )
 
@@ -413,8 +413,8 @@ def launch(
         case "audio-classification":
             from hf_serve.tasks.transformers.audio_classification import (
                 AudioClassification,
-                AudioClassificationInput,
                 AudioClassificationFormInput,
+                AudioClassificationInput,
                 AudioClassificationOutput,
             )
 
@@ -431,8 +431,8 @@ def launch(
         case "automatic-speech-recognition":
             from hf_serve.tasks.transformers.automatic_speech_recognition import (
                 AutomaticSpeechRecognition,
-                AutomaticSpeechRecognitionInput,
                 AutomaticSpeechRecognitionFormInput,
+                AutomaticSpeechRecognitionInput,
                 AutomaticSpeechRecognitionOutput,
             )
 
@@ -451,8 +451,8 @@ def launch(
         case "image-classification":
             from hf_serve.tasks.transformers.image_classification import (
                 ImageClassification,
-                ImageClassificationInput,
                 ImageClassificationFormInput,
+                ImageClassificationInput,
                 ImageClassificationOutput,
             )
 
@@ -469,8 +469,8 @@ def launch(
         case "image-segmentation":
             from hf_serve.tasks.transformers.image_segmentation import (
                 ImageSegmentation,
-                ImageSegmentationInput,
                 ImageSegmentationFormInput,
+                ImageSegmentationInput,
                 ImageSegmentationOutput,
             )
 
@@ -487,8 +487,8 @@ def launch(
         case "object-detection":
             from hf_serve.tasks.transformers.object_detection import (
                 ObjectDetection,
-                ObjectDetectionInput,
                 ObjectDetectionFormInput,
+                ObjectDetectionInput,
                 ObjectDetectionOutput,
             )
 
