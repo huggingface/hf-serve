@@ -32,6 +32,8 @@ app = FastAPI(title="Hugging Face Serve API")
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
 app.add_middleware(
     middleware_class=LoggingMiddleware,
+    # NOTE: temporarily excluding it from the logging as otherwise Inference Endpoints API gets too verbose
+    exclude_paths=["/health"],
     inference_paths=[
         "/",
         "/predict",
