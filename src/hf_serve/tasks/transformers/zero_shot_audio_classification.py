@@ -79,7 +79,7 @@ class ZeroShotAudioClassification(
         self.pipeline: ZeroShotAudioClassificationPipeline = pipeline(
             task="zero-shot-audio-classification",
             model=model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )

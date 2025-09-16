@@ -45,7 +45,7 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
         self.pipeline: TextGenerationPipeline = pipeline(
             task="text-generation",
             model=model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )

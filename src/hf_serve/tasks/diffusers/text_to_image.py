@@ -95,7 +95,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # meaning that e.g. the fix for `diffusers` should be applied there
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device != "balanced" else None,
             device_map=device if device == "balanced" else None,
             # NOTE: these are disabled to prevent generating black images

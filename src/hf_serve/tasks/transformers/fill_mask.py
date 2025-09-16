@@ -59,7 +59,7 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
         self.pipeline: FillMaskPipeline = pipeline(
             task="fill-mask",
             model=model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )
