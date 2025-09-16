@@ -47,8 +47,6 @@ uv sync --active --frozen --extra cuda --extra flash-attn --preview-features ext
 >
 > Reference: https://docs.astral.sh/uv/guides/integration/pytorch/#automatic-backend-selection
 
-## 💻 Example
-
 ```console
 $ uv run hf-serve --help
 usage: hf-serve [-h] [--host HOST] [--port PORT] [--model-id MODEL_ID] [--model-dir MODEL_DIR]
@@ -73,6 +71,17 @@ options:
                         The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`
 ```
 
+## 💻 Examples
+
+> [!NOTE]
+> On the examples below, given the recently introduced `extra-build-dependencies`
+> for `flash-attn` on CUDA as per https://docs.astral.sh/uv/concepts/projects/config/#build-isolation,
+> it means that you'll need to run the examples as `uv run --preview-features extra-build-dependencies`
+> to disable the warning:
+> ```console
+> warning: The `extra-build-dependencies` option is experimental and may change without warning. Pass `--preview-features extra-build-dependencies` to disable this warning.
+> ```
+
 ### 🤏 Run `HuggingFaceTB/SmolLM3-3B` with an OpenAI API
 
 ```bash
@@ -94,6 +103,43 @@ uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentenc
 > ```bash
 > curl -L http://localhost:8080/score -H "Content-Type: application/json" -d '{"inputs":{"source_sentence":"What is Deep Learning?","sentences":["Deep Learning is...","Deep Learning is not..."]}}'
 > ```
+
+### 👂 Run `facebook/wav2vec2-base-960h` an `automatic-speech-recognition` model
+
+> [!NOTE]
+> Before running `automatic-speech-recognition` or really any of `audio-classification`
+> or `zero-shot-audio-classification` you will need to install some system dependencies
+> in advance for those to work as `ffmpeg` and `libmagic-dev`.
+
+```bash
+uv run hf-serve --model-id facebook/wav2vec2-large-960h --task automatic-speech-recognition --dtype float16
+```
+
+> [!WARNING]
+> On MacOS, if you installed `ffmpeg` via `brew`, you will need to set the following
+> environment variable in advance `DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib`
+>
+> Reference: https://github.com/pytorch/torchcodec/issues/570#issuecomment-2913609176
+
+And, then you can send a sample request as:
+
+```bash
+curl -L http://localhost:8080/predict \
+    -H "Content-Type: application/json" \
+    -d '{"inputs":"https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac"}'
+```
+
+> [!WARNING]
+> Given the nature of some tasks that need to support JSON, forms, and files,
+> the `/predict` method for those is a redirect to the respective inner endpoint:
+> `/predict-json`, `/predict-form`, and `/predict-file`. Those are non-standard
+> but required to keep full compatibility with the current Hugging Face Inference
+> Endpoints API Specification, but in reality the redirect response (HTTP 307)
+> shouldn't be used as an routing route, but rather dedicated routes for those.
+
+> [!NOTE]
+> The OpenAI Audio Transcriptions API is still not yet part of `hf-serve` but it's
+> on the roadmap and it will be released soon, stay tuned!
 
 ## 🔮 Upcoming
 
