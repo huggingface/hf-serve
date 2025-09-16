@@ -10,6 +10,9 @@ dependencies = [
     "prometheus-client>=0.21.1",
     "torch>=2.5.1,<2.8.0",
     "torchvision",
+    # NOTE: `torchcodec` as opposed to `torch` won't install the CUDA-compatible
+    # version by default but rather the CPU-only one
+    "torchcodec",
     "diffusers>=0.32.1",
     "transformers>=4.53.2",
     "pydantic>=2.10.5",
@@ -35,8 +38,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = ["torch>=2.5.1,<2.8.0", "torchvision"]
-cuda = ["torch>=2.5.1,<2.8.0", "torchvision"]
+cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
+cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
 flash-attn = ["flash-attn==2.8.3"]
 
 [build-system]
@@ -65,6 +68,10 @@ torch = [
   { index = "pytorch-cu126", extra = "cuda" },
 ]
 torchvision = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+]
+torchcodec = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
 ]
