@@ -1,7 +1,8 @@
 import logging
 import warnings
 from io import BytesIO
-from typing import Annotated, List, Literal, Optional, Union
+from pathlib import Path
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 import requests
 from fastapi import Form
@@ -10,7 +11,6 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pydub")
 from pydub import AudioSegment
 
-from hf_serve.serde import Audio
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import BoolForm, FileForm, FloatForm, IntForm
 
@@ -130,28 +130,34 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # TODO (@juanjucm): Check if maybe its better to standarize how the audio is passed to the pipeline (e.g. always as a bytes, instead of bytes or url).
-        audio_input = payload.inputs
-        if isinstance(audio_input, str):
-            if audio_input.startswith(("http://", "https://")):
-                res = requests.get(audio_input)
-                audio_enc = BytesIO(res.content)
-            elif "." in audio_input.split("/")[-1]:
-                audio_enc = audio_input
+        # NOTE: Handle different input types: bytes, URL, or file path; no need to handle others given that
+        # `Pydantic` already validates that the `inputs` is either `bytes` or `str`
+        if isinstance(payload.inputs, bytes):
+            audio_bytes = payload.inputs
+        elif isinstance(payload.inputs, str):
+            if payload.inputs.startswith(("http://", "https://")):
+                response = requests.get(payload.inputs)
+                response.raise_for_status()
+                audio_bytes = response.content
             else:
-                # audio as base64 encoded string, input has to be deserialized.
-                audio_input = Audio.deserialize(audio_input)
-                audio_enc = BytesIO(audio_input)
-        else:  # audio as bytes
-            audio_enc = BytesIO(audio_input)
+                file_path = Path(payload.inputs)
+                if not file_path.is_file():
+                    raise ValueError(
+                        f"Input '{payload.inputs}' is neither a public URL nor a valid file system path"
+                    )
+                with open(file_path, "rb") as f:
+                    audio_bytes = f.read()
 
-        audio_length = AudioSegment.from_file(audio_enc).duration_seconds
+        audio_length = AudioSegment.from_file(BytesIO(audio_bytes)).duration_seconds  # type: ignore
+
+        # TODO: eventually look into a context logger so that everything logged within the `__call__` method
+        # of the task also containts the request ID to identify each request
         logging.info(
             f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}"
         )
 
-        result = self.pipeline(
-            audio_enc,  # type: ignore
+        result: Dict[str, Any] = self.pipeline(
+            audio_bytes,  # type: ignore
             return_timestamps=parameters.get("return_timestamps", None),
             chunk_length_s=self.chunk_length_s,
             batch_size=int(audio_length // self.chunk_length_s + 1),
