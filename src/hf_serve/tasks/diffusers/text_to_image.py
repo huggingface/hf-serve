@@ -95,18 +95,18 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # meaning that e.g. the fix for `diffusers` should be applied there
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
-            dtype=getattr(torch, dtype),
+            torch_dtype=getattr(torch, dtype),
             device=device if device != "balanced" else None,
             device_map=device if device == "balanced" else None,
             # NOTE: these are disabled to prevent generating black images
-            safety_checker=None,
-            requires_safety_checker=False,
+            # safety_checker=None,
+            # requires_safety_checker=False,
         )
 
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
-        if device == "cuda" and torch.cuda.is_available():
-            self.pipeline.enable_model_cpu_offload()
-        elif device == "mps" and torch.mps.is_available():
+        # if device == "cuda" and torch.cuda.is_available():
+        #     self.pipeline.enable_model_cpu_offload()
+        if device == "mps" and torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
