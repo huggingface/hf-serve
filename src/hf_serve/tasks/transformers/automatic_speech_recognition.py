@@ -1,16 +1,15 @@
 import logging
 import warnings
 from io import BytesIO
-from pathlib import Path
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
-import requests
 from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 warnings.filterwarnings("ignore", category=SyntaxWarning, module="pydub")
 from pydub import AudioSegment
 
+from hf_serve.serde.audio import Audio
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import BoolForm, FileForm, FloatForm, IntForm
 
@@ -109,7 +108,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         self.pipeline: AutomaticSpeechRecognitionPipeline = pipeline(
             task="automatic-speech-recognition",
             model=model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )
@@ -130,23 +129,12 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # NOTE: Handle different input types: bytes, URL, or file path; no need to handle others given that
+        # NOTE: Handle different input types: bytes, URL, file path, or base64; no need to handle others given that
         # `Pydantic` already validates that the `inputs` is either `bytes` or `str`
         if isinstance(payload.inputs, bytes):
             audio_bytes = payload.inputs
         elif isinstance(payload.inputs, str):
-            if payload.inputs.startswith(("http://", "https://")):
-                response = requests.get(payload.inputs)
-                response.raise_for_status()
-                audio_bytes = response.content
-            else:
-                file_path = Path(payload.inputs)
-                if not file_path.is_file():
-                    raise ValueError(
-                        f"Input '{payload.inputs}' is neither a public URL nor a valid file system path"
-                    )
-                with open(file_path, "rb") as f:
-                    audio_bytes = f.read()
+            audio_bytes = Audio.deserialize(payload.inputs)
 
         audio_length = AudioSegment.from_file(BytesIO(audio_bytes)).duration_seconds  # type: ignore
 
