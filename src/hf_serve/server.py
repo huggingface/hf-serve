@@ -94,9 +94,7 @@ def launch(
             "Any of `--model-id` or `--model-dir` should be provided but both cannot be None (alternatively those can be provided via the environment variables `MODEL_ID` or `MODEL_DIR`, respectively."
         )
 
-    logger.info(
-        f"Starting toolkit server for model {model_id or model_dir=} with task {task=} on device {device=}"
-    )
+    logger.info(f"`hf-serve` starting for model {model_id or model_dir=} with {task=} on {device=}")
 
     match task:
         # openai-compatible
