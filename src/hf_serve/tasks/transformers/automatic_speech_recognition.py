@@ -95,8 +95,10 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
 
         from hf_serve.installer import DynamicInstaller
 
+        # NOTE: install `espeak` as required by `phonemizer`, but note that won't apply to every model, neither
+        # `espeak` is always the preferred backend, so take the `DynamicInstaller` implementation and usage with
+        # a grain of salt yet
         installer = DynamicInstaller()
-
         match installer.system:
             case "linux":
                 installer.apt(["espeak-ng"])
@@ -104,8 +106,6 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
                 installer.brew(["espeak"])
             case _:
                 pass
-
-        installer.pip(["phonemizer"], reload_modules=["phonemizer"])
 
         import torch
         from transformers import pipeline

@@ -154,7 +154,6 @@ curl -L http://localhost:8080/predict \
 > ```bash
 > brew install ffmpeg
 > brew install espeak
-> uv pip install phonemizer --upgrade
 > ```
 
 To run `facebook/wav2vec2-lv-60-espeak-cv-ft` on e.g. MacOS, you need to run the following:
