@@ -2,7 +2,7 @@ from typing import Optional
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as PILImage
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.logging import logger
 from hf_serve.serde import Image
@@ -61,10 +61,8 @@ class TextToImageInput(BaseModel):
     )
 
 
-class TextToImageOutput(BaseModel):
-    # NOTE: the output just contains `image` and not e.g. `images` since only one image can be generated
-    # at a time at the moment
-    image: PILImage
+class TextToImageOutput(RootModel):
+    root: PILImage
 
     model_config = ConfigDict(
         # json_encoders={PILImage: Image.serialize},  # type: ignore
@@ -123,4 +121,4 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             parameters["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
 
         images = self.pipeline(prompt=payload.inputs, **parameters)[0]
-        return TextToImageOutput(image=images[0])
+        return TextToImageOutput(images[0])

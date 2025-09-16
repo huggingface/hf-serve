@@ -160,18 +160,19 @@ def launch(
                 )
         # diffusers
         case "text-to-image":
-            from hf_serve.tasks.diffusers.text_to_image import (
-                TextToImage,
-                TextToImageInput,
-                TextToImageOutput,
-            )
+            import torch
+
+            if device == "mps" or (device == "auto" and torch.backends.mps.is_available()):
+                raise RuntimeError("Support for `text-to-image` on MPS is unstable.")
+
+            from hf_serve.routers import predict_image_router
+            from hf_serve.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
 
             predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             app.include_router(
-                router=predict_router(
+                router=predict_image_router(
                     predictor=predictor,
                     input_schema=TextToImageInput,
-                    output_schema=TextToImageOutput,
                 )
             )
 
