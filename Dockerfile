@@ -16,6 +16,18 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# NOTE: `torchcodec` and hence the audio-related models as e.g. Wav2Vec, require
+# both `libnpp` and `libnvrtc` to be preset for it to work seamlessly on CUDA
+RUN if ! ldconfig -p | grep -q libnpp; then \
+    apt-get update && apt-get install -y --no-install-recommends libnpp-dev; \
+    fi && \
+    if ! ldconfig -p | grep -q libnvrtc; then \
+    apt-get update && apt-get install -y --no-install-recommends cuda-nvrtc-dev; \
+    fi && \
+    apt-get autoremove -y && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # NOTE: Inference Endpoints API writes the Hugging Face Hub repository in
 # `/repository` hence it should allow any user to read from it
 RUN mkdir -p /repository && chmod 755 /repository
