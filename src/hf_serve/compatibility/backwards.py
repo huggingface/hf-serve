@@ -3,7 +3,7 @@ import os
 from hf_serve.logging import logger
 
 
-def check_backwards_compatibility() -> None:
+def ensure_backwards_compatibility() -> None:
     mappings = {
         "HF_MODEL_DIR": "MODEL_DIR",
         "HF_MODEL_ID": "MODEL_ID",

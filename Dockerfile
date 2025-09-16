@@ -4,18 +4,26 @@ LABEL maintainer="Hugging Face"
 SHELL ["/bin/bash", "-c"]
 
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && apt-get upgrade --yes && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     curl \
     ca-certificates \
     build-essential \
     git \
+    # NOTE: `ffmpeg` and `libmagic-dev` are required for audio related tasks
     ffmpeg \
-    libmagic \
-    && rm -rf /var/lib/apt/lists/* \
-    && apt-get clean
+    libmagic-dev \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN groupadd --gid 1000 huggingface \
-    && useradd --uid 1000 --gid huggingface --shell /bin/bash --create-home huggingface
+# NOTE: Inference Endpoints API writes the Hugging Face Hub repository in
+# `/repository` hence it should allow any user to read from it
+RUN mkdir -p /repository && chmod 755 /repository
+
+# NOTE: GID and UID set to 1001 instead of standard 1000, given that's reserved
+# for the default non-root Ubuntu user
+RUN groupadd --gid 1001 huggingface \
+    && useradd --uid 1001 --gid huggingface --shell /bin/bash --create-home huggingface
 
 USER huggingface
 WORKDIR /home/huggingface
@@ -33,8 +41,7 @@ ENV VIRTUAL_ENV=/home/huggingface/venv \
 WORKDIR /home/huggingface/app
 COPY --chown=huggingface:huggingface . .
 
-RUN uv sync --frozen && uv pip install .
-RUN uv pip install packaging ninja --upgrade && uv pip install --no-build-isolation "flash-attn==2.7.3"
+RUN uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh

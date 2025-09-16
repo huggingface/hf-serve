@@ -2,15 +2,16 @@ import argparse
 import os
 import typing
 
-from hf_serve.backwards import check_backwards_compatibility
+from hf_serve.compatibility.backwards import ensure_backwards_compatibility
 from hf_serve.server import launch
 from hf_serve.types import TaskTypes
 
 # NOTE: required in order for the actual values for the environment variables
 # to be set before the defaults are provided to the `argparse` arguments
-check_backwards_compatibility()
+ensure_backwards_compatibility()
 
 parser = argparse.ArgumentParser(description="Hugging Face Serve API")
+
 parser.add_argument(
     "--host",
     type=str,
@@ -18,6 +19,7 @@ parser.add_argument(
     required=False,
     help="The host into which the FastAPI API will be deployed to, defaults to 0.0.0.0, can also be set via the environment variable `HOST`",
 )
+
 parser.add_argument(
     "--port",
     type=int,
@@ -25,6 +27,7 @@ parser.add_argument(
     required=False,
     help="The port in which the FastAPI API will listen to, defaults to 8080, can also be set via the environment variable `PORT`",
 )
+
 # NOTE: only one of `--model-id` or `--model-dir` should be provided
 parser.add_argument(
     "--model-id",
@@ -32,12 +35,14 @@ parser.add_argument(
     default=os.getenv("MODEL_ID", None),
     help="The model ID on the Hugging Face Hub, can also be set via the environment variable `MODEL_ID`",
 )
+
 parser.add_argument(
     "--model-dir",
     type=str,
     default=os.getenv("MODEL_DIR", None),
     help="A local directory that contains a Hugging Face compatible model, can also be set via the environment variable `MODEL_DIR`",
 )
+
 parser.add_argument(
     "--task",
     type=str,
@@ -45,6 +50,7 @@ parser.add_argument(
     choices=typing.get_args(TaskTypes),
     help="Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers, can also be set via the environment variable `TASK`",
 )
+
 parser.add_argument(
     "--device",
     type=str,
@@ -53,6 +59,7 @@ parser.add_argument(
     required=False,
     help="The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU, can also be set via the environment variable `DEVICE`",
 )
+
 parser.add_argument(
     "--dtype",
     type=str,
@@ -61,6 +68,7 @@ parser.add_argument(
     required=False,
     help="The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`",
 )
+
 # TODO(juanjucm): validate accepted_mimetypes values based on the task.
 # Check processor's accepted file formats (e.g. ffmpeg for audio (https://www.ffmpeg.org/general.html#File-Formats))
 parser.add_argument(
@@ -70,12 +78,22 @@ parser.add_argument(
     required=False,
     help="A comma-separated list of accepted MIME types for file uploads. By default, each task will have all valid MIME types (e.g. audio/* for audio tasks, image/* for image tasks). This can also be set via the environment variable `ACCEPTED_MIMETYPES`",
 )
+
 parser.add_argument(
     "--max-file-size",
     type=int,
     default=os.getenv("MAX_FILE_SIZE", None),
     required=False,
     help="The maximum file size in bytes for file uploads (e.g 10485760 for 10MB). By default, no file size limit is considered. This can also be set via the environment variable `MAX_FILE_SIZE`.",
+)
+
+parser.add_argument(
+    "--cloud",
+    type=str,
+    default=None,
+    choices=["azure"],
+    required=False,
+    help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments.",
 )
 
 
@@ -90,6 +108,8 @@ def main() -> None:
         task=args.task,
         device=args.device,
         dtype=args.dtype,
+        # TODO: this can most likely be a list, and it will automatically be formatted this way without having to handle that here
         accepted_mimetypes=args.accepted_mimetypes.split(",") if args.accepted_mimetypes else None,
         max_file_size=args.max_file_size,
+        cloud=args.cloud,
     )

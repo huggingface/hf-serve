@@ -9,7 +9,7 @@ def log_available_routes(app: FastAPI) -> None:
     route_groups = {
         "predict": ["/", "/predict", "/score"],
         "docs": ["/docs", "/docs/oauth2-redirect"],
-        "openapi": ["/openapi.json", "/swagger.json"],
+        "openapi": ["/openapi.json", "/swagger.json", "/api-doc/openapi.json"],
     }
 
     logged = set()

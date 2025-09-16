@@ -1,12 +1,15 @@
 import os
 import time
 from pathlib import Path
-from typing import Literal, List, Optional, Union
+from typing import List, Literal, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.requests import Request
+from fastapi.responses import JSONResponse
 
-from hf_serve.clouds.azure import router as azure_router
 from hf_serve.logging import logger
 from hf_serve.middleware import (
     LoggingMiddleware,
@@ -29,6 +32,8 @@ app = FastAPI(title="Hugging Face Serve API")
 app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
 app.add_middleware(
     middleware_class=LoggingMiddleware,
+    # NOTE: temporarily excluding it from the logging as otherwise Inference Endpoints API gets too verbose
+    exclude_paths=["/health"],
     inference_paths=[
         "/",
         "/predict",
@@ -38,13 +43,26 @@ app.add_middleware(
         "/score",
         "/v1/chat/completions",
         "/v1/images/generations",
+        "/v1/embeddings",
     ],
 )
 app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
 
 app.include_router(router=health_router)
 app.include_router(router=metrics_router)
-app.include_router(router=azure_router)
+
+
+# NOTE: If not defined, then the FastAPI responses when validation via e.g. `payload: Payload = Body(...)`
+# will just show a vague unreadable error, this way the error is a readable JSON with an actionable outcome
+# Reference: https://fastapi.tiangolo.com/tutorial/handling-errors/#use-the-requestvalidationerror-body
+# TODO: Given that the error is still not perfect, investigate on another potential way of handling those
+# even if manually to keep those as simple as e.g. "Required 'X' but not provided in payload 'Y'"
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
 
 
 def launch(
@@ -63,6 +81,7 @@ def launch(
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
+    cloud: Optional[Literal["azure"]] = None,
 ) -> None:
     if model_id and model_dir:
         logger.warning(
@@ -191,6 +210,12 @@ def launch(
             app.include_router(
                 router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
         case "feature-extraction" | "sentence-embeddings" | "embeddings":
             from hf_serve.tasks.sentence_transformers.feature_extraction import (
                 FeatureExtraction,
@@ -215,6 +240,12 @@ def launch(
             app.include_router(
                 router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
             )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
         case "text-ranking" | "sentence-ranking":
             from hf_serve.tasks.sentence_transformers.text_ranking import (
                 TextRanking,
@@ -229,6 +260,12 @@ def launch(
                     output_schema=TextRankingOutput,  # type: ignore
                 )
             )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
         # transformers
         case "text-classification":
             from hf_serve.tasks.transformers.text_classification import (
@@ -354,8 +391,8 @@ def launch(
         case "zero-shot-audio-classification":
             from hf_serve.tasks.transformers.zero_shot_audio_classification import (
                 ZeroShotAudioClassification,
-                ZeroShotAudioClassificationInput,
                 ZeroShotAudioClassificationFormInput,
+                ZeroShotAudioClassificationInput,
                 ZeroShotAudioClassificationOutput,
             )
 
@@ -376,8 +413,8 @@ def launch(
         case "audio-classification":
             from hf_serve.tasks.transformers.audio_classification import (
                 AudioClassification,
-                AudioClassificationInput,
                 AudioClassificationFormInput,
+                AudioClassificationInput,
                 AudioClassificationOutput,
             )
 
@@ -394,8 +431,8 @@ def launch(
         case "automatic-speech-recognition":
             from hf_serve.tasks.transformers.automatic_speech_recognition import (
                 AutomaticSpeechRecognition,
-                AutomaticSpeechRecognitionInput,
                 AutomaticSpeechRecognitionFormInput,
+                AutomaticSpeechRecognitionInput,
                 AutomaticSpeechRecognitionOutput,
             )
 
@@ -414,8 +451,8 @@ def launch(
         case "image-classification":
             from hf_serve.tasks.transformers.image_classification import (
                 ImageClassification,
-                ImageClassificationInput,
                 ImageClassificationFormInput,
+                ImageClassificationInput,
                 ImageClassificationOutput,
             )
 
@@ -432,8 +469,8 @@ def launch(
         case "image-segmentation":
             from hf_serve.tasks.transformers.image_segmentation import (
                 ImageSegmentation,
-                ImageSegmentationInput,
                 ImageSegmentationFormInput,
+                ImageSegmentationInput,
                 ImageSegmentationOutput,
             )
 
@@ -450,8 +487,8 @@ def launch(
         case "object-detection":
             from hf_serve.tasks.transformers.object_detection import (
                 ObjectDetection,
-                ObjectDetectionInput,
                 ObjectDetectionFormInput,
+                ObjectDetectionInput,
                 ObjectDetectionOutput,
             )
 
@@ -520,6 +557,11 @@ def launch(
                         logger.info(f"Loaded custom router for {model_id=}")
             except Exception as e:
                 logger.warning(f"Failed to load custom router for {model_id}: {e}")
+
+    if cloud is not None and cloud == "azure":
+        from hf_serve.compatibility.azure import router as azure_router
+
+        app.include_router(router=azure_router)
 
     log_available_routes(app=app)
 

@@ -40,7 +40,7 @@ if [[ -n "${MODEL_DIR:-}" ]]; then
     # Check if `requirements.txt` exists and if so install dependencies
     if [[ -f "${MODEL_DIR}/requirements.txt" ]]; then
         echo "INFO: Installing custom dependencies from ${MODEL_DIR}/requirements.txt"
-        uv pip install -r "${MODEL_DIR}/requirements.txt" --no-cache-dir
+        uv pip install --active -r "${MODEL_DIR}/requirements.txt" --no-cache-dir
 
         # Check if the custom handler file is missing when `requirements.txt` is present
         if [[ ! -f "${MODEL_DIR}/${CUSTOM_HANDLER_FILE}" ]]; then
@@ -50,4 +50,4 @@ if [[ -n "${MODEL_DIR:-}" ]]; then
     fi
 fi
 
-exec hf-serve "$@"
+exec uv run --active hf-serve "$@"

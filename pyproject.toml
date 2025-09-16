@@ -9,6 +9,7 @@ dependencies = [
     "fastapi>=0.115.6",
     "prometheus-client>=0.21.1",
     "torch>=2.5.1,<2.8.0",
+    "torchvision",
     "diffusers>=0.32.1",
     "transformers>=4.53.2",
     "pydantic>=2.10.5",
@@ -17,6 +18,8 @@ dependencies = [
     "protobuf>=5.29.3",
     "sentence-transformers>=5.1.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
+    # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
+    # but still has the cap on `transformers<4.56.0` which prevents us from relying on `main`
     # "sentence-transformers[onnx]>=5.0.0",
     # NOTE: for GPU that'd be the following
     # "sentence-transformers[onnx-gpu]>=5.0.0",
@@ -31,6 +34,11 @@ dependencies = [
     "open-clip-torch>=2.32.0",
 ]
 
+[project.optional-dependencies]
+cpu = ["torch>=2.5.1,<2.8.0", "torchvision"]
+cuda = ["torch>=2.5.1,<2.8.0", "torchvision"]
+flash-attn = ["flash-attn==2.8.3"]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
@@ -41,6 +49,38 @@ hf-serve = "hf_serve.cli:main"
 [tool.ruff]
 line-length = 112
 
+[tool.uv]
+conflicts = [
+    [
+      { extra = "cpu" },
+      { extra = "cuda" },
+    ],
+]
+
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
 diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
+torch = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+]
+torchvision = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu126"
+url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[tool.uv.extra-build-dependencies]
+flash-attn = [{ requirement = "torch", match-runtime = true }]
+
+[tool.uv.extra-build-variables]
+flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }

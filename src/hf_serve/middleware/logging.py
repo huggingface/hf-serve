@@ -39,8 +39,9 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             process_time = (time.perf_counter() - start_time) * 1000
             response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
             request_id = getattr(request.state, "request_id", None)
+
             logger.info(
-                f"[{request_id}] Response: Status: {response.status_code} - Duration: {process_time:.2f}ms"
+                f"[{request_id}] {'Response' if response.status_code < 400 else 'Error'}: Status: {response.status_code} - Duration: {process_time:.2f}ms"
             )
         else:
             logger.info(f"Request: {method} {path}")
