@@ -156,6 +156,14 @@ curl -L http://localhost:8080/predict \
 > brew install espeak
 > ```
 
+> [!WARNING]
+> Beware that when installing `ffmpeg` with `brew` on a specific
+> version as e.g. `brew install ffmpeg@7` as it will be installed as "keg-only",
+> meaning that it won't be symlinked into `/opt/homebrew`, meaning that the path
+> to the library won't be `/opt/homebrew/lib` but rather `/opt/homebrew/opt/ffmpeg/lib`
+> instead, meaning that on MacOS you'll need to set `DYLD_FALLBACK_LIBRARY_PATH`
+> to wherever the `ffmpeg` library is installed in.
+
 To run `facebook/wav2vec2-lv-60-espeak-cv-ft` on e.g. MacOS, you need to run the following:
 
 ```bash
