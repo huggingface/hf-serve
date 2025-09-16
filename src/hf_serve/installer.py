@@ -1,4 +1,5 @@
 import importlib
+import os
 import platform
 import shutil
 import subprocess
@@ -23,10 +24,15 @@ class DynamicInstaller:
 
         try:
             if update:
-                subprocess.run(["sudo", "apt-get", "update", "-y"], check=True, capture_output=True)
+                update_cmd = ["apt-get", "update", "-y"]
+                if os.getuid() == 0:
+                    update_cmd = ["sudo"] + update_cmd
+                subprocess.run(update_cmd, check=True, capture_output=True)
 
-            cmd = ["sudo", "apt-get", "install", "-y"] + packages
-            subprocess.run(cmd, check=True, capture_output=True, text=True)
+            install_cmd = ["apt-get", "install", "-y"]
+            if os.getuid() == 0:
+                install_cmd = ["sudo"] + install_cmd
+            subprocess.run(install_cmd, check=True, capture_output=True, text=True)
             logger.info(f"Successfully installed apt packages: {packages}")
             return True
         except subprocess.CalledProcessError as e:
