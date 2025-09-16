@@ -30,7 +30,11 @@ dependencies = [
     "protobuf>=5.29.3",
     "peft>=0.14.0",
     "pillow>=11.1.0",
+    # NOTE: both `pydub` and `phonemizer` as required by audio tasks
     "pydub>=0.25.0",
+    # NOTE: `phonemizer` also requires a backend, install as a system dependency
+    # and left open for the user to pick the one that suits better e.g. `espeak-ng`
+    "phonemizer>=3.0",
     "python-multipart>=0.0.20",
     "python-magic>=0.4.27",
     # NOTE: this is only required for `Magma` so most likely to be handled within Magma
