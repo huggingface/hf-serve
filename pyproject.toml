@@ -14,10 +14,10 @@ dependencies = [
     # version by default but rather the CPU-only one
     "torchcodec",
     "diffusers>=0.32.1",
-    "transformers>=4.53.2",
+    # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
+    # that needs to be installed as a system dependency e.g. `espeak-ng`
+    "transformers[accelerate,hf_xet,hub-kernels,torch-speech]>=4.53.2",
     "pydantic>=2.10.5",
-    "accelerate>=1.2.1",
-    "huggingface-hub[hf-transfer,hf-xet]>=0.27.1",
     "protobuf>=5.29.3",
     "sentence-transformers>=5.1.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
@@ -34,9 +34,6 @@ dependencies = [
     # audio bytes and calculate the audio duration in seconds, hence the batch
     # size too
     "pydub>=0.25.0",
-    # NOTE: `phonemizer` also requires a backend, install as a system dependency
-    # and left open for the user to pick the one that suits better e.g. `espeak-ng`
-    # "phonemizer>=3.0",
     "python-multipart>=0.0.20",
     "python-magic>=0.4.27",
     # NOTE: this is only required for `Magma` so most likely to be handled within Magma
