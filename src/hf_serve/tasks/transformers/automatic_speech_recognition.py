@@ -6,7 +6,7 @@ from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
-warnings.filterwarnings("ignore", category=SyntaxWarning, module="pydub")
+warnings.filterwarnings("ignore", module="pydub")
 from pydub import AudioSegment
 
 from hf_serve.serde.audio import Audio
