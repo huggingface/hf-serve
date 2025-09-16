@@ -9,6 +9,7 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     ca-certificates \
     build-essential \
     git \
+    # NOTE: `ffmpeg` and `libmagic-dev` are required for audio related tasks
     ffmpeg \
     libmagic-dev \
     && apt-get autoremove -y \
