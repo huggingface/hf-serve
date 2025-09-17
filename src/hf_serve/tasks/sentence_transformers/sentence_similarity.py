@@ -42,7 +42,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         self,
         model_id: str,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = "float32",
-        device: Optional[Literal["cpu", "cuda", "mps", "npu"]] = None,
+        device: Optional[Literal["cpu", "cuda", "mps"]] = None,
         backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
         # NOTE: specific for sentence similarity
