@@ -162,7 +162,9 @@ def launch(
         case "text-to-image":
             import torch
 
-            if device == "mps" or (device == "auto" and torch.backends.mps.is_available()):
+            if dtype != "float32" and (
+                device == "mps" or (device == "auto" and torch.backends.mps.is_available())
+            ):
                 raise RuntimeError("Support for `text-to-image` on MPS is unstable.")
 
             from hf_serve.routers import predict_image_router
