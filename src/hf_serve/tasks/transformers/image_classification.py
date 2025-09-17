@@ -80,8 +80,5 @@ class ImageClassification(Predictor[ImageClassificationInput, ImageClassificatio
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = Image.deserialize(payload.inputs)
-
-        results = self.pipeline(image_input, **parameters)
-
+        results = self.pipeline(Image.deserialize(payload.inputs), **parameters)
         return ImageClassificationOutput(results=results)  # type: ignore
