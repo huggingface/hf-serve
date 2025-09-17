@@ -4,8 +4,8 @@ from fastapi import APIRouter, Body, Form, HTTPException, Request
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ValidationError
 
+from hf_serve.file_validator import FileValidator
 from hf_serve.logging import logger
-from hf_serve.routers._file_validator import FileValidator
 from hf_serve.tasks.predictor import Predictor
 
 
@@ -95,7 +95,7 @@ def media_router(
                 try:
                     return RedirectResponse(url="/predict-json")
                 except Exception as e:
-                    raise HTTPException(status_code=422, detail=e.errors())
+                    raise HTTPException(status_code=422, detail=str(e))
             case "multipart/form-data":
                 try:
                     return RedirectResponse(url="/predict-form")

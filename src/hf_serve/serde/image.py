@@ -13,6 +13,9 @@ class Image:
             if isinstance(image, bytes):
                 return ImageModule.open(BytesIO(image))
             elif isinstance(image, str):
+                # TODO: given that `load_image` won't specifically handle that the image URL if provided
+                # is invalid, we need to first download if an URL and handle that separately, then forward
+                # it to `load_image`
                 from transformers.image_utils import load_image
 
                 return load_image(image)
@@ -20,7 +23,7 @@ class Image:
             raise ValueError(f"Failed to deserialize image: {e}")
 
     @staticmethod
-    def serialize(image: ImageType, format: Literal["png", "jpeg", "webp"] = "png") -> str:
+    def serialize(image: ImageType, image_format: Literal["png", "jpeg", "webp"] = "png") -> str:
         buffered = BytesIO()
-        image.save(buffered, format=format)
+        image.save(buffered, **{"format": image_format})
         return base64.b64encode(buffered.getvalue()).decode("utf-8")

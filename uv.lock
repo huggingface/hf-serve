@@ -249,7 +249,7 @@ wheels = [
 [[package]]
 name = "diffusers"
 version = "0.36.0.dev0"
-source = { git = "https://github.com/huggingface/diffusers?rev=main#f5c113e4395bc373ab540fc5a1f7490b7120c40f" }
+source = { git = "https://github.com/huggingface/diffusers?rev=main#efb7a299af46d739dec6a57a5d2814165fba24b5" }
 dependencies = [
     { name = "filelock" },
     { name = "huggingface-hub" },

@@ -2,10 +2,9 @@ from typing import Optional
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as PILImage
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.logging import logger
-from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
 
 
@@ -61,20 +60,18 @@ class TextToImageInput(BaseModel):
     )
 
 
-class TextToImageOutput(BaseModel):
-    # NOTE: the output just contains `image` and not e.g. `images` since only one image can be generated
-    # at a time at the moment
-    image: PILImage
+class TextToImageOutput(RootModel):
+    root: PILImage
 
     model_config = ConfigDict(
-        json_encoders={PILImage: Image.serialize},  # type: ignore
+        # json_encoders={PILImage: Image.serialize},  # type: ignore
         arbitrary_types_allowed=True,
     )
 
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
 class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
         super().__init__()
 
         if device == "auto":
@@ -95,17 +92,18 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # meaning that e.g. the fix for `diffusers` should be applied there
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
-            torch_dtype=getattr(torch, dtype),
+            torch_dtype=getattr(torch, dtype) if dtype is not None else None,
             device=device if device != "balanced" else None,
-            device_map=device if device == "balanced" else None,
+            device_map=device,
             # NOTE: these are disabled to prevent generating black images
-            # safety_checker=None,
-            # requires_safety_checker=False,
+            safety_checker=None,
+            requires_safety_checker=False,
         )
 
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
         # if device == "cuda" and torch.cuda.is_available():
         #     self.pipeline.enable_model_cpu_offload()
+
         if device == "mps" and torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
@@ -122,5 +120,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         if seed := parameters.pop("seed", None):
             parameters["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
 
-        images = self.pipeline(prompt=payload.inputs, **parameters)[0]
-        return TextToImageOutput(image=images[0])
+        # NOTE: `num_images_per_prompt=1` because the `TextToImage` task returns an image without
+        # a JSON, meaning that only a single image is supported
+        images = self.pipeline(prompt=payload.inputs, **parameters, num_images_per_prompt=1)[0]
+        return TextToImageOutput(images[0])
