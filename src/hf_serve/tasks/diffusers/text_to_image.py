@@ -94,7 +94,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             model_id,
             torch_dtype=getattr(torch, dtype) if dtype is not None else None,
             device=device if device != "balanced" else None,
-            device_map=device if device == "balanced" else None,
+            device_map=device,
             # NOTE: these are disabled to prevent generating black images
             safety_checker=None,
             requires_safety_checker=False,
