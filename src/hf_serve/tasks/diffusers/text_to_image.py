@@ -96,8 +96,8 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             device=device if device != "balanced" else None,
             device_map=device if device == "balanced" else None,
             # NOTE: these are disabled to prevent generating black images
-            # safety_checker=None,
-            # requires_safety_checker=False,
+            safety_checker=None,
+            requires_safety_checker=False,
         )
 
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
