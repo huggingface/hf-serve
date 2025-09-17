@@ -40,10 +40,10 @@ def router(
         try:
             logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
 
-            image = predictor(payload=payload).root
+            image = predictor(payload=payload)
             return Response(
                 content=Image.serialize(
-                    image=image,
+                    image=image.root,
                     image_format=image_format,  # type: ignore
                 ),
                 media_type=media_type,

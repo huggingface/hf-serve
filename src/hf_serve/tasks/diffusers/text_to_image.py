@@ -120,5 +120,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         if seed := parameters.pop("seed", None):
             parameters["generator"] = torch.Generator().manual_seed(int(seed))  # type: ignore
 
-        images = self.pipeline(prompt=payload.inputs, **parameters)[0]
+        # NOTE: `num_images_per_prompt=1` because the `TextToImage` task returns an image without
+        # a JSON, meaning that only a single image is supported
+        images = self.pipeline(prompt=payload.inputs, **parameters, num_images_per_prompt=1)[0]
         return TextToImageOutput(images[0])
