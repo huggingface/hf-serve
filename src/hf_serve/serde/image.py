@@ -20,7 +20,7 @@ class Image:
             raise ValueError(f"Failed to deserialize image: {e}")
 
     @staticmethod
-    def serialize(image: ImageType, format: Literal["png", "jpeg", "webp"] = "png") -> str:
+    def serialize(image: ImageType, image_format: Literal["png", "jpeg", "webp"] = "png") -> str:
         buffered = BytesIO()
-        image.save(buffered, format=format)
+        image.save(buffered, **{"format": image_format})
         return base64.b64encode(buffered.getvalue()).decode("utf-8")

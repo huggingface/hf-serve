@@ -81,7 +81,7 @@ class ImagesGenerations:
         return ImagesGenerationsOutput(
             background=None,
             created=int(time()),
-            data=[{"b64_json": Image.serialize(image, format=payload.output_format)} for image in images],
+            data=[{"b64_json": Image.serialize(image, image_format=payload.output_format)} for image in images],
             output_format=payload.output_format,
             quality=None,
             size=f"{images[0].height}x{images[0].width}",
