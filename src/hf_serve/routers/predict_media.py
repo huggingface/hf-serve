@@ -95,7 +95,7 @@ def media_router(
                 try:
                     return RedirectResponse(url="/predict-json")
                 except Exception as e:
-                    raise HTTPException(status_code=422, detail=e.errors())
+                    raise HTTPException(status_code=422, detail=str(e))
             case "multipart/form-data":
                 try:
                     return RedirectResponse(url="/predict-form")
