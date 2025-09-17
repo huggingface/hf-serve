@@ -1,7 +1,7 @@
 from typing import Annotated, List, Literal, Optional, Union
 
-from fastapi import File, Form
 import PIL
+from fastapi import File, Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
@@ -73,7 +73,7 @@ class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutpu
         self.pipeline: ImageSegmentationPipeline = pipeline(
             task="image-segmentation",
             model=model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )

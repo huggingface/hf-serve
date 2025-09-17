@@ -10,8 +10,13 @@ RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-reco
     build-essential \
     git \
     # NOTE: `ffmpeg` and `libmagic-dev` are required for audio related tasks
-    ffmpeg \
+    # NOTE: `ffmpeg` version is constrained < 8, as it's a `torchcodec` requirement
+    ffmpeg=7:* \
     libmagic-dev \
+    # NOTE: `espeak-ng` is the backend used by `phonemizer` so adding it here only
+    # tentatively as it's most likely "too specific" for models relying on `phonemizer`
+    # as e.g. https://huggingface.co/facebook/wav2vec2-lv-60-espeak-cv-ft
+    espeak-ng \
     && apt-get autoremove -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*

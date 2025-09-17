@@ -1,13 +1,15 @@
 import logging
+import warnings
 from io import BytesIO
-from typing import Annotated, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from fastapi import Form
-import requests
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+
+warnings.filterwarnings("ignore", module="pydub")
 from pydub import AudioSegment
 
-from hf_serve.serde import Audio
+from hf_serve.serde.audio import Audio
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import BoolForm, FileForm, FloatForm, IntForm
 
@@ -91,6 +93,20 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
     def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
         super().__init__()
 
+        from hf_serve.installer import DynamicInstaller
+
+        # NOTE: install `espeak` as required by `phonemizer`, but note that won't apply to every model, neither
+        # `espeak` is always the preferred backend, so take the `DynamicInstaller` implementation and usage with
+        # a grain of salt yet
+        installer = DynamicInstaller()
+        match installer.system:
+            case "linux":
+                installer.apt(["espeak-ng"])
+            case "darwin":
+                installer.brew(["espeak"])
+            case _:
+                pass
+
         import torch
         from transformers import pipeline
         from transformers.pipelines.automatic_speech_recognition import AutomaticSpeechRecognitionPipeline
@@ -104,7 +120,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         self.pipeline: AutomaticSpeechRecognitionPipeline = pipeline(
             task="automatic-speech-recognition",
             model=model_id,
-            torch_dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype),
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )
@@ -125,32 +141,27 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # TODO (@juanjucm): Check if maybe its better to standarize how the audio is passed to the pipeline (e.g. always as a bytes, instead of bytes or url).
-        audio_input = payload.inputs
-        if isinstance(audio_input, str):
-            if audio_input.startswith(("http://", "https://")):
-                res = requests.get(audio_input)
-                audio_enc = BytesIO(res.content)
-            elif "." in audio_input.split("/")[-1]:
-                audio_enc = audio_input
-            else:
-                # audio as base64 encoded string, input has to be deserialized.
-                audio_input = Audio.deserialize(audio_input)
-                audio_enc = BytesIO(audio_input)
-        else:  # audio as bytes
-            audio_enc = BytesIO(audio_input)
+        # NOTE: Handle different input types: bytes, URL, file path, or base64; no need to handle others given that
+        # `Pydantic` already validates that the `inputs` is either `bytes` or `str`
+        if isinstance(payload.inputs, bytes):
+            audio_bytes = payload.inputs
+        elif isinstance(payload.inputs, str):
+            audio_bytes = Audio.deserialize(payload.inputs)
 
-        audio_length = AudioSegment.from_file(audio_enc).duration_seconds
+        audio_length = AudioSegment.from_file(BytesIO(audio_bytes)).duration_seconds  # type: ignore
+
+        # TODO: eventually look into a context logger so that everything logged within the `__call__` method
+        # of the task also containts the request ID to identify each request
         logging.info(
             f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}"
         )
 
-        result = self.pipeline(
-            audio_input,
+        result: Dict[str, Any] = self.pipeline(
+            audio_bytes,  # type: ignore
             return_timestamps=parameters.get("return_timestamps", None),
             chunk_length_s=self.chunk_length_s,
             batch_size=int(audio_length // self.chunk_length_s + 1),
-            generate_kwargs=parameters.get("generation_parameters", None),
+            generate_kwargs=parameters.get("generation_parameters", {}),
         )
 
         return AutomaticSpeechRecognitionOutput(

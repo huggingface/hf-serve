@@ -10,11 +10,14 @@ dependencies = [
     "prometheus-client>=0.21.1",
     "torch>=2.5.1,<2.8.0",
     "torchvision",
+    # NOTE: `torchcodec` as opposed to `torch` won't install the CUDA-compatible
+    # version by default but rather the CPU-only one
+    "torchcodec",
     "diffusers>=0.32.1",
-    "transformers>=4.53.2",
+    # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
+    # that needs to be installed as a system dependency e.g. `espeak-ng`
+    "transformers[accelerate,hf_xet,hub-kernels,torch-speech]>=4.53.2",
     "pydantic>=2.10.5",
-    "accelerate>=1.2.1",
-    "huggingface-hub[hf-transfer,hf-xet]>=0.27.1",
     "protobuf>=5.29.3",
     "sentence-transformers>=5.1.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
@@ -27,6 +30,9 @@ dependencies = [
     "protobuf>=5.29.3",
     "peft>=0.14.0",
     "pillow>=11.1.0",
+    # NOTE: `pydub` is required for `automatic-speech-recognition` to parse the
+    # audio bytes and calculate the audio duration in seconds, hence the batch
+    # size too
     "pydub>=0.25.0",
     "python-multipart>=0.0.20",
     "python-magic>=0.4.27",
@@ -35,8 +41,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = ["torch>=2.5.1,<2.8.0", "torchvision"]
-cuda = ["torch>=2.5.1,<2.8.0", "torchvision"]
+cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
+cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
 flash-attn = ["flash-attn==2.8.3"]
 
 [build-system]
@@ -48,6 +54,12 @@ hf-serve = "hf_serve.cli:main"
 
 [tool.ruff]
 line-length = 112
+
+[tool.ruff.lint]
+select = ["I"]
+
+[tool.ruff.lint.isort]
+force-single-line = false
 
 [tool.uv]
 conflicts = [
@@ -65,6 +77,10 @@ torch = [
   { index = "pytorch-cu126", extra = "cuda" },
 ]
 torchvision = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+]
+torchcodec = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
 ]

@@ -1,10 +1,10 @@
-from typing import List
+from typing import List, Optional
 
 import magic
 
 
 class FileValidator:
-    def __init__(self, accepted_mimetypes: List[str], max_size: int = None):
+    def __init__(self, accepted_mimetypes: List[str], max_size: Optional[int] = None):
         self.accepted_mimetypes = accepted_mimetypes
         self.max_size = max_size
 
