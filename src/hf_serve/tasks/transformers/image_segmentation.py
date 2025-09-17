@@ -1,7 +1,7 @@
 from typing import Annotated, List, Literal, Optional, Union
 
-import PIL
 from fastapi import File, Form
+from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
@@ -95,7 +95,7 @@ class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutpu
         for result in results:
             if "mask" in result:
                 # If mask is a PIL Image, serialize it to base64
-                if isinstance(result["mask"], PIL.Image.Image):
-                    result["mask"] = Image.serialize(result["mask"])
+                if isinstance(result["mask"], ImageType):
+                    result["mask"] = Image.serialize(image=result["mask"])
 
-        return ImageSegmentationOutput(results=results)
+        return ImageSegmentationOutput(results=results)  # type: ignore

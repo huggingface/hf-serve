@@ -84,4 +84,4 @@ class ImageClassification(Predictor[ImageClassificationInput, ImageClassificatio
 
         results = self.pipeline(image_input, **parameters)
 
-        return ImageClassificationOutput(results=results)
+        return ImageClassificationOutput(results=results)  # type: ignore
