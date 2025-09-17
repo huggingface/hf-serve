@@ -67,7 +67,7 @@ class TextToImageOutput(BaseModel):
     image: PILImage
 
     model_config = ConfigDict(
-        json_encoders={PILImage: Image.serialize},  # type: ignore
+        # json_encoders={PILImage: Image.serialize},  # type: ignore
         arbitrary_types_allowed=True,
     )
 
