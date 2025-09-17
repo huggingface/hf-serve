@@ -13,6 +13,9 @@ class Image:
             if isinstance(image, bytes):
                 return ImageModule.open(BytesIO(image))
             elif isinstance(image, str):
+                # TODO: given that `load_image` won't specifically handle that the image URL if provided
+                # is invalid, we need to first download if an URL and handle that separately, then forward
+                # it to `load_image`
                 from transformers.image_utils import load_image
 
                 return load_image(image)
