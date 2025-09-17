@@ -101,8 +101,8 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         )
 
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.
-        if device == "cuda" and torch.cuda.is_available():
-            self.pipeline.enable_model_cpu_offload()
+        # if device == "cuda" and torch.cuda.is_available():
+        #     self.pipeline.enable_model_cpu_offload()
 
         if device == "mps" and torch.mps.is_available():
             torch.mps.empty_cache()
