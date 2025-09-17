@@ -18,7 +18,6 @@ dependencies = [
     # that needs to be installed as a system dependency e.g. `espeak-ng`
     "transformers[accelerate,hf_xet,hub-kernels,torch-speech]>=4.53.2",
     "pydantic>=2.10.5",
-    "protobuf>=5.29.3",
     "sentence-transformers>=5.1.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
     # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
