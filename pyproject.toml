@@ -71,7 +71,8 @@ conflicts = [
 
 [tool.uv.sources]
 transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
-diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
+# NOTE: installing latest stable instead, as otherwise CPU/MPS inference seems stuck
+# diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
