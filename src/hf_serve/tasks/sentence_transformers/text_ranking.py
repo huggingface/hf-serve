@@ -33,11 +33,25 @@ class PredictOutput(BaseModel):
 # TODO: given that the requests can increase in size we should try to truncate all the str fields
 # to e.g. 500 characters when logging those as e.g. `query: ...[TRUNCATED]`
 class RankInput(BaseModel):
-    query: str
-    texts: List[str]
+    query: str = Field(validation_alias=AliasChoices("query", AliasPath("inputs", "query")))
+    texts: List[str] = Field(
+        validation_alias=AliasChoices(
+            "texts", "documents", AliasPath("inputs", "texts"), AliasPath("inputs", "documents")
+        )
+    )
+
     return_documents: bool = Field(
         default=False,
-        validation_alias=AliasChoices("return_documents", AliasPath("parameters", "return_documents")),
+        validation_alias=AliasChoices(
+            "return_documents", "return_text", AliasPath("parameters", "return_documents")
+        ),
+    )
+    # NOTE: the parameters below are defined in Text Embeddings Inference (TEI) but unsupported natively within
+    # the `CrossEncoder.rank` method, hence are currently useless
+    raw_scores: bool = Field(default=False, validation_alias=AliasPath("parameters", "raw_scores"))
+    truncate: bool = Field(default=False, validation_alias=AliasPath("parameters", "truncate"))
+    truncation_direction: Literal["left", "right"] = Field(
+        default="right", validation_alias=AliasPath("parameters", "truncation_direction")
     )
 
     model_config = ConfigDict(
@@ -76,7 +90,7 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
         self,
         model_id: str,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = "float32",
-        device: Optional[Literal["cpu", "cuda", "mps", "npu"]] = None,
+        device: Optional[Literal["cpu", "cuda", "mps"]] = None,
         backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
     ) -> None:
