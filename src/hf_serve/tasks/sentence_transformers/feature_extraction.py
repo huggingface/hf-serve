@@ -77,6 +77,7 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
 
         # TODO: print the initialization arguments in advance to let the user know and provide enough transparency
         # as the idea is to make sure that the logging messages are useful and actionable
+        # TODO: add support for `SparseEncoder` models
         self.pipeline = SentenceTransformer(
             model_id,
             device=device,
