@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from hf_serve.custom_models.loader import MAPPING
 from hf_serve.logging import logger
 from hf_serve.middleware import (
     LoggingMiddleware,
@@ -94,6 +95,10 @@ def launch(
         )
 
     logger.info(f"`hf-serve` starting for model {model_id or model_dir=} with {task=} on {device=}")
+
+    custom_code = False
+    if model_id is not None and model_id in MAPPING:
+        custom_code = True
 
     match task:
         # openai-compatible
@@ -246,7 +251,33 @@ def launch(
             )
 
             app.include_router(router=text_embeddings_inference_router)
-        case "text-ranking" | "sentence-ranking":
+        case "text-ranking" | "sentence-ranking" if custom_code is True:
+            # TODO: Given that for the moment we only support `Qwen/Qwen3-Reranker` as a custom model it makes
+            # sense for the following snippet to be here, but ideally we should support it for all the tasks
+            # instead, but there's not a clear approach since having custom code even within the codebase might
+            # eventually get tricky
+            # NOTE: Also for the moment we only support `load_custom_predictor` but ideally we should support
+            # also `load_custom_router` in case there's a custom `APIRouter`
+            # NOTE: It might make sense for the `custom`-stuff to live on `server_custom.py` even if it contains
+            # a lot of duplicate code, but it might be best not to mix both as seamlessly plugging those together
+            # is not as easy as it might look
+            from hf_serve.custom_models.loader import load_custom_predictor
+
+            predictor_cls, input_schema, output_schema = load_custom_predictor(model_id=model_id)  # type: ignore
+            app.include_router(
+                router=predict_router(
+                    predictor=predictor_cls(model_id=model_id, dtype=dtype, device=device),  # type: ignore
+                    input_schema=input_schema,
+                    output_schema=output_schema,
+                )
+            )
+
+            from hf_serve.compatibility.text_embeddings_inference import (
+                router as text_embeddings_inference_router,
+            )
+
+            app.include_router(router=text_embeddings_inference_router)
+        case "text-ranking" | "sentence-ranking" if custom_code is False:
             from hf_serve.tasks.sentence_transformers.text_ranking import (
                 TextRanking,
                 TextRankingInput,
