@@ -520,6 +520,24 @@ def launch(
                     output_schema=VisualQuestionAnsweringOutput,
                 )
             )
+        case "zero-shot-image-classification":
+            from hf_serve.tasks.transformers.zero_shot_image_classification import (
+                ZeroShotImageClassification,
+                ZeroShotImageClassificationInput,
+                ZeroShotImageClassificationOutput,
+            )
+
+            app.include_router(
+                router=predict_router(
+                    predictor=ZeroShotImageClassification(
+                        model_id=model_id or model_dir,  # type: ignore
+                        dtype=dtype,  # type: ignore
+                        device=device,  # type: ignore
+                    ),
+                    input_schema=ZeroShotImageClassificationInput,
+                    output_schema=ZeroShotImageClassificationOutput,
+                )
+            )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
