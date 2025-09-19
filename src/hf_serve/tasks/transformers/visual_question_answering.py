@@ -72,6 +72,14 @@ class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQues
             device_map=device if device in {"auto"} else None,
         )
 
+        if (
+            hasattr(self.pipeline.image_processor, "is_vqa")
+            and getattr(self.pipeline.image_processor, "is_vqa") is True
+        ):
+            raise RuntimeError(
+                f"{model_id=} is unsupported with the `visual-question-answering` pipeline. Feel free to open an issue describing the error on either https://github.com/huggingface/transformers/issues/new or rather in https://github.com/huggingface/hf-serve/issues/new instead."
+            )
+
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
@@ -123,15 +131,6 @@ class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQues
         #         image=Image.deserialize(payload.inputs.image), question=payload.inputs.question, **parameters
         #     )
         # ```
-
-        if (
-            hasattr(self.pipeline.image_processor, "is_vqa")
-            and getattr(self.pipeline.image_processor, "is_vqa") is True
-        ):
-            raise RuntimeError(
-                f"{self.pipeline.model} is unsupported with the `visual-question-answering` pipeline. Feel free to open an issue describing the error on either https://github.com/huggingface/transformers/issues/new or rather in https://github.com/huggingface/hf-serve/issues/new instead."
-            )
-
         output = self.pipeline(
             image=Image.deserialize(payload.inputs.image), question=payload.inputs.question, **parameters
         )
