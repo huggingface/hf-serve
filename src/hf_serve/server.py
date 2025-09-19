@@ -502,6 +502,24 @@ def launch(
                     max_file_size=max_file_size,
                 )
             )
+        case "visual-question-answering" | "vqa":
+            from hf_serve.tasks.transformers.visual_question_answering import (
+                VisualQuestionAnswering,
+                VisualQuestionAnsweringInput,
+                VisualQuestionAnsweringOutput,
+            )
+
+            app.include_router(
+                router=predict_router(
+                    predictor=VisualQuestionAnswering(
+                        model_id=model_id or model_dir,  # type: ignore
+                        dtype=dtype,  # type: ignore
+                        device=device,  # type: ignore
+                    ),
+                    input_schema=VisualQuestionAnsweringInput,
+                    output_schema=VisualQuestionAnsweringOutput,
+                )
+            )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
