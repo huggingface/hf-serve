@@ -22,6 +22,8 @@ TaskTypes = Literal[
     "zero-shot-classification",
     "token-classification",
     "table-question-answering",
+    "visual-question-answering",
+    "vqa",  # NOTE: shortened name for `visual-question-answering` given that the `pipeline` supports both
     "translation",
     "translation_xx_to_yy",  # NOTE: placeholder task name where `xx` and `yy` are the source and target languages, respectively
     "zero-shot-audio-classification",
