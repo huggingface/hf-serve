@@ -1,11 +1,9 @@
 from typing import Annotated, List, Optional, Union
 
-from fastapi import Form
 from pydantic import BaseModel, ConfigDict, Field, RootModel, conint
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
-from hf_serve.types import FileForm
 
 
 class VisualQuestionAnsweringInputs(BaseModel):
@@ -36,15 +34,6 @@ class VisualQuestionAnsweringInput(BaseModel):
             ]
         },
     )
-
-
-class VisualQuestionAnsweringFormInput(BaseModel):
-    file: FileForm
-    question: Annotated[str, Form()]  # NOTE: The `predict_media` router will include this as a parameter
-
-    top_k: Optional[Annotated[int, conint(ge=0), Form()]] = Field(default=1)
-
-    model_config = ConfigDict(extra="forbid")
 
 
 class VisualQuestionAnsweringOutputValue(BaseModel):

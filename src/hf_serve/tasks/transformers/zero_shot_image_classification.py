@@ -1,11 +1,9 @@
-from typing import Annotated, List, Optional, Union
+from typing import List, Optional, Union
 
-from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
-from hf_serve.types import FileForm
 
 
 class ZeroShotImageClassificationParameters(BaseModel):
@@ -48,33 +46,6 @@ class ZeroShotImageClassificationInput(BaseModel):
             ]
         },
     )
-
-
-class ZeroShotImageClassificationFormInput(BaseModel):
-    file: FileForm
-
-    candidate_labels: Annotated[List[str], Form()]
-    hypothesis_template: Annotated[Optional[str], Form()] = Field(default="This is a photo of {}")
-
-    # TODO: Revisit the other `zero-shot-...` implementations to make sure those also include the validation
-    # for both `candidate_labels` and `hypothesis_template`
-    @field_validator("candidate_labels")
-    def validate_candidate_labels(cls, v):
-        if not v:
-            raise ValueError("candidate_labels must contain at least one label")
-        return v
-
-    @field_validator("hypothesis_template")
-    def validate_hypothesis_template(cls, v):
-        if not v:
-            return None
-        if not v.__contains__("{}"):
-            raise ValueError(
-                f'The provided `hypothesis_template={v}` doesn\'t contain {{}} which is required to flag where the `candidate_labels` need to be replaced in, as e.g. the default value which is "This is a photo of {{}}"'
-            )
-        return v
-
-    model_config = ConfigDict(extra="forbid")
 
 
 class ZeroShotImageClassificationOutputValue(BaseModel):
