@@ -24,7 +24,7 @@ class VisualQuestionAnsweringInput(BaseModel):
             "examples": [
                 {
                     "inputs": {
-                        "image": "https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png",
+                        "image": "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/transformers/rabbit.png",
                         "question": "What is in the image?",
                     },
                     "parameters": {
@@ -37,7 +37,14 @@ class VisualQuestionAnsweringInput(BaseModel):
 
 
 class VisualQuestionAnsweringOutputValue(BaseModel):
+    # NOTE: Transformers documentation says this should be `label` but apparently it's `answer` instead
+    # for `image_processor.is_vqa`
+    # answer: str
     label: str
+
+    # NOTE: `score` should be optional if `image_processor.is_vqa` was supported, given that's not the
+    # case for the moment, it's left as mandatory
+    # score: Optional[float] = Field(default=None)
     score: float
 
 
@@ -75,6 +82,57 @@ class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQues
         parameters = {}
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
+
+        # NOTE: For models like e.g. `google/deplot` the default pipeline for `visual-question-answering` won't
+        # work, then the following patch is required on top of `transformers`:
+        #
+        # ```diff
+        # diff --git a/transformers/pipelines/visual_question_answering.py b/transformers/pipelines/visual_question_answering_new.py
+        # index 609eaf2..0b9598d 100644
+        # --- a/transformers/pipelines/visual_question_answering.py
+        # +++ b/transformers/pipelines/visual_question_answering_new.py
+        # @@ -178,7 +178,10 @@ class VisualQuestionAnsweringPipeline(Pipeline):
+        #              padding=padding,
+        #              truncation=truncation,
+        #          )
+        # -        image_features = self.image_processor(images=image, return_tensors=self.framework)
+        # +        if self.image_processor.is_vqa:
+        # +            image_features = self.image_processor(images=image, header_text=inputs["question"], return_tensors=self.framework)
+        # +        else:
+        # +            image_features = self.image_processor(images=image, return_tensors=self.framework)
+        #          if self.framework == "pt":
+        #          image_features = image_features.to(self.dtype)
+        #          model_inputs.update(image_features)
+        # ```
+        # NOTE: Besides that, the following snippet should be defined here to capture whether the image processor
+        # has the `is_vqa` flag set, in which case the expected input is `text_header`. But note that given
+        # how the inputs are defined for `visual-question-answering` then the `question` also need to be provided
+        # otherwise the validation will lead to the inputs on the `preprocess` method to break
+        #
+        # ```python
+        # if (
+        #     hasattr(self.pipeline.image_processor, "is_vqa")
+        #     and getattr(self.pipeline.image_processor, "is_vqa") is True
+        # ):
+        #     output = self.pipeline(
+        #         image=Image.deserialize(payload.inputs.image),
+        #         question=payload.inputs.question,
+        #         header_text=payload.inputs.question,
+        #         **parameters,
+        #     )
+        # else:
+        #     output = self.pipeline(
+        #         image=Image.deserialize(payload.inputs.image), question=payload.inputs.question, **parameters
+        #     )
+        # ```
+
+        if (
+            hasattr(self.pipeline.image_processor, "is_vqa")
+            and getattr(self.pipeline.image_processor, "is_vqa") is True
+        ):
+            raise RuntimeError(
+                f"{self.pipeline.model} is unsupported with the `visual-question-answering` pipeline. Feel free to open an issue describing the error on either https://github.com/huggingface/transformers/issues/new or rather in https://github.com/huggingface/hf-serve/issues/new instead."
+            )
 
         output = self.pipeline(
             image=Image.deserialize(payload.inputs.image), question=payload.inputs.question, **parameters
