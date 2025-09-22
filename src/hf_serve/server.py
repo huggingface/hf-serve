@@ -75,7 +75,7 @@ def launch(
     # TODO: maybe the best default is no default, but handling that separately based on the library as it seems
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
-    dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
+    dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = None,
     accepted_mimetypes: Optional[List[str]] = None,
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",

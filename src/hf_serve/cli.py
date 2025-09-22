@@ -63,10 +63,10 @@ parser.add_argument(
 parser.add_argument(
     "--dtype",
     type=str,
-    default=os.getenv("DTYPE", "float16"),
+    default=os.getenv("DTYPE", None),
     choices=["float32", "float16", "bfloat16", "float8", "int8", "int4"],
     required=False,
-    help="The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`",
+    help="The PyTorch dtype in which the model weights will be loaded, defaults to None meaning that the default dtype for the given model will be used i.e., the dtype in which the model weights are available. It can also be set via the environment variable `DTYPE`.",
 )
 
 # TODO(juanjucm): validate accepted_mimetypes values based on the task.
