@@ -43,7 +43,7 @@ class FillMaskOutput(RootModel):
 
 
 class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
         super().__init__()
 
         import torch
@@ -59,7 +59,7 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
         self.pipeline: FillMaskPipeline = pipeline(
             task="fill-mask",
             model=model_id,
-            dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )

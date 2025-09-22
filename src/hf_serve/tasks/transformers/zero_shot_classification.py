@@ -42,7 +42,7 @@ class ZeroShotClassificationOutput(RootModel):
 
 
 class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClassificationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
         super().__init__()
 
         import torch
@@ -58,7 +58,7 @@ class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClas
         self.pipeline: ZeroShotClassificationPipeline = pipeline(
             task="zero-shot-classification",
             model=model_id,
-            dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )
@@ -66,12 +66,6 @@ class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClas
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
-
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = ZeroShotClassificationInput(
-            **ZeroShotClassificationInput.model_json_schema().get("examples")[0]
-        )
-        _ = self(warmup_input)
 
     def __call__(self, payload: ZeroShotClassificationInput) -> ZeroShotClassificationOutput:
         payload = payload.model_dump(exclude_none=True)

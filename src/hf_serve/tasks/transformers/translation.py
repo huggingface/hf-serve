@@ -1,3 +1,4 @@
+# TODO: rewrite
 from typing import Any, Dict, List, Literal, Optional, Set
 
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
@@ -57,7 +58,7 @@ class TranslationOutput(RootModel):
 
 
 class Translation(Predictor[TranslationInput, TranslationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -73,8 +74,8 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         # Load model and tokenizer once
         self.model = AutoModelForSeq2SeqLM.from_pretrained(
             model_id,
-            dtype=getattr(torch, dtype),
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
 
@@ -87,24 +88,18 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         logger.info(f"Available translation pairs: {list(self.translation_pairs.keys())}")
 
         # Initialize pipelines with shared model and tokenizer
-        self.pipelines: Set[TranslationPipeline] = {}
+        self.pipelines: Dict[str, TranslationPipeline] = {}
         for lang_pair in self.translation_pairs.keys():
             self.pipelines[lang_pair] = pipeline(
-                task=f"translation_{lang_pair}",
+                task=f"translation_{lang_pair}",  # type: ignore
                 model=self.model,
                 tokenizer=self.tokenizer,
-                device=device if device not in {"auto"} else None,
-                device_map=device if device in {"auto"} else None,
+                device_map=device if device != "auto" else None,
             )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
-
-        # Warmup each pipeline
-        warmup_input = TranslationInput(**TranslationInput.model_json_schema().get("examples")[0])
-        for p in self.pipelines.values():
-            p(warmup_input.inputs)  # only pass the input str for easiness here
 
     def __call__(self, payload: TranslationInput) -> TranslationOutput:
         if payload.src_lang and payload.tgt_lang:
