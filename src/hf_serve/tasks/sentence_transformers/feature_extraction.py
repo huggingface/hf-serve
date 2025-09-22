@@ -60,7 +60,7 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
     def __init__(
         self,
         model_id: str,
-        dtype: Optional[Literal["float32", "float16", "bfloat16"]] = "float32",
+        dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
         device: Optional[Literal["cpu", "cuda", "mps"]] = None,
         backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
@@ -85,7 +85,7 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
             model_kwargs={
                 # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
                 # and Sentence Transformers raises a warning starting on 5.1.0
-                "torch_dtype": dtype or "float32",
+                "dtype": dtype or "auto",
                 # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
                 "attn_implementation": attn_implementation or "sdpa",
             },
