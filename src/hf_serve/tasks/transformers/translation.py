@@ -1,38 +1,25 @@
-# TODO: rewrite
-from typing import Any, Dict, List, Literal, Optional, Set
+from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 
 
-class TranslationInput(BaseModel):
-    inputs: str = Field(
-        validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
-    )
-    clean_up_tokenization_spaces: Optional[bool] = Field(
-        None,
-        validation_alias=AliasChoices(
-            "clean_up_tokenization_spaces", AliasPath("parameters", "clean_up_tokenization_spaces")
-        ),
-    )
-    generate_parameters: Optional[Dict[str, Any]] = Field(
-        None,
-        validation_alias=AliasChoices("generate_parameters", AliasPath("parameters", "generate_parameters")),
-    )
-    src_lang: Optional[str] = Field(
-        None,
-        validation_alias=AliasChoices("src_lang", AliasPath("parameters", "src_lang")),
-    )
-    tgt_lang: Optional[str] = Field(
-        None,
-        validation_alias=AliasChoices("tgt_lang", AliasPath("parameters", "tgt_lang")),
-    )
+class TranslationParameters(BaseModel):
+    clean_up_tokenization_spaces: Optional[bool] = Field(default=None)
+    src_lang: Optional[str] = Field(default=None)
+    tgt_lang: Optional[str] = Field(default=None)
     truncation: Optional[Literal["do_not_truncate", "longest_first", "only_first", "only_second"]] = Field(
-        None,
-        validation_alias=AliasChoices("truncation", AliasPath("parameters", "truncation")),
+        default=None
     )
+
+    generate_parameters: Optional[Dict[str, Any]] = Field(default=None)
+
+
+class TranslationInput(BaseModel):
+    inputs: str
+    parameters: Optional[TranslationParameters] = Field(default=None)
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -71,7 +58,6 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        # Load model and tokenizer once
         self.model = AutoModelForSeq2SeqLM.from_pretrained(
             model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
@@ -87,14 +73,13 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         }
         logger.info(f"Available translation pairs: {list(self.translation_pairs.keys())}")
 
-        # Initialize pipelines with shared model and tokenizer
         self.pipelines: Dict[str, TranslationPipeline] = {}
         for lang_pair in self.translation_pairs.keys():
             self.pipelines[lang_pair] = pipeline(
                 task=f"translation_{lang_pair}",  # type: ignore
                 model=self.model,
                 tokenizer=self.tokenizer,
-                device_map=device if device != "auto" else None,
+                device=device,
             )
 
         if torch.mps.is_available():
@@ -102,26 +87,21 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
             torch.mps.set_per_process_memory_fraction(0.9)
 
     def __call__(self, payload: TranslationInput) -> TranslationOutput:
-        if payload.src_lang and payload.tgt_lang:
-            lang_pair = f"{payload.src_lang}_to_{payload.tgt_lang}"
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
+
+        if (src_lang := parameters.get("src_lang", None)) and (tgt_lang := parameters.get("tgt_lang", None)):
+            lang_pair = f"{src_lang}_to_{tgt_lang}"
             logger.info(f"language pair specified {lang_pair}")
+
+            if lang_pair not in self.pipelines:
+                raise ValueError(
+                    f"Unsupported language pair: {lang_pair}. Available pairs are: {list(self.pipelines.keys())}"
+                )
         else:
             lang_pair = next(iter(self.pipelines.keys()))
             logger.info(f"No language pair specified, defaulting to {lang_pair}")
 
-        if lang_pair not in self.pipelines:
-            raise ValueError(
-                f"Unsupported language pair: {lang_pair}. Available pairs are: {list(self.pipelines.keys())}"
-            )
-
-        optional_params = {
-            k: v
-            for k, v in payload.model_dump().items()
-            if k in ["clean_up_tokenization_spaces", "generate_parameters", "truncation"] and v is not None
-        }
-
-        pipeline_results = self.pipelines[lang_pair](
-            payload.inputs, src_lang=payload.src_lang, tgt_lang=payload.tgt_lang, **optional_params
-        )  # type: ignore
-
-        return TranslationOutput(root=pipeline_results)
+        output = self.pipelines[lang_pair](payload.inputs, **parameters)
+        return TranslationOutput(root=output)  # type: ignore

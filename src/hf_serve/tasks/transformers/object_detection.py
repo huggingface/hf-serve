@@ -83,8 +83,5 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = Image.deserialize(payload.inputs)
-
-        results = self.pipeline(image_input, **parameters)
-
-        return ObjectDetectionOutput(results=results)
+        results = self.pipeline(Image.deserialize(payload.inputs), **parameters)
+        return ObjectDetectionOutput(results=results)  # type: ignore

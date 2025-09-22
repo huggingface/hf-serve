@@ -22,7 +22,7 @@ class TextClassificationOutput(RootModel):
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
 class TextClassification(Predictor[TextClassificationInput, TextClassificationOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -47,4 +47,4 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
             torch.mps.set_per_process_memory_fraction(0.9)
 
     def __call__(self, payload: TextClassificationInput) -> TextClassificationOutput:
-        return TextClassificationOutput(root=self.pipeline(**payload.model_dump()))  # type: ignore
+        return TextClassificationOutput(root=self.pipeline(payload.inputs))  # type: ignore

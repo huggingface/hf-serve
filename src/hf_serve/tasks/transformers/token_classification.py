@@ -49,7 +49,7 @@ class TokenClassificationOutput(RootModel):
 
 
 class TokenClassification(Predictor[TokenClassificationInput, TokenClassificationOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
