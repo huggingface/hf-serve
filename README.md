@@ -36,7 +36,7 @@ uv sync --active --frozen --extra cpu
 Alternatively, install it on NVIDIA CUDA as follows:
 
 ```bash
-uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+uv sync --active --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 ```
 
 > [!WARNING]
@@ -76,7 +76,7 @@ options:
 > [!NOTE]
 > On the examples below, given the recently introduced `extra-build-dependencies`
 > for `flash-attn` on CUDA as per https://docs.astral.sh/uv/concepts/projects/config/#build-isolation,
-> it means that you'll need to run the examples as `uv run --preview-features extra-build-dependencies`
+> it means that you'll need to run the examples as `uv run --preview-features extra-build-dependencies ...`
 > to disable the warning:
 > ```console
 > warning: The `extra-build-dependencies` option is experimental and may change without warning. Pass `--preview-features extra-build-dependencies` to disable this warning.
