@@ -43,15 +43,16 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         model_id: str,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
         device: Optional[Literal["cpu", "cuda", "mps"]] = None,
-        backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
+        backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
         # NOTE: specific for sentence similarity
         # TODO: given that some tasks come with specific arguments, eventually rewrite `hf-serve` so that the
         # CLI interface is `hf-serve <TASK> --model-id ...` rather than `hf-serve --model-id ... --task ...`
-        similarity_fn_name: Optional[Literal["cosine", "dot", "euclidean", "manhattan"]] = "cosine",
+        similarity_fn_name: Literal["cosine", "dot", "euclidean", "manhattan"] = "cosine",
     ) -> None:
         super().__init__()
 
+        import torch
         from sentence_transformers import SentenceTransformer
 
         if device == "mps" and not attn_implementation:
@@ -62,8 +63,12 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
 
         self.pipeline = SentenceTransformer(
             model_id,
-            device=device,
-            backend=backend or "torch",  # type: ignore
+            device=device or "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu",
+            backend=backend,
             model_kwargs={
                 # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
                 # and Sentence Transformers raises a warning starting on 5.1.0
@@ -71,7 +76,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
                 # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
                 "attn_implementation": attn_implementation or "sdpa",
             },
-            similarity_fn_name=similarity_fn_name or "cosine",
+            similarity_fn_name=similarity_fn_name,
         )
 
     def __call__(self, payload: SentenceSimilarityInput) -> SentenceSimilarityOutput:

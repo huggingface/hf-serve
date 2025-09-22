@@ -62,11 +62,12 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
         model_id: str,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
         device: Optional[Literal["cpu", "cuda", "mps"]] = None,
-        backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
+        backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
     ) -> None:
         super().__init__()
 
+        import torch
         from sentence_transformers import SentenceTransformer
 
         if device == "mps" and not attn_implementation:
@@ -80,8 +81,12 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
         # TODO: add support for `SparseEncoder` models
         self.pipeline = SentenceTransformer(
             model_id,
-            device=device,
-            backend=backend or "torch",  # type: ignore
+            device=device or "cuda"
+            if torch.cuda.is_available()
+            else "mps"
+            if torch.backends.mps.is_available()
+            else "cpu",
+            backend=backend,
             model_kwargs={
                 # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
                 # and Sentence Transformers raises a warning starting on 5.1.0
