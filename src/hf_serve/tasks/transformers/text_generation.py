@@ -39,9 +39,6 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
         from transformers import pipeline
         from transformers.pipelines.text_generation import TextGenerationPipeline
 
-        if device == "auto":
-            device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
-
         self.pipeline: TextGenerationPipeline = pipeline(
             task="text-generation",
             model=model_id,

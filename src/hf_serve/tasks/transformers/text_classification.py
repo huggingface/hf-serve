@@ -39,8 +39,7 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
             task="text-classification",
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
-            device=device if device != "auto" else None,
-            device_map=device if device == "auto" else None,
+            device=device,
         )
 
         if torch.mps.is_available():

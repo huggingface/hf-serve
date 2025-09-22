@@ -74,8 +74,7 @@ class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutpu
             task="image-segmentation",
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            device=device,
         )
 
         if torch.mps.is_available():
