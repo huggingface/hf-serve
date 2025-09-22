@@ -190,3 +190,6 @@ DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook
 - [ ] Improve error messages when input data validation fails, to make those more readable as default Pydantic errors are not so easy to read and there's not a clear action for the user
 
 - [ ] Validate that the given model can be loaded with the provided `--task` otherwise fail and suggest the `--task` value
+
+- [ ] Contextualize each `__call__` within its request, so as to make sure that the logging within a task is using the same identifier as the request
+    - We could simply provide the `request_id` as an optional argument to the `__call__` method of each `Predictor` i.e., task, but there's most likely a better way to ensure that the logging messages within a given method include the `request_id` e.g. with a context manager maybe
