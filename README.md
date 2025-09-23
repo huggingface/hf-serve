@@ -36,7 +36,7 @@ uv sync --active --frozen --extra cpu
 Alternatively, install it on NVIDIA CUDA as follows:
 
 ```bash
-uv sync --active --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 ```
 
 > [!WARNING]
