@@ -35,7 +35,7 @@ class Embeddings:
         # NOTE: It's placed here instead of as a model-validator under `EmbeddingsInputs` as otherwise we
         # cannot propagate the `request_id` meaning the logging message is meaningless
         if payload.user is not None:
-            message = f"[{request_id}] `user={payload.user=}` was provided, but it's not supported, so it will be ignored."
+            message = f"[{request_id}] `user={payload.user}` was provided, but it's not handled as it's OpenAI-specific, so it will be ignored."
             logger.warning(message)
 
         payload_json: Dict[str, Any] = {

@@ -337,18 +337,6 @@ wheels = [
 ]
 
 [[package]]
-name = "ftfy"
-version = "6.3.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "wcwidth" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/a5/d3/8650919bc3c7c6e90ee3fa7fd618bf373cbbe55dff043bd67353dbb20cd8/ftfy-6.3.1.tar.gz", hash = "sha256:9b3c3d90f84fb267fe64d375a07b7f8912d817cf86009ae134aa03e1819506ec", size = 308927, upload-time = "2024-10-26T00:50:35.149Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/6e/81d47999aebc1b155f81eca4477a616a70f238a2549848c38983f3c22a82/ftfy-6.3.1-py3-none-any.whl", hash = "sha256:7c70eb532015cd2f9adb53f101fb6c7945988d023a085d127d1573dc49dd0083", size = 44821, upload-time = "2024-10-26T00:50:33.425Z" },
-]
-
-[[package]]
 name = "h11"
 version = "0.16.0"
 source = { registry = "https://pypi.org/simple" }
@@ -359,12 +347,11 @@ wheels = [
 
 [[package]]
 name = "hf-serve"
-version = "0.1.0"
+version = "0.0.1rc1"
 source = { editable = "." }
 dependencies = [
     { name = "diffusers" },
     { name = "fastapi" },
-    { name = "open-clip-torch" },
     { name = "peft" },
     { name = "pillow" },
     { name = "prometheus-client" },
@@ -412,7 +399,6 @@ requires-dist = [
     { name = "diffusers", git = "https://github.com/huggingface/diffusers?rev=main" },
     { name = "fastapi", specifier = ">=0.115.6" },
     { name = "flash-attn", marker = "extra == 'flash-attn'", specifier = "==2.8.3" },
-    { name = "open-clip-torch", specifier = ">=2.32.0" },
     { name = "peft", specifier = ">=0.14.0" },
     { name = "pillow", specifier = ">=11.1.0" },
     { name = "prometheus-client", specifier = ">=0.21.1" },
@@ -998,31 +984,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/56/9a/fff8376f8e3d084cd1530e1ef7b879bb7d6d265620c95c1b322725c694f4/nvidia_nvtx_cu12-12.6.77-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:b90bed3df379fa79afbd21be8e04a0314336b8ae16768b58f2d34cb1d04cd7d2", size = 89276, upload-time = "2024-11-20T17:38:27.621Z" },
     { url = "https://files.pythonhosted.org/packages/9e/4e/0d0c945463719429b7bd21dece907ad0bde437a2ff12b9b12fee94722ab0/nvidia_nvtx_cu12-12.6.77-py3-none-manylinux2014_x86_64.whl", hash = "sha256:6574241a3ec5fdc9334353ab8c479fe75841dbe8f4532a8fc97ce63503330ba1", size = 89265, upload-time = "2024-10-01T17:00:38.172Z" },
     { url = "https://files.pythonhosted.org/packages/f7/cd/98a447919d4ed14d407ac82b14b0a0c9c1dbfe81099934b1fc3bfd1e6316/nvidia_nvtx_cu12-12.6.77-py3-none-win_amd64.whl", hash = "sha256:2fb11a4af04a5e6c84073e6404d26588a34afd35379f0855a99797897efa75c0", size = 56434, upload-time = "2024-10-01T17:11:13.124Z" },
-]
-
-[[package]]
-name = "open-clip-torch"
-version = "3.1.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "ftfy" },
-    { name = "huggingface-hub" },
-    { name = "regex" },
-    { name = "safetensors" },
-    { name = "timm" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda')" },
-    { name = "torch", version = "2.7.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torch", version = "2.7.1+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda'" },
-    { name = "torchvision", version = "0.22.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu') or (platform_machine != 'aarch64' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (sys_platform != 'linux' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torchvision", version = "0.22.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda')" },
-    { name = "torchvision", version = "0.22.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-8-hf-serve-cpu') or (sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torchvision", version = "0.22.1+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda'" },
-    { name = "tqdm" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/69/0e/e7136a8c9eca3716598678dae28daf3f34b5995daaf3431e13c531da89ba/open_clip_torch-3.1.0.tar.gz", hash = "sha256:08b94ee31cb7dc3aadd8334a72458d171353b1bd5b0e71b14e3072ade3f37805", size = 1502455, upload-time = "2025-08-06T14:48:40.547Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/39/6e28710af2088a1822991c3541badd24fc51eb3f2fc1238f41e160ef9d64/open_clip_torch-3.1.0-py3-none-any.whl", hash = "sha256:c8bf8936fb26b65f6bda55b21925a0688e879bb4f7b82f8f6b87d45fe43afac9", size = 1544117, upload-time = "2025-08-06T14:48:38.776Z" },
 ]
 
 [[package]]
@@ -1893,28 +1854,6 @@ wheels = [
 ]
 
 [[package]]
-name = "timm"
-version = "1.0.19"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "huggingface-hub" },
-    { name = "pyyaml" },
-    { name = "safetensors" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torch", version = "2.7.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda')" },
-    { name = "torch", version = "2.7.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torch", version = "2.7.1+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda'" },
-    { name = "torchvision", version = "0.22.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu') or (platform_machine != 'aarch64' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (sys_platform != 'linux' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torchvision", version = "0.22.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda')" },
-    { name = "torchvision", version = "0.22.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-8-hf-serve-cpu') or (sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda')" },
-    { name = "torchvision", version = "0.22.1+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda'" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/1c/78/0789838cf20ba1cc09907914a008c1823d087132b48aa1ccde5e7934175a/timm-1.0.19.tar.gz", hash = "sha256:6e71e1f67ac80c229d3a78ca58347090514c508aeba8f2e2eb5289eda86e9f43", size = 2353261, upload-time = "2025-07-24T03:04:05.281Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/dc/74/661c63260cccf19ed5932e8b3f22f95ecd8bb34b9d9e6af9e1e7b961f254/timm-1.0.19-py3-none-any.whl", hash = "sha256:c07b56c32f3d3226c656f75c1b5479c08eb34eefed927c82fd8751a852f47931", size = 2497950, upload-time = "2025-07-24T03:04:03.097Z" },
-]
-
-[[package]]
 name = "tokenizers"
 version = "0.22.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2406,15 +2345,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/5e/42/e0e305207bb88c6b8d3061399c6a961ffe5fbb7e2aa63c9234df7259e9cd/uvicorn-0.35.0.tar.gz", hash = "sha256:bc662f087f7cf2ce11a1d7fd70b90c9f98ef2e2831556dd078d131b96cc94a01", size = 78473, upload-time = "2025-06-28T16:15:46.058Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d2/e2/dc81b1bd1dcfe91735810265e9d26bc8ec5da45b4c0f6237e286819194c3/uvicorn-0.35.0-py3-none-any.whl", hash = "sha256:197535216b25ff9b785e29a0b79199f55222193d47f820816e7da751e9bc8d4a", size = 66406, upload-time = "2025-06-28T16:15:44.816Z" },
-]
-
-[[package]]
-name = "wcwidth"
-version = "0.2.13"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6c/63/53559446a878410fc5a5974feb13d31d78d752eb18aeba59c7fef1af7598/wcwidth-0.2.13.tar.gz", hash = "sha256:72ea0c06399eb286d978fdedb6923a9eb47e1c486ce63e9b4e64fc18303972b5", size = 101301, upload-time = "2024-01-06T02:10:57.829Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/fd/84/fd2ba7aafacbad3c4201d395674fc6348826569da3c0937e75505ead3528/wcwidth-0.2.13-py2.py3-none-any.whl", hash = "sha256:3da69048e4540d84af32131829ff948f1e022c1c6bdb8d6102117aac784f6859", size = 34166, upload-time = "2024-01-06T02:10:55.763Z" },
 ]
 
 [[package]]

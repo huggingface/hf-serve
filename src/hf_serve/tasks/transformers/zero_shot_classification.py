@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel
 
 from hf_serve.tasks.predictor import Predictor
 
@@ -12,8 +12,8 @@ class ZeroShotClassificationParameters(BaseModel):
 
 
 class ZeroShotClassificationInput(BaseModel):
-    sequences: str = Field(
-        validation_alias=AliasChoices("sequences", AliasPath("text"), AliasPath("sequences", "inputs")),
+    inputs: str = Field(
+        validation_alias=AliasChoices("inputs", "sequences", "text"),
     )
     parameters: Optional[ZeroShotClassificationParameters] = None
 
@@ -21,7 +21,7 @@ class ZeroShotClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "sequences": "I have a problem with my iphone that needs to be resolved asap!!",
+                    "inputs": "I have a problem with my iphone that needs to be resolved ASAP!",
                     "parameters": {
                         "candidate_labels": ["urgent", "not urgent", "phone", "tablet", "computer"],
                     },
@@ -42,7 +42,7 @@ class ZeroShotClassificationOutput(RootModel):
 
 
 class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClassificationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -58,27 +58,18 @@ class ZeroShotClassification(Predictor[ZeroShotClassificationInput, ZeroShotClas
         self.pipeline: ZeroShotClassificationPipeline = pipeline(
             task="zero-shot-classification",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = ZeroShotClassificationInput(
-            **ZeroShotClassificationInput.model_json_schema().get("examples")[0]
-        )
-        _ = self(warmup_input)
-
     def __call__(self, payload: ZeroShotClassificationInput) -> ZeroShotClassificationOutput:
-        payload = payload.model_dump(exclude_none=True)
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
 
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            payload.update(parameters)
-
-        pipeline_results = self.pipeline(**payload)  # type: ignore
-        return ZeroShotClassificationOutput(root=pipeline_results)
+        output = self.pipeline(payload.inputs, **parameters)
+        return ZeroShotClassificationOutput(root=output)  # type: ignore

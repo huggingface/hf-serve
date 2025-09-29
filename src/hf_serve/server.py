@@ -75,7 +75,7 @@ def launch(
     # TODO: maybe the best default is no default, but handling that separately based on the library as it seems
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
-    dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = "float16",
+    dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = None,
     accepted_mimetypes: Optional[List[str]] = None,
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
@@ -396,6 +396,11 @@ def launch(
                 ZeroShotAudioClassificationOutput,
             )
 
+            if cloud is not None and cloud == "azure":
+                logger.warning(
+                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                )
+
             app.include_router(
                 router=predict_media_router(
                     predictor=ZeroShotAudioClassification(
@@ -418,6 +423,11 @@ def launch(
                 AudioClassificationOutput,
             )
 
+            if cloud is not None and cloud == "azure":
+                logger.warning(
+                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                )
+
             app.include_router(
                 router=predict_media_router(
                     predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
@@ -436,10 +446,18 @@ def launch(
                 AutomaticSpeechRecognitionOutput,
             )
 
-            predictor = AutomaticSpeechRecognition(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            if cloud is not None and cloud == "azure":
+                logger.warning(
+                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                )
+
             app.include_router(
                 router=predict_media_router(
-                    predictor=predictor,
+                    predictor=AutomaticSpeechRecognition(
+                        model_id=model_id or model_dir,  # type: ignore
+                        dtype=dtype,  # type: ignore
+                        device=device,  # type: ignore
+                    ),
                     input_schema=AutomaticSpeechRecognitionInput,
                     output_schema=AutomaticSpeechRecognitionOutput,
                     input_form_schema=AutomaticSpeechRecognitionFormInput,
@@ -455,6 +473,11 @@ def launch(
                 ImageClassificationInput,
                 ImageClassificationOutput,
             )
+
+            if cloud is not None and cloud == "azure":
+                logger.warning(
+                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                )
 
             app.include_router(
                 router=predict_media_router(
@@ -474,6 +497,11 @@ def launch(
                 ImageSegmentationOutput,
             )
 
+            if cloud is not None and cloud == "azure":
+                logger.warning(
+                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                )
+
             app.include_router(
                 router=predict_media_router(
                     predictor=ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
@@ -491,6 +519,11 @@ def launch(
                 ObjectDetectionInput,
                 ObjectDetectionOutput,
             )
+
+            if cloud is not None and cloud == "azure":
+                logger.warning(
+                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                )
 
             app.include_router(
                 router=predict_media_router(

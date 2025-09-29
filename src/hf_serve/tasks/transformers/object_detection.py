@@ -54,7 +54,7 @@ class ObjectDetectionOutput(BaseModel):
 
 
 class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -70,9 +70,8 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
         self.pipeline: ObjectDetectionPipeline = pipeline(
             task="object-detection",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():
@@ -84,8 +83,5 @@ class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = Image.deserialize(payload.inputs)
-
-        results = self.pipeline(image_input, **parameters)
-
-        return ObjectDetectionOutput(results=results)
+        results = self.pipeline(Image.deserialize(payload.inputs), **parameters)
+        return ObjectDetectionOutput(results=results)  # type: ignore

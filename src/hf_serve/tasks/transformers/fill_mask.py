@@ -34,7 +34,7 @@ class FillMaskOutputValue(BaseModel):
     score: float
     sequence: str
     token: int
-    token_str: str  # This was marked as any in the HF library, but pretty sure it's str
+    token_str: str  # NOTE: `token_str` was flagged as `Any`, but it should be `str` instead
     fill_mask_output_token_str: Optional[str] = None
 
 
@@ -43,7 +43,7 @@ class FillMaskOutput(RootModel):
 
 
 class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -59,26 +59,18 @@ class FillMask(Predictor[FillMaskInput, FillMaskOutput]):
         self.pipeline: FillMaskPipeline = pipeline(
             task="fill-mask",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = FillMaskInput(**FillMaskInput.model_json_schema().get("examples")[0])
-        _ = self(warmup_input)
-
     def __call__(self, payload: FillMaskInput) -> FillMaskOutput:
-        payload = payload.model_dump(exclude_none=True)  # type: ignore
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # The HF library has top_k and targets nested in parameters whereas the pipeline expects them flattened
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            payload.update(parameters)
-
-        pipeline_results = self.pipeline(**payload)  # type: ignore
-        return FillMaskOutput(root=pipeline_results)
+        output = self.pipeline(payload.inputs, **parameters)
+        return FillMaskOutput(root=output)  # type: ignore

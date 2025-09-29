@@ -1,6 +1,6 @@
 import argparse
 import os
-import typing
+from typing import get_args
 
 from hf_serve.compatibility.backwards import ensure_backwards_compatibility
 from hf_serve.server import launch
@@ -17,7 +17,7 @@ parser.add_argument(
     type=str,
     default=os.getenv("HOST", "0.0.0.0"),
     required=False,
-    help="The host into which the FastAPI API will be deployed to, defaults to 0.0.0.0, can also be set via the environment variable `HOST`",
+    help="The host into which the FastAPI API will be deployed to, defaults to 0.0.0.0. It can also be set via the environment variable `HOST`.",
 )
 
 parser.add_argument(
@@ -25,7 +25,7 @@ parser.add_argument(
     type=int,
     default=os.getenv("PORT", 8080),
     required=False,
-    help="The port in which the FastAPI API will listen to, defaults to 8080, can also be set via the environment variable `PORT`",
+    help="The port in which the FastAPI API will listen to, defaults to 8080. It can also be set via the environment variable `PORT`.",
 )
 
 # NOTE: only one of `--model-id` or `--model-dir` should be provided
@@ -33,22 +33,22 @@ parser.add_argument(
     "--model-id",
     type=str,
     default=os.getenv("MODEL_ID", None),
-    help="The model ID on the Hugging Face Hub, can also be set via the environment variable `MODEL_ID`",
+    help="The model ID on the Hugging Face Hub. It can also be set via the environment variable `MODEL_ID`.",
 )
 
 parser.add_argument(
     "--model-dir",
     type=str,
     default=os.getenv("MODEL_DIR", None),
-    help="A local directory that contains a Hugging Face compatible model, can also be set via the environment variable `MODEL_DIR`",
+    help="A local directory that contains a Hugging Face compatible model. It can also be set via the environment variable `MODEL_DIR`.",
 )
 
 parser.add_argument(
     "--task",
     type=str,
     default=os.getenv("TASK", None),
-    choices=typing.get_args(TaskTypes),
-    help="Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers, can also be set via the environment variable `TASK`",
+    choices=get_args(TaskTypes),
+    help="Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers. It can also be set via the environment variable `TASK`.",
 )
 
 parser.add_argument(
@@ -57,16 +57,16 @@ parser.add_argument(
     default=os.getenv("DEVICE", "auto"),
     choices=["auto", "balanced", "cuda", "cpu", "mps"],
     required=False,
-    help="The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU, can also be set via the environment variable `DEVICE`",
+    help="The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU. It can also be set via the environment variable `DEVICE`.",
 )
 
 parser.add_argument(
     "--dtype",
     type=str,
-    default=os.getenv("DTYPE", "float16"),
+    default=os.getenv("DTYPE", None),
     choices=["float32", "float16", "bfloat16", "float8", "int8", "int4"],
     required=False,
-    help="The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`",
+    help="The PyTorch dtype in which the model weights will be loaded, defaults to None meaning that the default dtype for the given model will be used i.e., the dtype in which the model weights are available. It can also be set via the environment variable `DTYPE`.",
 )
 
 # TODO(juanjucm): validate accepted_mimetypes values based on the task.
@@ -76,7 +76,7 @@ parser.add_argument(
     type=str,
     default=os.getenv("ACCEPTED_MIMETYPES", None),
     required=False,
-    help="A comma-separated list of accepted MIME types for file uploads. By default, each task will have all valid MIME types (e.g. audio/* for audio tasks, image/* for image tasks). This can also be set via the environment variable `ACCEPTED_MIMETYPES`",
+    help="A comma-separated list of accepted MIME types for file uploads. By default, each task will have all valid MIME types (e.g. audio/* for audio tasks, image/* for image tasks). It can also be set via the environment variable `ACCEPTED_MIMETYPES`.",
 )
 
 parser.add_argument(
@@ -84,7 +84,7 @@ parser.add_argument(
     type=int,
     default=os.getenv("MAX_FILE_SIZE", None),
     required=False,
-    help="The maximum file size in bytes for file uploads (e.g 10485760 for 10MB). By default, no file size limit is considered. This can also be set via the environment variable `MAX_FILE_SIZE`.",
+    help="The maximum file size in bytes for file uploads (e.g 10485760 for 10MB). By default, no file size limit is considered. It can also be set via the environment variable `MAX_FILE_SIZE`.",
 )
 
 parser.add_argument(
