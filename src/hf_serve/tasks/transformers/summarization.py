@@ -7,7 +7,7 @@ from hf_serve.tasks.predictor import Predictor
 
 class SummarizationParameters(BaseModel):
     clean_up_tokenization_spaces: Optional[bool] = None
-    truncation: Optional[Literal["do_not_truncate", "longest_first", "only_first", "only_second"]] = None
+    truncation: Literal["do_not_truncate", "longest_first", "only_first", "only_second"] = "do_not_truncate"
 
     generate_parameters: Optional[Dict[str, Any]] = None
 
