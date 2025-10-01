@@ -46,7 +46,7 @@ ENV VIRTUAL_ENV=/home/huggingface/venv \
 WORKDIR /home/huggingface/app
 COPY --chown=huggingface:huggingface . .
 
-RUN uv sync --active --frozen --extra cpu
+RUN UV_HTTP_TIMEOUT=60 uv sync --active --frozen --extra cpu
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
