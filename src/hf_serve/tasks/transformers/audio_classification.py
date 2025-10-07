@@ -50,7 +50,7 @@ class AudioClassificationOutput(BaseModel):
 
 
 class AudioClassification(Predictor[AudioClassificationInput, AudioClassificationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -66,9 +66,8 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
         self.pipeline: AudioClassificationPipeline = pipeline(
             task="audio-classification",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():

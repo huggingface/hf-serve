@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from pydantic import AliasChoices, AliasPath, BaseModel, Field, RootModel
 
@@ -22,7 +22,7 @@ class TextClassificationOutput(RootModel):
 
 # TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
 class TextClassification(Predictor[TextClassificationInput, TextClassificationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -38,19 +38,13 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
         self.pipeline: TextClassificationPipeline = pipeline(
             task="text-classification",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        _ = self.pipeline(
-            "This was a masterpiece. Not completely faithful to the books, but enthralling from beginning to end. Might be my favorite of the three."
-        )  # type: ignore
-
     def __call__(self, payload: TextClassificationInput) -> TextClassificationOutput:
-        return TextClassificationOutput(root=self.pipeline(**payload.model_dump()))  # type: ignore
+        return TextClassificationOutput(root=self.pipeline(payload.inputs))  # type: ignore

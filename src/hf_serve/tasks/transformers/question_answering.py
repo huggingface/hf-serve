@@ -55,7 +55,7 @@ class QuestionAnsweringOutput(RootModel):
 
 
 class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         from transformers import pipeline
@@ -70,31 +70,18 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
         self.pipeline: QuestionAnsweringPipeline = pipeline(
             task="question-answering",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = QuestionAnsweringInput(**QuestionAnsweringInput.model_json_schema().get("examples")[0])
-        _ = self(warmup_input)
-
     def __call__(self, payload: QuestionAnsweringInput) -> QuestionAnsweringOutput:
-        payload = payload.model_dump(exclude_none=True)  # type: ignore
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # Flatten the inputs dictionary into the payload
-        if "inputs" in payload:
-            inputs = payload.pop("inputs") or {}
-            payload.update(inputs)
-
-        # The HF library has top_k and other params nested in parameters whereas the pipeline expects them flattened
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            payload.update(parameters)
-
-        pipeline_results = self.pipeline(**payload)  # type: ignore
-        return QuestionAnsweringOutput(root=pipeline_results)
+        output = self.pipeline(payload.inputs, **parameters)
+        return QuestionAnsweringOutput(root=output)  # type: ignore

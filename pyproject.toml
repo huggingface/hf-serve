@@ -1,6 +1,6 @@
 [project]
 name = "hf-serve"
-version = "0.1.0"
+version = "0.0.1rc1"
 description = "Production-ready inference API on top of Hugging Face (Transformers, Diffusers, and Sentence-Transformers)"
 readme = "README.md"
 requires-python = ">=3.10,<3.13"
@@ -35,14 +35,21 @@ dependencies = [
     "pydub>=0.25.0",
     "python-multipart>=0.0.20",
     "python-magic>=0.4.27",
-    # NOTE: this is only required for `Magma` so most likely to be handled within Magma
-    "open-clip-torch>=2.32.0",
 ]
 
 [project.optional-dependencies]
 cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
 cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
 flash-attn = ["flash-attn==2.8.3"]
+
+# causal-1dconv = ["causal_conv1d==1.5.2"]
+# NOTE: `flash-linear-attention` has a lock on `transformers`<4.5.6.0
+# flash-linear-attention = ["flash-linear-attention==0.3.2"]
+
+# NOTE: useful for Intel `auto-round` quants, most likely can be installed on the fly if needed (?)
+# e.g. https://huggingface.co/Intel/Qwen3-Next-80B-A3B-Instruct-int4-mixed-AutoRound/tree/main
+# Reference: https://github.com/intel/auto-round
+# quantization = ["auto-round>=0.5.0", "gptqmodel==4.2.5", "bitsandbytes>=0.47.0"]
 
 [build-system]
 requires = ["hatchling"]
@@ -96,6 +103,10 @@ explicit = true
 
 [tool.uv.extra-build-dependencies]
 flash-attn = [{ requirement = "torch", match-runtime = true }]
+
+# causal-1dconv = [{ requirement = "torch", match-runtime = true }]
+# flash-linear-attention = [{ requirement = "torch", match-runtime = true }]
+# gptqmodel = [{ requirement = "torch", match-runtime = true }]
 
 [tool.uv.extra-build-variables]
 flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }
