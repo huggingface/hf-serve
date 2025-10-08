@@ -241,6 +241,11 @@ class ChatCompletions:
             top_p=payload.top_p if payload.top_p is not None else 1.0,
         )
 
+        if payload.seed:
+            from transformers import set_seed
+
+            set_seed(payload.seed)
+
         if payload.stream is True:
             generation_kwargs["streamer"] = self.streamer  # type: ignore
 

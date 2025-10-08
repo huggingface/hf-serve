@@ -1,25 +1,37 @@
-from typing import Optional
+from typing import Optional, Self
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
+from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 
 
 class ImageTextToTextParameters(BaseModel):
-    adapter_id: Optional[str] = Field(default=None)
     do_sample: Optional[bool] = Field(default=True)
-    grammar: Optional[str] = Field(default=None)
     max_new_tokens: Optional[int] = Field(default=20)
     repetition_penalty: Optional[float] = Field(default=1.0)
     return_full_text: Optional[bool] = Field(default=False)
     seed: Optional[int] = Field(default=None)
-    stop: Optional[list[str]] = Field(default=None)
     temperature: Optional[float] = Field(default=1.0)
     top_k: Optional[int] = Field(default=None)
-    top_n_tokens: Optional[int] = Field(default=None)
     top_p: Optional[float] = Field(default=1.0)
-    truncate: Optional[int] = Field(default=None)
     typical_p: Optional[float] = Field(default=1.0)
+
+    # NOTE: All the parameters below are defined within the Inference API Specification but not supported within
+    # `hf-serve`, hence allowing those but raising a warning if those are provided
+    adapter_id: Optional[str] = Field(default=None)
+    grammar: Optional[str] = Field(default=None)
+    stop: Optional[list[str]] = Field(default=None)
+    top_n_tokens: Optional[int] = Field(default=None)
+    truncate: Optional[int] = Field(default=None)
+
+    @model_validator(mode="after")
+    def validate_unsupported_params(self: Self) -> Self:
+        if any(getattr(self, p) for p in {"adapter_id", "grammar", "stop", "top_n_tokens", "truncate"}):
+            logger.warning(
+                "Unsupported parameters will be ignored: adapter_id, grammar, stop, top_n_tokens, truncate"
+            )
+        return self
 
 
 class ImageTextToTextInputs(BaseModel):
@@ -44,17 +56,12 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
         from transformers import pipeline
         from transformers.pipelines.image_text_to_text import ImageTextToTextPipeline
 
-        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
-        # either add a check or just default to CUDA instead
-        if device == "auto":
-            # e.g. DistilBertForSequenceClassification won't support it
-            device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
-
         self.pipeline: ImageTextToTextPipeline = pipeline(
             task="image-text-to-text",
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
-            device=device,
+            device=device if device != "auto" else None,
+            device_map=device if device == "auto" else None,
         )
 
         if torch.mps.is_available():
@@ -66,5 +73,16 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        output = self.pipeline(payload.inputs.image, text=payload.inputs.text, **parameters)
-        return ImageTextToTextOutput(generated_text=output[0]["generated_text"])
+        if seed := parameters.pop("seed", None):
+            from transformers import set_seed
+
+            set_seed(seed)
+
+        # NOTE: Removing these here intead of within the schema as otherwise when logging the schema the user
+        # might be confused if they see that the schema is different to what they provided despite the warning
+        for p in {"adapter_id", "grammar", "stop", "top_n_tokens", "truncate"}:
+            parameters.pop(p, None)
+
+        output = self.pipeline(image=payload.inputs.image, text=payload.inputs.text, **parameters)
+        generated_text = output[0]["generated_text"]
+        return ImageTextToTextOutput(generated_text=generated_text)
