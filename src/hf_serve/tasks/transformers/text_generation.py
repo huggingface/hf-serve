@@ -56,9 +56,11 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        # NOTE: `generate_parameters` should be passed as separate argument to the pipeline
-        # according to the Transformers documentation
-        # Reference: https://huggingface.co/docs/transformers/en/main_classes/pipelines#transformers.TextGenerationPipeline
-        # Reference: https://huggingface.co/docs/transformers/en/main_classes/text_generation#transformers.GenerationConfig
-        generated_text = self.pipeline(payload.inputs, **parameters)[0]["generated_text"]
+        if seed := parameters.pop("seed", None):
+            from transformers import set_seed
+
+            set_seed(seed)
+
+        output = self.pipeline(text_inputs=payload.inputs, **parameters)
+        generated_text = output[0]["generated_text"]
         return TextGenerationOutput(generated_text=generated_text)
