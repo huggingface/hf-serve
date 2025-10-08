@@ -44,17 +44,12 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
         from transformers import pipeline
         from transformers.pipelines.image_text_to_text import ImageTextToTextPipeline
 
-        # NOTE: Apparently some (not all) models don't support the `device_map=auto` so we should probably
-        # either add a check or just default to CUDA instead
-        if device == "auto":
-            # e.g. DistilBertForSequenceClassification won't support it
-            device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
-
         self.pipeline: ImageTextToTextPipeline = pipeline(
             task="image-text-to-text",
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
-            device=device,
+            device=device if device != "auto" else None,
+            device_map=device if device == "auto" else None,
         )
 
         if torch.mps.is_available():
