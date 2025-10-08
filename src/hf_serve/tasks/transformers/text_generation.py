@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Optional, Self
 
 from pydantic import AliasChoices, AliasPath, BaseModel, Field, model_validator
 
@@ -26,7 +26,7 @@ class TextGenerationParameters(BaseModel):
     truncate: Optional[int] = Field(default=None)
 
     @model_validator(mode="after")
-    def validate_unsupported_params(self):
+    def validate_unsupported_params(self: Self) -> Self:
         if any(getattr(self, p) for p in {"adapter_id", "grammar", "stop", "top_n_tokens", "truncate"}):
             logger.warning(
                 "Unsupported parameters will be ignored: adapter_id, grammar, stop, top_n_tokens, truncate"
