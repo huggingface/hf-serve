@@ -272,7 +272,7 @@ def launch(
             # instead, but there's not a clear approach since having custom code even within the codebase might
             # eventually get tricky
             if all(cls is not None for cls in {predictor_cls, input_schema, output_schema}):
-                predictor = predictor_cls(model_id=model_id, dtype=dtype, device=device)  # type: ignore
+                predictor = predictor_cls(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
             else:
                 from hf_serve.tasks.sentence_transformers.text_ranking import (
                     TextRanking,
