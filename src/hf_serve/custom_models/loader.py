@@ -42,11 +42,11 @@ def load_custom_predictor(
                     from transformers import AutoConfig
 
                     config = AutoConfig.from_pretrained(config_file)
-
                     if (
                         config.architectures is not None
                         and isinstance(config.architectures, list)
                         and any(arch.__contains__("Qwen3ForCausalLM") for arch in config.architectures)
+                        and config.model_type == "qwen3"
                     ):
                         model_path = "qwen3"
                 else:
