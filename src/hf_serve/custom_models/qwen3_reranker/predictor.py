@@ -1,3 +1,24 @@
+"""`CustomPredictor` for `Qwen/Qwen3-Reranker-*` models, given that despite those
+are `text-ranking` models, as those as LLM-based rerankers, there's no native support
+for those within `sentence-transformers` yet, but rather only via `transformers` with
+a custom inference loop that captures the `yes` and `no` token logits to determine
+the ranks.
+
+Notes:
+    - All the models with `text-ranking` as the task and `Qwen3ForCausalLM` as the
+    `architecture` in `config.json` should fall into this implementation
+    - Only `Qwen/Qwen3-Reranker-0.6B`, `Qwen/Qwen3-Reranker-4B`, `Qwen/Qwen3-Reranker-8B`
+    and any fine-tune or re-upload from those is supported at the moment
+
+References:
+    - https://huggingface.co/Qwen/Qwen3-Reranker-0.6B#transformers-usage
+    - https://huggingface.co/Qwen/Qwen3-Reranker-4B#transformers-usage
+    - https://huggingface.co/Qwen/Qwen3-Reranker-8B#transformers-usage
+
+Contributed by:
+    - @alvarobartt / Alvaro Bartolome <alvarobartt@gmail.com>
+"""
+
 from typing import Literal, Optional
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
@@ -39,6 +60,8 @@ class CustomPredictor(Predictor[Input, Output]):
                     )
                 init_kwargs = {
                     "pretrained_model_name_or_path": model_id,
+                    # NOTE: We enforce the default `dtype` to FP16 as specified within
+                    # the `Qwen/Qwen3-Reranker-*` model cards.
                     "dtype": getattr(torch, dtype) if dtype is not None else torch.float16,
                     "attn_implementation": attn_implementation or "flash_attention_2",
                     "device": device,
@@ -50,6 +73,8 @@ class CustomPredictor(Predictor[Input, Output]):
                     )
                 init_kwargs = {
                     "pretrained_model_name_or_path": model_id,
+                    # NOTE: We enforce the default `dtype` to FP32 as specified within
+                    # the `Qwen/Qwen3-Reranker-*` model cards.
                     "dtype": getattr(torch, dtype) if dtype is not None else torch.float32,
                     # NOTE: use `eager` as default given that `sdpa` in MPS is known to have flaws
                     "attn_implementation": attn_implementation or "eager",
@@ -58,6 +83,8 @@ class CustomPredictor(Predictor[Input, Output]):
             case "cpu":
                 init_kwargs = {
                     "pretrained_model_name_or_path": model_id,
+                    # NOTE: We enforce the default `dtype` to FP32 as specified within
+                    # the `Qwen/Qwen3-Reranker-*` model cards.
                     "dtype": getattr(torch, dtype) if dtype is not None else torch.float32,
                     "attn_implementation": attn_implementation or "sdpa",
                     "device_map": device,
