@@ -111,7 +111,7 @@ def launch(
         )
         logger.info(f"`CustomPredictor` implementation for `{model_id or model_dir}` found!")
     except (ValueError, RuntimeError) as e:
-        logger.error(
+        logger.warning(
             f"No custom implementation found for `{model_id or model_dir}`, hence using the default `hf-serve` implementation for `{task}` (see stacktrace of the exception {e})."
         )
 
