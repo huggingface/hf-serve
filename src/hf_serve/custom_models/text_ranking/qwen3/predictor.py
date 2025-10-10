@@ -14,9 +14,6 @@ References:
     - https://huggingface.co/Qwen/Qwen3-Reranker-0.6B#transformers-usage
     - https://huggingface.co/Qwen/Qwen3-Reranker-4B#transformers-usage
     - https://huggingface.co/Qwen/Qwen3-Reranker-8B#transformers-usage
-
-Contributed by:
-    - @alvarobartt / Alvaro Bartolome <alvarobartt@gmail.com>
 """
 
 from typing import Literal, Optional
