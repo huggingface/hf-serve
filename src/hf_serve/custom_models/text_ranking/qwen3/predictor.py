@@ -123,7 +123,7 @@ class CustomPredictor(Predictor[Input, Output]):
 
         if payload.truncate in {True, False} or payload.truncation_direction in {"right", "left"}:
             logger.warning(
-                "Neither `{payload.truncate=}` nor `{payload.truncation_direction=}` values will be used, given that `Qwen/Qwen3-Reranker-*` models use a pre-defined truncation strategy to prevent from trimming the chat template and/or the special tokens which might hurt the performance."
+                f"Neither `{payload.truncate=}` nor `{payload.truncation_direction=}` values will be used, given that `Qwen/Qwen3-Reranker-*` models use a pre-defined truncation strategy to prevent from trimming the chat template and/or the special tokens which might hurt the performance."
             )
 
         # NOTE: For every `pair` in `pairs`, we need to make sure that the `prefix_tokens` are prepended and that
