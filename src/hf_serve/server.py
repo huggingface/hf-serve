@@ -95,6 +95,26 @@ def launch(
 
     logger.info(f"`hf-serve` starting for model {model_id or model_dir=} with {task=} on {device=}")
 
+    # NOTE: At the moment we only support `load_custom_predictor` but ideally we should support
+    # also `load_custom_router` in case there's a custom `APIRouter`
+    # NOTE: It might make sense for the `custom`-stuff to live on `server_custom.py` even if it contains
+    # a lot of duplicate code, but it might be best not to mix both as seamlessly plugging those together
+    predictor_cls, input_schema, output_schema = None, None, None
+    try:
+        from hf_serve.custom_models.loader import load_custom_predictor
+
+        logger.info(
+            f"Checking if `{model_id or model_dir}` contains a custom native implementation in `hf-serve` to be used instead of the default `{task}` implementation..."
+        )
+        predictor_cls, input_schema, output_schema = load_custom_predictor(
+            model_id=model_id, model_dir=model_dir, task=task
+        )
+        logger.info(f"`CustomPredictor` implementation for `{model_id or model_dir}` found!")
+    except (ValueError, RuntimeError) as e:
+        logger.warning(
+            f"No custom implementation found for `{model_id or model_dir}`, hence using the default `hf-serve` implementation for `{task}` (see stacktrace of the exception {e})."
+        )
+
     match task:
         # openai-compatible
         case "image-text-to-text":
@@ -247,17 +267,28 @@ def launch(
 
             app.include_router(router=text_embeddings_inference_router)
         case "text-ranking" | "sentence-ranking":
-            from hf_serve.tasks.sentence_transformers.text_ranking import (
-                TextRanking,
-                TextRankingInput,
-                TextRankingOutput,
-            )
+            # TODO: Given that for the moment we only support `Qwen/Qwen3-Reranker` as a custom model it makes
+            # sense for the following snippet to be here, but ideally we should support it for all the tasks
+            # instead, but there's not a clear approach since having custom code even within the codebase might
+            # eventually get tricky
+            if any(cls is None for cls in {predictor_cls, input_schema, output_schema}):
+                from hf_serve.tasks.sentence_transformers.text_ranking import (
+                    TextRanking as predictor_cls,
+                )
+                from hf_serve.tasks.sentence_transformers.text_ranking import (
+                    TextRankingInput as input_schema,
+                )
+                from hf_serve.tasks.sentence_transformers.text_ranking import (
+                    TextRankingOutput as output_schema,
+                )
+
+            predictor = predictor_cls(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             app.include_router(
                 router=predict_router(
-                    predictor=TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=TextRankingInput,  # type: ignore
-                    output_schema=TextRankingOutput,  # type: ignore
+                    predictor=predictor,
+                    input_schema=input_schema,  # type: ignore
+                    output_schema=output_schema,  # type: ignore
                 )
             )
 

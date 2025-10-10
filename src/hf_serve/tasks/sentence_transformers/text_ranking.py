@@ -48,10 +48,15 @@ class RankInput(BaseModel):
     )
     # NOTE: the parameters below are defined in Text Embeddings Inference (TEI) but unsupported natively within
     # the `CrossEncoder.rank` method, hence are currently useless
-    raw_scores: bool = Field(default=False, validation_alias=AliasPath("parameters", "raw_scores"))
-    truncate: bool = Field(default=False, validation_alias=AliasPath("parameters", "truncate"))
+    raw_scores: bool = Field(
+        default=False, validation_alias=AliasChoices("raw_scores", AliasPath("parameters", "raw_scores"))
+    )
+    truncate: bool = Field(
+        default=False, validation_alias=AliasChoices("truncate", AliasPath("parameters", "truncate"))
+    )
     truncation_direction: Literal["left", "right"] = Field(
-        default="right", validation_alias=AliasPath("parameters", "truncation_direction")
+        default="right",
+        validation_alias=AliasChoices("truncation_direction", AliasPath("parameters", "truncation_direction")),
     )
 
     model_config = ConfigDict(
@@ -73,7 +78,7 @@ class Score(BaseModel):
     # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/rerank
     index: int = Field(validation_alias=AliasChoices("index", "corpus_id"))
     score: float
-    text: str
+    text: Union[str, None] = Field(default=None)
 
 
 class RankOutput(BaseModel):
