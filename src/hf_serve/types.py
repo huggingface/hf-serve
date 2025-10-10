@@ -22,12 +22,15 @@ TaskTypes = Literal[
     "zero-shot-classification",
     "token-classification",
     "table-question-answering",
+    "visual-question-answering",
+    "vqa",  # NOTE: shortened name for `visual-question-answering` given that the `pipeline` supports both
     "translation",
     "translation_xx_to_yy",  # NOTE: placeholder task name where `xx` and `yy` are the source and target languages, respectively
     "zero-shot-audio-classification",
     "audio-classification",
     "automatic-speech-recognition",
     "image-classification",
+    "zero-shot-image-classification",
     "image-segmentation",
     "object-detection",
     "custom",  # NOTE: ideally not recommended for production use-cases as it requires `trust_remote_code=True`, but here to ensure compatibility with the former `huggingface-inference-toolkit`
