@@ -50,4 +50,4 @@ if [[ -n "${MODEL_DIR:-}" ]]; then
     fi
 fi
 
-exec uv run --active hf-serve "$@"
+exec hf-serve "$@"

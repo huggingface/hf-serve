@@ -4,13 +4,12 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 
 from hf_serve.tasks.predictor import Predictor
 
-SummarizationTruncationStrategy = Literal["do_not_truncate", "longest_first", "only_first", "only_second"]
-
 
 class SummarizationParameters(BaseModel):
     clean_up_tokenization_spaces: Optional[bool] = None
+    truncation: Literal["do_not_truncate", "longest_first", "only_first", "only_second"] = "do_not_truncate"
+
     generate_parameters: Optional[Dict[str, Any]] = None
-    truncation: Optional["SummarizationTruncationStrategy"] = None
 
 
 class SummarizationInput(BaseModel):
@@ -45,7 +44,7 @@ class SummarizationOutput(RootModel):
 
 
 class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "balanced") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -61,34 +60,24 @@ class Summarization(Predictor[SummarizationInput, SummarizationOutput]):
         self.pipeline: SummarizationPipeline = pipeline(
             task="summarization",
             model=model_id,
-            dtype=getattr(torch, dtype),
-            device=device if device not in {"auto"} else None,
-            device_map=device if device in {"auto"} else None,
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
+            device=device,
         )
 
         if torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-        # first-time "warmup" pass to ensure that the model is ready to start serving requets
-        warmup_input = SummarizationInput(**SummarizationInput.model_json_schema().get("examples")[0])
-        _ = self(warmup_input)
-
     def __call__(self, payload: SummarizationInput) -> SummarizationOutput:
-        payload = payload.model_dump(exclude_none=True)  # type: ignore
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
+            # NOTE: Given that `generate_parameters` can be provided as a nested dict, then we should flatten
+            # that too if applicable
+            if "generate_parameters" in parameters and isinstance(
+                parameters.get("generate_parameters", None), dict
+            ):
+                parameters.update(parameters.pop("generate_parameters"))
 
-        if "parameters" in payload:
-            parameters = payload.pop("parameters") or {}
-            # Extract nested generate_parameters.
-            generate_params = parameters.pop("generate_parameters", None)
-            # Update payload with other parameters.
-            payload.update(parameters)
-            # Merge generation parameters directly into the payload instead
-            # of nested under 'generate_kwargs'.
-            if generate_params:
-                payload.update(generate_params)
-
-        inputs = payload.pop("inputs")
-
-        pipeline_results = self.pipeline(inputs, **payload)  # type: ignore
-        return SummarizationOutput(root=pipeline_results)
+        output = self.pipeline(payload.inputs, **parameters)
+        return SummarizationOutput(root=output)  # type: ignore
