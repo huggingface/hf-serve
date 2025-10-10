@@ -271,18 +271,18 @@ def launch(
             # sense for the following snippet to be here, but ideally we should support it for all the tasks
             # instead, but there's not a clear approach since having custom code even within the codebase might
             # eventually get tricky
-            if all(cls is not None for cls in {predictor_cls, input_schema, output_schema}):
-                predictor = predictor_cls(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            else:
+            if any(cls is None for cls in {predictor_cls, input_schema, output_schema}):
                 from hf_serve.tasks.sentence_transformers.text_ranking import (
-                    TextRanking,
-                    TextRankingInput,
-                    TextRankingOutput,
+                    TextRanking as predictor_cls,
+                )
+                from hf_serve.tasks.sentence_transformers.text_ranking import (
+                    TextRankingInput as input_schema,
+                )
+                from hf_serve.tasks.sentence_transformers.text_ranking import (
+                    TextRankingOutput as output_schema,
                 )
 
-                predictor = TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-                input_schema = TextRankingInput
-                output_schema = TextRankingOutput
+            predictor = predictor_cls(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             app.include_router(
                 router=predict_router(
