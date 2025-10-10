@@ -14,9 +14,9 @@ class CustomPredictor(Predictor[Input, Output]):
     def __init__(
         self,
         model_id: str,
-        dtype: Optional[Literal["float32", "float16", "bfloat16"]] = "float32",
-        device: Optional[Literal["cpu", "cuda", "mps"]] = None,
-        backend: Optional[Literal["torch", "onnx", "openvino"]] = "torch",
+        dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
+        device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
+        backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
     ) -> None:
         super().__init__()
