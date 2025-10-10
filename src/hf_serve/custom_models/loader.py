@@ -19,7 +19,11 @@ def load_custom_predictor(
         # we are creating this on a per-custom-model implementation basis at the moment, is obviously not the best
         # and won't scale, but it's a decent starting point given that we don't have much custom models that we'd
         # like to natively support at the moment
-        case "text-ranking":
+        case "text-ranking" | "sentence-ranking":
+            # NOTE: Rename to `text-ranking` given that the `task` is used to build the path, and the path is
+            # formatted as e.g. `src/hf_serve/custom_models/text_ranking/qwen3/predictor.py`
+            task = "text-ranking"
+
             if model_id is not None:
                 if model_id in {
                     "Qwen/Qwen3-Reranker-0.6B",
@@ -52,7 +56,7 @@ def load_custom_predictor(
 
         case _:
             raise ValueError(
-                "Custom modelling is only implemented for `text-ranking` tasks at the moment, if you are willing to add support for a new model and/or task with custom modelling code, feel free to open an issue or create a PR at https://github.com/huggingface/hf-serve."
+                "Custom modelling is only implemented for `text-ranking` (or `sentence-ranking`) tasks at the moment, if you are willing to add support for a new model and/or task with custom modelling code, feel free to open an issue or create a PR at https://github.com/huggingface/hf-serve."
             )
 
     # NOTE: We replace `-` with `_` given that the `task` arg in the CLI is formatted as e.g. `text-classification`,
