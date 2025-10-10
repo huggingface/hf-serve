@@ -103,12 +103,16 @@ def launch(
     try:
         from hf_serve.custom_models.loader import load_custom_predictor
 
+        logger.info(
+            f"Checking if `{model_id or model_dir}` contains a custom native implementation in `hf-serve` to be used instead of the default `{task}` implementation..."
+        )
         predictor_cls, input_schema, output_schema = load_custom_predictor(
             model_id=model_id, model_dir=model_dir, task=task
         )
+        logger.info(f"`CustomPredictor` implementation for `{model_id or model_dir}` found!")
     except (ValueError, RuntimeError) as e:
         logger.error(
-            "No custom implementation for `Predictor` found for `{model_id or model_dir}` hence using the default `hf-serve` implementation for `{task}` (see stacktrace of the exception {e})."
+            f"No custom implementation found for `{model_id or model_dir}`, hence using the default `hf-serve` implementation for `{task}` (see stacktrace of the exception {e})."
         )
 
     match task:
