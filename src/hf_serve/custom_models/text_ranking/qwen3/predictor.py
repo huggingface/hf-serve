@@ -121,6 +121,11 @@ class CustomPredictor(Predictor[Input, Output]):
             "<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n", add_special_tokens=False
         )
 
+        if payload.truncate in {True, False} or payload.truncation_direction in {"right", "left"}:
+            logger.warning(
+                "Neither `{payload.truncate=}` nor `{payload.truncation_direction=}` values will be used, given that `Qwen/Qwen3-Reranker-*` models use a pre-defined truncation strategy to prevent from trimming the chat template and/or the special tokens which might hurt the performance."
+            )
+
         # NOTE: For every `pair` in `pairs`, we need to make sure that the `prefix_tokens` are prepended and that
         # the `suffix_tokens` are appended to each of the pairs
         inputs = self.tokenizer(
@@ -146,10 +151,16 @@ class CustomPredictor(Predictor[Input, Output]):
         no_vector = batch_scores[:, self.no_token_id]
 
         batch_scores = torch.stack([no_vector, yes_vector], dim=1)
-        batch_scores = torch.nn.functional.log_softmax(batch_scores, dim=1)
+        if payload.raw_scores is False:
+            batch_scores = torch.nn.functional.log_softmax(batch_scores, dim=1)
+
         return Output(
             scores=[
-                {"index": index, "score": score, "text": payload.texts[index]}  # type: ignore
+                {
+                    "index": index,
+                    "score": score,  # type: ignore
+                    "text": payload.texts[index] if payload.return_documents else None,
+                }
                 for index, score in enumerate(batch_scores[:, 1].exp().tolist())
             ]
         )
