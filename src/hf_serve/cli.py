@@ -90,7 +90,7 @@ parser.add_argument(
 parser.add_argument(
     "--cloud",
     type=str,
-    default=None,
+    default=os.getenv("CLOUD", None),
     choices=["azure"],
     required=False,
     help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments.",
