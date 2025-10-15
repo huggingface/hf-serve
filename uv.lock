@@ -347,7 +347,7 @@ wheels = [
 
 [[package]]
 name = "hf-serve"
-version = "0.0.1rc2"
+version = "0.0.1rc3"
 source = { editable = "." }
 dependencies = [
     { name = "diffusers" },
