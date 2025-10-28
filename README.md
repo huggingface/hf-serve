@@ -193,3 +193,5 @@ DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook
 
 - [ ] Contextualize each `__call__` within its request, so as to make sure that the logging within a task is using the same identifier as the request
     - We could simply provide the `request_id` as an optional argument to the `__call__` method of each `Predictor` i.e., task, but there's most likely a better way to ensure that the logging messages within a given method include the `request_id` e.g. with a context manager maybe
+
+- [ ] Eventually remove the generic types from `Predictor` given that those don't provide any real benefit since we're leveraging those via FastAPI already, and those are preventing inheritance + method override due to mismatching types; and at the current stage it seems that there's no real benefit, hence dropping those makes sense
