@@ -93,13 +93,21 @@ def launch(
             "Any of `--model-id` or `--model-dir` should be provided but both cannot be None (alternatively those can be provided via the environment variables `MODEL_ID` or `MODEL_DIR`, respectively."
         )
 
+    # NOTE: Done this way to prevent for overriding the user-defined value for `--cloud` even if the `AIP_MODE`
+    # environment variable is set
+    if cloud is None and os.getenv("AIP_MODE") == "PREDICTION":
+        logger.info(
+            f"Given that the environment variable `API_MODE=PREDICTION`, the `--cloud` arg will be enforced to `google` if none is provided."
+        )
+        cloud = "google"
+
     if cloud is None or (cloud is not None and cloud != "google"):
         if any(key.startswith("AIP_") for key, _ in os.environ.items()):
             logger.warning(
                 f"`--cloud` is {cloud}, but environment variables starting with `AIP_...` exist, indicating that the cloud provider is most likely Google Cloud, so bear that in mind and provide `--cloud google` if applicable."
             )
 
-    logger.info(f"`hf-serve` starting for model {model_id or model_dir=} with {task=} on {device=}")
+    logger.info(f"`hf-serve` starting for model {model_id or model_dir} with {task=} on {device=}")
 
     match task:
         # openai-compatible
