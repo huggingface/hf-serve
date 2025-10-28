@@ -1,7 +1,7 @@
 from typing import Optional
 
+import PIL
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
-from PIL.Image import Image as PILImage
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.logging import logger
@@ -61,15 +61,11 @@ class TextToImageInput(BaseModel):
 
 
 class TextToImageOutput(RootModel):
-    root: PILImage
+    root: PIL.Image.Image  # type: ignore
 
-    model_config = ConfigDict(
-        # json_encoders={PILImage: Image.serialize},  # type: ignore
-        arbitrary_types_allowed=True,
-    )
+    model_config = ConfigDict(arbitrary_types_allowed=True)
 
 
-# TODO: missing AIP_MODE handling i.e. input contains `instances` and output contains `predictions`
 class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
     def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
         super().__init__()
@@ -123,4 +119,4 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # NOTE: `num_images_per_prompt=1` because the `TextToImage` task returns an image without
         # a JSON, meaning that only a single image is supported
         images = self.pipeline(prompt=payload.inputs, **parameters, num_images_per_prompt=1)[0]
-        return TextToImageOutput(images[0])
+        return TextToImageOutput(root=images[0])

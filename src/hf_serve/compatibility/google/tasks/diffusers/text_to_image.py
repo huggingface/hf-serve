@@ -1,8 +1,10 @@
-from typing import List, Optional
+from typing import Dict, List, Optional, Self
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, FieldSerializationInfo, field_serializer
 
+from hf_serve.serde.image import Image
 from hf_serve.tasks.diffusers.text_to_image import (
+    TextToImage,
     TextToImageInput,
     TextToImageOutput,
     TextToImageParameters,
@@ -33,13 +35,22 @@ class VertexInput(BaseModel):
 class VertexOutput(BaseModel):
     predictions: List[TextToImageOutput]
 
+    # NOTE: Given that the `TextToImageOutput` is a `pydantic.RootModel` with a `PIL.Image.Image` that's not
+    # serialized by default given that the `/predict` route for `text-to-image` should return the image on the
+    # Inference API and not the JSON payload; the output needs to be serialized for Vertex AI via a
+    # `field_serializer` for `predictions` instead.
+    @field_serializer("predictions", when_used="json")
+    def serialize_images(self: Self, value: List[TextToImageOutput], _: FieldSerializationInfo) -> List[str]:
+        return [Image.serialize(image.root) for image in value]
+
 
 class VertexPredictor(Predictor[VertexInput, VertexOutput]):
-    def __init__(self, predictor: Predictor) -> None:
+    def __init__(self, predictor: TextToImage) -> None:
         self.predictor = predictor
 
     def __call__(self, payload: VertexInput) -> VertexOutput:
         predictions = []
         for instance in payload.instances:
-            predictions.append(self.predictor(TextToImageInput(inputs=instance, parameters=payload.parameters)))
+            input_payload = TextToImageInput(inputs=instance, parameters=payload.parameters)
+            predictions.append(self.predictor(payload=input_payload))
         return VertexOutput(predictions=predictions)
