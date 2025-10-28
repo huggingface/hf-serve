@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Self
+from typing import List, Optional, Self
 
 from pydantic import BaseModel, ConfigDict, Field, FieldSerializationInfo, field_serializer
 
