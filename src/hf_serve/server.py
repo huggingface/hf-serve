@@ -80,7 +80,7 @@ def launch(
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
-    cloud: Optional[Literal["azure"]] = None,
+    cloud: Optional[Literal["azure", "google"]] = None,
 ) -> None:
     if model_id and model_dir:
         logger.warning(
@@ -92,6 +92,12 @@ def launch(
         raise ValueError(
             "Any of `--model-id` or `--model-dir` should be provided but both cannot be None (alternatively those can be provided via the environment variables `MODEL_ID` or `MODEL_DIR`, respectively."
         )
+
+    if cloud is None or (cloud is not None and cloud != "google"):
+        if any(key.startswith("AIP_") for key, _ in os.environ.items()):
+            logger.warning(
+                f"`--cloud` is {cloud}, but environment variables starting with `AIP_...` exist, indicating that the cloud provider is most likely Google Cloud, so bear that in mind and provide `--cloud google` if applicable."
+            )
 
     logger.info(f"`hf-serve` starting for model {model_id or model_dir=} with {task=} on {device=}")
 
@@ -164,18 +170,36 @@ def launch(
             if dtype != "float32" and (
                 device == "mps" or (device == "auto" and torch.backends.mps.is_available())
             ):
-                raise RuntimeError("Support for `text-to-image` on MPS is unstable.")
+                raise RuntimeError(
+                    "Support for `text-to-image` on MPS in any dtype other than FP32 is unstable."
+                )
 
             from hf_serve.routers import predict_image_router
             from hf_serve.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
 
             predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            app.include_router(
-                router=predict_image_router(
-                    predictor=predictor,
-                    input_schema=TextToImageInput,
-                )
-            )
+            match cloud:
+                case "google":
+                    from hf_serve.compatibility.google.tasks.diffusers.text_to_image import (
+                        VertexInput,
+                        VertexOutput,
+                        VertexPredictor,
+                    )
+
+                    app.include_router(
+                        router=predict_router(
+                            predictor=VertexPredictor(predictor=predictor),
+                            input_schema=VertexInput,
+                            output_schema=VertexOutput,
+                        )
+                    )
+                case _:
+                    app.include_router(
+                        router=predict_image_router(
+                            predictor=predictor,
+                            input_schema=TextToImageInput,
+                        )
+                    )
 
             from hf_serve.openai.routers import images_generations_router, models_router
             from hf_serve.openai.tasks.images_generations import ImagesGenerations
@@ -396,7 +420,7 @@ def launch(
                 ZeroShotAudioClassificationOutput,
             )
 
-            if cloud is not None and cloud == "azure":
+            if cloud is not None and cloud in {"azure", "google"}:
                 logger.warning(
                     f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
                 )
@@ -423,7 +447,7 @@ def launch(
                 AudioClassificationOutput,
             )
 
-            if cloud is not None and cloud == "azure":
+            if cloud is not None and cloud in {"azure", "google"}:
                 logger.warning(
                     f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
                 )
@@ -446,7 +470,7 @@ def launch(
                 AutomaticSpeechRecognitionOutput,
             )
 
-            if cloud is not None and cloud == "azure":
+            if cloud is not None and cloud in {"azure", "google"}:
                 logger.warning(
                     f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
                 )
@@ -474,7 +498,7 @@ def launch(
                 ImageClassificationOutput,
             )
 
-            if cloud is not None and cloud == "azure":
+            if cloud is not None and cloud in {"azure", "google"}:
                 logger.warning(
                     f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
                 )
@@ -497,7 +521,7 @@ def launch(
                 ImageSegmentationOutput,
             )
 
-            if cloud is not None and cloud == "azure":
+            if cloud is not None and cloud in {"azure", "google"}:
                 logger.warning(
                     f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
                 )
@@ -520,7 +544,7 @@ def launch(
                 ObjectDetectionOutput,
             )
 
-            if cloud is not None and cloud == "azure":
+            if cloud is not None and cloud in {"azure", "google"}:
                 logger.warning(
                     f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
                 )
@@ -603,6 +627,8 @@ def launch(
 
     logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
 
+    # NOTE: Only required for Microsoft Azure given that Google Cloud won't need specific
+    # routes but rather custom I/O handling, already included within the `match task` above
     if cloud is not None and cloud == "azure":
         from hf_serve.compatibility.azure import router as azure_router
 
