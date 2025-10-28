@@ -186,28 +186,28 @@ def launch(
             from hf_serve.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
 
             predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            match cloud:
-                case "google":
-                    from hf_serve.compatibility.google.tasks.diffusers.text_to_image import (
-                        VertexInput,
-                        VertexOutput,
-                        VertexPredictor,
-                    )
 
-                    app.include_router(
-                        router=predict_router(
-                            predictor=VertexPredictor(predictor=predictor),
-                            input_schema=VertexInput,
-                            output_schema=VertexOutput,
-                        )
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.tasks.diffusers.text_to_image import (
+                    VertexInput,
+                    VertexOutput,
+                    VertexPredictor,
+                )
+
+                app.include_router(
+                    router=predict_router(
+                        predictor=VertexPredictor(predictor=predictor),
+                        input_schema=VertexInput,
+                        output_schema=VertexOutput,
                     )
-                case _:
-                    app.include_router(
-                        router=predict_image_router(
-                            predictor=predictor,
-                            input_schema=TextToImageInput,
-                        )
+                )
+            else:
+                app.include_router(
+                    router=predict_image_router(
+                        predictor=predictor,
+                        input_schema=TextToImageInput,
                     )
+                )
 
             from hf_serve.openai.routers import images_generations_router, models_router
             from hf_serve.openai.tasks.images_generations import ImagesGenerations
