@@ -1,5 +1,6 @@
-from typing import List, Optional, Self
+from typing import Annotated, List, Optional, Self
 
+from annotated_types import Len
 from pydantic import BaseModel, ConfigDict, Field, FieldSerializationInfo, field_serializer
 
 from hf_serve.serde.image import Image
@@ -13,7 +14,7 @@ from hf_serve.tasks.predictor import Predictor
 
 
 class VertexInput(BaseModel):
-    instances: List[str]
+    instances: Annotated[List[str], Len(min_length=1)]
     parameters: Optional[TextToImageParameters] = Field(default=None)
 
     model_config = ConfigDict(
