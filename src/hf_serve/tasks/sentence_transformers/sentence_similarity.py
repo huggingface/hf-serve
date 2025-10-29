@@ -34,6 +34,8 @@ class SentenceSimilarityInput(BaseModel):
 
 
 class SentenceSimilarityOutput(BaseModel):
+    # NOTE: This is most likely wrong and should just return `List[float]` instead, but in order to keep
+    # parity with the former Inference API we're keeping it this way for the moment
     similarities: List[List[float]]
 
 

@@ -226,13 +226,29 @@ def launch(
             )
 
             predictor = SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            app.include_router(
-                router=predict_router(
-                    predictor=predictor,
-                    input_schema=SentenceSimilarityInput,
-                    output_schema=SentenceSimilarityOutput,
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.tasks.sentence_transformers.sentence_similarity import (
+                    VertexInput,
+                    VertexOutput,
+                    VertexPredictor,
                 )
-            )
+
+                app.include_router(
+                    router=predict_router(
+                        predictor=VertexPredictor(predictor=predictor),
+                        input_schema=VertexInput,
+                        output_schema=VertexOutput,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=SentenceSimilarityInput,
+                        output_schema=SentenceSimilarityOutput,
+                    )
+                )
 
             from hf_serve.openai.routers import embeddings_router, models_router
             from hf_serve.openai.tasks.embeddings import Embeddings
