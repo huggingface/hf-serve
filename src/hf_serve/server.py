@@ -27,29 +27,6 @@ from hf_serve.types import TaskTypes
 
 app = FastAPI(title="Hugging Face Serve API")
 
-# NOTE: FastAPI runs the middlewares in reverse order
-app.add_middleware(middleware_class=PrometheusMiddleware, exclude_paths=["/health"])  # type: ignore
-app.add_middleware(
-    middleware_class=LoggingMiddleware,
-    # NOTE: temporarily excluding it from the logging as otherwise Inference Endpoints API gets too verbose
-    exclude_paths=["/health"],
-    inference_paths=[
-        "/",
-        "/predict",
-        "/predict-file",
-        "/predict-form",
-        "/predict-json",
-        "/score",
-        "/v1/chat/completions",
-        "/v1/images/generations",
-        "/v1/embeddings",
-    ],
-)
-app.add_middleware(middleware_class=RequestIdMiddleware, exclude_paths=["/health"])
-
-app.include_router(router=health_router)
-app.include_router(router=metrics_router)
-
 
 # NOTE: If not defined, then the FastAPI responses when validation via e.g. `payload: Payload = Body(...)`
 # will just show a vague unreadable error, this way the error is a readable JSON with an actionable outcome
@@ -106,6 +83,47 @@ def launch(
             logger.warning(
                 f"`--cloud` is {cloud}, but environment variables starting with `AIP_...` exist, indicating that the cloud provider is most likely Google Cloud, so bear that in mind and provide `--cloud google` if applicable."
             )
+
+    # NOTE: FastAPI runs the middlewares in reverse order
+    app.add_middleware(
+        middleware_class=PrometheusMiddleware,
+        exclude_paths=["/health"]
+        if cloud is None or cloud != "google"
+        else [os.getenv("AIP_HEALTH_ROUTE", "/health")],
+    )
+    app.add_middleware(
+        middleware_class=LoggingMiddleware,
+        # NOTE: temporarily excluding it from the logging as otherwise Inference Endpoints API gets too verbose
+        exclude_paths=["/health"]
+        if cloud is None or cloud != "google"
+        else [os.getenv("AIP_HEALTH_ROUTE", "/health")],
+        inference_paths=[
+            "/",
+            "/predict",
+            "/predict-file",
+            "/predict-form",
+            "/predict-json",
+            "/score",
+            "/v1/chat/completions",
+            "/v1/images/generations",
+            "/v1/embeddings",
+        ],
+    )
+    app.add_middleware(
+        middleware_class=RequestIdMiddleware,
+        exclude_paths=["/health"]
+        if cloud is None or cloud != "google"
+        else [os.getenv("AIP_HEALTH_ROUTE", "/health")],
+    )
+
+    if cloud is not None and cloud == "google":
+        from hf_serve.compatibility.google.routers.health import router as google_health_router
+
+        app.include_router(router=google_health_router)
+    else:
+        app.include_router(router=health_router)
+
+    app.include_router(router=metrics_router)
 
     logger.info(f"`hf-serve` starting for model {model_id or model_dir} with {task=} on {device=}")
 
