@@ -137,13 +137,29 @@ def launch(
             )
 
             predictor = ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            app.include_router(
-                router=predict_router(
-                    predictor=predictor,
-                    input_schema=ImageTextToTextInput,
-                    output_schema=ImageTextToTextOutput,
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.image_text_to_text import (
+                    ImageTextToTextInputForGoogle,
+                    ImageTextToTextOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ImageTextToTextInputForGoogle,
+                        output_schema=ImageTextToTextOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=ImageTextToTextInput,
+                        output_schema=ImageTextToTextOutput,
+                    )
+                )
             if (
                 predictor.pipeline.tokenizer is not None
                 and predictor.pipeline.tokenizer.chat_template is not None
@@ -167,13 +183,29 @@ def launch(
             )
 
             predictor = TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
-            app.include_router(
-                router=predict_router(
-                    predictor=predictor,
-                    input_schema=TextGenerationInput,
-                    output_schema=TextGenerationOutput,
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.text_generation import (
+                    TextGenerationInputForGoogle,
+                    TextGenerationOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TextGenerationInputForGoogle,
+                        output_schema=TextGenerationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=TextGenerationInput,
+                        output_schema=TextGenerationOutput,
+                    )
+                )
             if (
                 predictor.pipeline.tokenizer is not None
                 and predictor.pipeline.tokenizer.chat_template is not None
@@ -208,15 +240,15 @@ def launch(
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
                 from hf_serve.compatibility.google.schemas.diffusers.text_to_image import (
-                    TextToImageGoogleInput,
-                    TextToImageGoogleOutput,
+                    TextToImageInputForGoogle,
+                    TextToImageOutputForGoogle,
                 )
 
                 app.include_router(
                     router=google_predict_router(
                         predictor=predictor,
-                        input_schema=TextToImageGoogleInput,
-                        output_schema=TextToImageGoogleOutput,
+                        input_schema=TextToImageInputForGoogle,
+                        output_schema=TextToImageOutputForGoogle,
                     )
                 )
             else:
@@ -245,15 +277,15 @@ def launch(
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.schemas.sentence_transformers.sentence_similarity import (
-                    SentenceSimilarityGoogleInput,
-                    SentenceSimilarityGoogleOutput,
+                    SentenceSimilarityInputForGoogle,
+                    SentenceSimilarityOutputForGoogle,
                 )
 
                 app.include_router(
                     router=predict_router(
                         predictor=predictor,
-                        input_schema=SentenceSimilarityGoogleInput,
-                        output_schema=SentenceSimilarityGoogleOutput,
+                        input_schema=SentenceSimilarityInputForGoogle,
+                        output_schema=SentenceSimilarityOutputForGoogle,
                     )
                 )
             else:
@@ -291,15 +323,15 @@ def launch(
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.schemas.sentence_transformers.feature_extraction import (
-                    FeatureExtractionGoogleInput,
-                    FeatureExtractionGoogleOutput,
+                    FeatureExtractionInputForGoogle,
+                    FeatureExtractionOutputForGoogle,
                 )
 
                 app.include_router(
                     router=predict_router(
                         predictor=predictor,
-                        input_schema=FeatureExtractionGoogleInput,
-                        output_schema=FeatureExtractionGoogleOutput,
+                        input_schema=FeatureExtractionInputForGoogle,
+                        output_schema=FeatureExtractionOutputForGoogle,
                     )
                 )
             else:
@@ -358,13 +390,30 @@ def launch(
                 TextClassificationOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=TextClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=TextClassificationInput,
-                    output_schema=TextClassificationOutput,
+            predictor = TextClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.text_classification import (
+                    TextClassificationInputForGoogle,
+                    TextClassificationOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TextClassificationInputForGoogle,
+                        output_schema=TextClassificationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=TextClassificationInput,
+                        output_schema=TextClassificationOutput,
+                    )
+                )
         case "fill-mask":
             from hf_serve.tasks.transformers.fill_mask import (
                 FillMask,
@@ -372,13 +421,30 @@ def launch(
                 FillMaskOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=FillMask(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=FillMaskInput,
-                    output_schema=FillMaskOutput,
+            predictor = FillMask(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.fill_mask import (
+                    FillMaskInputForGoogle,
+                    FillMaskOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=FillMaskInputForGoogle,
+                        output_schema=FillMaskOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=FillMaskInput,
+                        output_schema=FillMaskOutput,
+                    )
+                )
         case "question-answering":
             from hf_serve.tasks.transformers.question_answering import (
                 QuestionAnswering,
@@ -386,13 +452,30 @@ def launch(
                 QuestionAnsweringOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=QuestionAnswering(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=QuestionAnsweringInput,
-                    output_schema=QuestionAnsweringOutput,
+            predictor = QuestionAnswering(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.question_answering import (
+                    QuestionAnsweringInputForGoogle,
+                    QuestionAnsweringOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=QuestionAnsweringInputForGoogle,
+                        output_schema=QuestionAnsweringOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=QuestionAnsweringInput,
+                        output_schema=QuestionAnsweringOutput,
+                    )
+                )
         case "summarization":
             from hf_serve.tasks.transformers.summarization import (
                 Summarization,
@@ -400,13 +483,30 @@ def launch(
                 SummarizationOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=Summarization(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=SummarizationInput,
-                    output_schema=SummarizationOutput,
+            predictor = Summarization(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.summarization import (
+                    SummarizationInputForGoogle,
+                    SummarizationOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=SummarizationInputForGoogle,
+                        output_schema=SummarizationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=SummarizationInput,
+                        output_schema=SummarizationOutput,
+                    )
+                )
         case "zero-shot-classification":
             from hf_serve.tasks.transformers.zero_shot_classification import (
                 ZeroShotClassification,
@@ -414,17 +514,34 @@ def launch(
                 ZeroShotClassificationOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=ZeroShotClassification(
-                        model_id=model_id or model_dir,  # type: ignore
-                        dtype=dtype,  # type: ignore
-                        device=device,  # type: ignore
-                    ),
-                    input_schema=ZeroShotClassificationInput,
-                    output_schema=ZeroShotClassificationOutput,
-                )
+            predictor = ZeroShotClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
             )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.zero_shot_classification import (
+                    ZeroShotClassificationInputForGoogle,
+                    ZeroShotClassificationOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ZeroShotClassificationInputForGoogle,
+                        output_schema=ZeroShotClassificationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=ZeroShotClassificationInput,
+                        output_schema=ZeroShotClassificationOutput,
+                    )
+                )
         case "token-classification":
             from hf_serve.tasks.transformers.token_classification import (
                 TokenClassification,
@@ -432,13 +549,30 @@ def launch(
                 TokenClassificationOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=TokenClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=TokenClassificationInput,
-                    output_schema=TokenClassificationOutput,
+            predictor = TokenClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.token_classification import (
+                    TokenClassificationInputForGoogle,
+                    TokenClassificationOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TokenClassificationInputForGoogle,
+                        output_schema=TokenClassificationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=TokenClassificationInput,
+                        output_schema=TokenClassificationOutput,
+                    )
+                )
         case "table-question-answering":
             from hf_serve.tasks.transformers.table_question_answering import (
                 TableQuestionAnswering,
@@ -446,17 +580,34 @@ def launch(
                 TableQuestionAnsweringOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=TableQuestionAnswering(
-                        model_id=model_id or model_dir,  # type: ignore
-                        dtype=dtype,  # type: ignore
-                        device=device,  # type: ignore
-                    ),
-                    input_schema=TableQuestionAnsweringInput,
-                    output_schema=TableQuestionAnsweringOutput,
-                )
+            predictor = TableQuestionAnswering(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
             )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.table_question_answering import (
+                    TableQuestionAnsweringInputForGoogle,
+                    TableQuestionAnsweringOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TableQuestionAnsweringInputForGoogle,
+                        output_schema=TableQuestionAnsweringOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=TableQuestionAnsweringInput,
+                        output_schema=TableQuestionAnsweringOutput,
+                    )
+                )
         case "translation" | "translation_xx_to_yy":
             from hf_serve.tasks.transformers.translation import (
                 Translation,
@@ -464,13 +615,30 @@ def launch(
                 TranslationOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=Translation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=TranslationInput,
-                    output_schema=TranslationOutput,
+            predictor = Translation(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.translation import (
+                    TranslationInputForGoogle,
+                    TranslationOutputForGoogle,
                 )
-            )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TranslationInputForGoogle,
+                        output_schema=TranslationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=TranslationInput,
+                        output_schema=TranslationOutput,
+                    )
+                )
         # transformers - audio
         case "zero-shot-audio-classification":
             from hf_serve.tasks.transformers.zero_shot_audio_classification import (
@@ -480,18 +648,26 @@ def launch(
                 ZeroShotAudioClassificationOutput,
             )
 
-            if cloud is not None and cloud in {"azure", "google"}:
-                logger.warning(
-                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
-                )
+            if cloud is not None:
+                match cloud:
+                    case "azure":
+                        logger.warning(
+                            f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                        )
+                    case "google":
+                        raise RuntimeError(
+                            f"Provided `{cloud=}` for `{task=}` but it's not yet supported on Google Cloud nor Vertex AI."
+                        )
+
+            predictor = ZeroShotAudioClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
+            )
 
             app.include_router(
                 router=predict_media_router(
-                    predictor=ZeroShotAudioClassification(
-                        model_id=model_id or model_dir,  # type: ignore
-                        dtype=dtype,  # type: ignore
-                        device=device,  # type: ignore
-                    ),
+                    predictor=predictor,
                     input_schema=ZeroShotAudioClassificationInput,
                     input_form_schema=ZeroShotAudioClassificationFormInput,
                     output_schema=ZeroShotAudioClassificationOutput,
@@ -507,21 +683,38 @@ def launch(
                 AudioClassificationOutput,
             )
 
-            if cloud is not None and cloud in {"azure", "google"}:
-                logger.warning(
-                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+            predictor = AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.audio_classification import (
+                    AudioClassificationInputForGoogle,
+                    AudioClassificationOutputForGoogle,
                 )
 
-            app.include_router(
-                router=predict_media_router(
-                    predictor=AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=AudioClassificationInput,
-                    input_form_schema=AudioClassificationFormInput,
-                    output_schema=AudioClassificationOutput,
-                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
-                    max_file_size=max_file_size,
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=AudioClassificationInputForGoogle,
+                        output_schema=AudioClassificationOutputForGoogle,
+                    )
                 )
-            )
+            else:
+                if cloud is not None and cloud == "azure":
+                    logger.warning(
+                        f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                    )
+
+                app.include_router(
+                    router=predict_media_router(
+                        predictor=predictor,
+                        input_schema=AudioClassificationInput,
+                        input_form_schema=AudioClassificationFormInput,
+                        output_schema=AudioClassificationOutput,
+                        accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                        max_file_size=max_file_size,
+                    )
+                )
         case "automatic-speech-recognition":
             from hf_serve.tasks.transformers.automatic_speech_recognition import (
                 AutomaticSpeechRecognition,
@@ -530,25 +723,42 @@ def launch(
                 AutomaticSpeechRecognitionOutput,
             )
 
-            if cloud is not None and cloud in {"azure", "google"}:
-                logger.warning(
-                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+            predictor = AutomaticSpeechRecognition(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
+            )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.automatic_speech_recognition import (
+                    AutomaticSpeechRecognitionInputForGoogle,
+                    AutomaticSpeechRecognitionOutputForGoogle,
                 )
 
-            app.include_router(
-                router=predict_media_router(
-                    predictor=AutomaticSpeechRecognition(
-                        model_id=model_id or model_dir,  # type: ignore
-                        dtype=dtype,  # type: ignore
-                        device=device,  # type: ignore
-                    ),
-                    input_schema=AutomaticSpeechRecognitionInput,
-                    output_schema=AutomaticSpeechRecognitionOutput,
-                    input_form_schema=AutomaticSpeechRecognitionFormInput,
-                    accepted_mimetypes=accepted_mimetypes or ["audio/*"],
-                    max_file_size=max_file_size,
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=AutomaticSpeechRecognitionInputForGoogle,
+                        output_schema=AutomaticSpeechRecognitionOutputForGoogle,
+                    )
                 )
-            )
+            else:
+                if cloud is not None and cloud == "azure":
+                    logger.warning(
+                        f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                    )
+
+                app.include_router(
+                    router=predict_media_router(
+                        predictor=predictor,
+                        input_schema=AutomaticSpeechRecognitionInput,
+                        output_schema=AutomaticSpeechRecognitionOutput,
+                        input_form_schema=AutomaticSpeechRecognitionFormInput,
+                        accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                        max_file_size=max_file_size,
+                    )
+                )
         # transformers - image
         case "image-classification":
             from hf_serve.tasks.transformers.image_classification import (
@@ -558,21 +768,38 @@ def launch(
                 ImageClassificationOutput,
             )
 
-            if cloud is not None and cloud in {"azure", "google"}:
-                logger.warning(
-                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+            predictor = ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.image_classification import (
+                    ImageClassificationInputForGoogle,
+                    ImageClassificationOutputForGoogle,
                 )
 
-            app.include_router(
-                router=predict_media_router(
-                    predictor=ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=ImageClassificationInput,
-                    input_form_schema=ImageClassificationFormInput,
-                    output_schema=ImageClassificationOutput,
-                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
-                    max_file_size=max_file_size,
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ImageClassificationInputForGoogle,
+                        output_schema=ImageClassificationOutputForGoogle,
+                    )
                 )
-            )
+            else:
+                if cloud is not None and cloud == "azure":
+                    logger.warning(
+                        f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                    )
+
+                app.include_router(
+                    router=predict_media_router(
+                        predictor=predictor,
+                        input_schema=ImageClassificationInput,
+                        input_form_schema=ImageClassificationFormInput,
+                        output_schema=ImageClassificationOutput,
+                        accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                        max_file_size=max_file_size,
+                    )
+                )
         case "image-segmentation":
             from hf_serve.tasks.transformers.image_segmentation import (
                 ImageSegmentation,
@@ -581,21 +808,38 @@ def launch(
                 ImageSegmentationOutput,
             )
 
-            if cloud is not None and cloud in {"azure", "google"}:
-                logger.warning(
-                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+            predictor = ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.image_segmentation import (
+                    ImageSegmentationInputForGoogle,
+                    ImageSegmentationOutputForGoogle,
                 )
 
-            app.include_router(
-                router=predict_media_router(
-                    predictor=ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=ImageSegmentationInput,
-                    input_form_schema=ImageSegmentationFormInput,
-                    output_schema=ImageSegmentationOutput,
-                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
-                    max_file_size=max_file_size,
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ImageSegmentationInputForGoogle,
+                        output_schema=ImageSegmentationOutputForGoogle,
+                    )
                 )
-            )
+            else:
+                if cloud is not None and cloud == "azure":
+                    logger.warning(
+                        f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                    )
+
+                app.include_router(
+                    router=predict_media_router(
+                        predictor=predictor,
+                        input_schema=ImageSegmentationInput,
+                        input_form_schema=ImageSegmentationFormInput,
+                        output_schema=ImageSegmentationOutput,
+                        accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                        max_file_size=max_file_size,
+                    )
+                )
         case "object-detection":
             from hf_serve.tasks.transformers.object_detection import (
                 ObjectDetection,
@@ -604,21 +848,38 @@ def launch(
                 ObjectDetectionOutput,
             )
 
-            if cloud is not None and cloud in {"azure", "google"}:
-                logger.warning(
-                    f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+            predictor = ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.object_detection import (
+                    ObjectDetectionInputForGoogle,
+                    ObjectDetectionOutputForGoogle,
                 )
 
-            app.include_router(
-                router=predict_media_router(
-                    predictor=ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=ObjectDetectionInput,
-                    input_form_schema=ObjectDetectionFormInput,
-                    output_schema=ObjectDetectionOutput,
-                    accepted_mimetypes=accepted_mimetypes or ["image/*"],
-                    max_file_size=max_file_size,
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ObjectDetectionInputForGoogle,
+                        output_schema=ObjectDetectionOutputForGoogle,
+                    )
                 )
-            )
+            else:
+                if cloud is not None and cloud == "azure":
+                    logger.warning(
+                        f"Provided `{cloud=}` for `{task=}`, but given that this task requires a media router i.e., the `/predict` route forwards the requests to either `/predict-json`, `/predict-form` or `/predict-file` depending on the `Content-Type` header value; you will need to include the `-L/--location` flag within cURL to make sure it follows the redirects, and note that won't work within the Test / Consume tabs on Azure AI Foundry and Azure ML."
+                    )
+
+                app.include_router(
+                    router=predict_media_router(
+                        predictor=predictor,
+                        input_schema=ObjectDetectionInput,
+                        input_form_schema=ObjectDetectionFormInput,
+                        output_schema=ObjectDetectionOutput,
+                        accepted_mimetypes=accepted_mimetypes or ["image/*"],
+                        max_file_size=max_file_size,
+                    )
+                )
         case "visual-question-answering" | "vqa":
             from hf_serve.tasks.transformers.visual_question_answering import (
                 VisualQuestionAnswering,
@@ -626,17 +887,34 @@ def launch(
                 VisualQuestionAnsweringOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=VisualQuestionAnswering(
-                        model_id=model_id or model_dir,  # type: ignore
-                        dtype=dtype,  # type: ignore
-                        device=device,  # type: ignore
-                    ),
-                    input_schema=VisualQuestionAnsweringInput,
-                    output_schema=VisualQuestionAnsweringOutput,
-                )
+            predictor = VisualQuestionAnswering(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
             )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.visual_question_answering import (
+                    VisualQuestionAnsweringInputForGoogle,
+                    VisualQuestionAnsweringOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=VisualQuestionAnsweringInputForGoogle,
+                        output_schema=VisualQuestionAnsweringOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=VisualQuestionAnsweringInput,
+                        output_schema=VisualQuestionAnsweringOutput,
+                    )
+                )
         case "zero-shot-image-classification":
             from hf_serve.tasks.transformers.zero_shot_image_classification import (
                 ZeroShotImageClassification,
@@ -644,17 +922,34 @@ def launch(
                 ZeroShotImageClassificationOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=ZeroShotImageClassification(
-                        model_id=model_id or model_dir,  # type: ignore
-                        dtype=dtype,  # type: ignore
-                        device=device,  # type: ignore
-                    ),
-                    input_schema=ZeroShotImageClassificationInput,
-                    output_schema=ZeroShotImageClassificationOutput,
-                )
+            predictor = ZeroShotImageClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
             )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.zero_shot_image_classification import (
+                    ZeroShotImageClassificationInputForGoogle,
+                    ZeroShotImageClassificationOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ZeroShotImageClassificationInputForGoogle,
+                        output_schema=ZeroShotImageClassificationOutputForGoogle,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=ZeroShotImageClassificationInput,
+                        output_schema=ZeroShotImageClassificationOutput,
+                    )
+                )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
@@ -685,15 +980,12 @@ def launch(
         case _:
             raise ValueError(f"{task=} not supported!")
 
-    logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
-
-    # NOTE: Only required for Microsoft Azure given that Google Cloud won't need specific
-    # routes but rather custom I/O handling, already included within the `match task` above
     if cloud is not None and cloud == "azure":
         from hf_serve.compatibility.azure import router as azure_router
 
         app.include_router(router=azure_router)
 
+    logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
     log_available_routes(app=app)
 
     uvicorn.run(
