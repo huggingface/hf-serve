@@ -6,10 +6,10 @@ from pydantic import BaseModel, Field
 from hf_serve.tasks.transformers.fill_mask import FillMaskOutput, FillMaskParameters
 
 
-class FillMaskInputOnGoogle(BaseModel):
+class FillMaskInputForGoogle(BaseModel):
     instances: Annotated[List[str], Len(min_length=1)]
     parameters: Optional[FillMaskParameters] = Field(default=None)
 
 
-class FillMaskOutputOnGoogle(BaseModel):
+class FillMaskOutputForGoogle(BaseModel):
     predictions: List[FillMaskOutput]

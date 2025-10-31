@@ -7,7 +7,7 @@ from hf_serve.serde.image import Image
 from hf_serve.tasks.diffusers.text_to_image import TextToImageOutput, TextToImageParameters
 
 
-class TextToImageGoogleInput(BaseModel):
+class TextToImageInputForGoogle(BaseModel):
     instances: Annotated[List[str], Len(min_length=1)]
     parameters: Optional[TextToImageParameters] = Field(default=None)
 
@@ -27,7 +27,7 @@ class TextToImageGoogleInput(BaseModel):
     )
 
 
-class TextToImageGoogleOutput(BaseModel):
+class TextToImageOutputForGoogle(BaseModel):
     predictions: List[TextToImageOutput]
 
     # NOTE: Given that the `TextToImageOutput` is a `pydantic.RootModel` with a `PIL.Image.Image` that's not

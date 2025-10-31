@@ -10,7 +10,7 @@ from hf_serve.tasks.sentence_transformers.sentence_similarity import (
 )
 
 
-class SentenceSimilarityGoogleInput(BaseModel):
+class SentenceSimilarityInputForGoogle(BaseModel):
     instances: Annotated[List[SentenceSimilarityInputs], Len(min_length=1)]
     parameters: Optional[SentenceSimilarityParameters] = Field(default=None)
 
@@ -31,5 +31,5 @@ class SentenceSimilarityGoogleInput(BaseModel):
     )
 
 
-class SentenceSimilarityGoogleOutput(BaseModel):
+class SentenceSimilarityOutputForGoogle(BaseModel):
     predictions: List[SentenceSimilarityOutput]

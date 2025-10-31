@@ -14,7 +14,7 @@ class FeatureExtractionParameters(BaseModel):
     truncation_direction: Literal["left", "right"] = Field(default="right")
 
 
-class FeatureExtractionGoogleInput(BaseModel):
+class FeatureExtractionInputForGoogle(BaseModel):
     instances: Annotated[List[Union[str, List[str]]], Len(min_length=1)]
     parameters: Optional[FeatureExtractionParameters] = Field(default=None)
 
@@ -30,5 +30,5 @@ class FeatureExtractionGoogleInput(BaseModel):
     )
 
 
-class FeatureExtractionGoogleOutput(BaseModel):
+class FeatureExtractionOutputForGoogle(BaseModel):
     predictions: List[FeatureExtractionOutput]
