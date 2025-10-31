@@ -4,16 +4,10 @@ from annotated_types import Len
 from pydantic import BaseModel, ConfigDict, Field, FieldSerializationInfo, field_serializer
 
 from hf_serve.serde.image import Image
-from hf_serve.tasks.diffusers.text_to_image import (
-    TextToImage,
-    TextToImageInput,
-    TextToImageOutput,
-    TextToImageParameters,
-)
-from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.diffusers.text_to_image import TextToImageOutput, TextToImageParameters
 
 
-class VertexInput(BaseModel):
+class TextToImageGoogleInput(BaseModel):
     instances: Annotated[List[str], Len(min_length=1)]
     parameters: Optional[TextToImageParameters] = Field(default=None)
 
@@ -33,7 +27,7 @@ class VertexInput(BaseModel):
     )
 
 
-class VertexOutput(BaseModel):
+class TextToImageGoogleOutput(BaseModel):
     predictions: List[TextToImageOutput]
 
     # NOTE: Given that the `TextToImageOutput` is a `pydantic.RootModel` with a `PIL.Image.Image` that's not
@@ -43,15 +37,3 @@ class VertexOutput(BaseModel):
     @field_serializer("predictions", when_used="json")
     def serialize_images(self: Self, value: List[TextToImageOutput], _: FieldSerializationInfo) -> List[str]:
         return [Image.serialize(image.root) for image in value]
-
-
-class VertexPredictor(Predictor[VertexInput, VertexOutput]):
-    def __init__(self, predictor: TextToImage) -> None:
-        self.predictor = predictor
-
-    def __call__(self, payload: VertexInput) -> VertexOutput:
-        predictions = []
-        for instance in payload.instances:
-            input_payload = TextToImageInput(inputs=instance, parameters=payload.parameters)
-            predictions.append(self.predictor(payload=input_payload))
-        return VertexOutput(predictions=predictions)

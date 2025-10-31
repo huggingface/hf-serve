@@ -201,25 +201,27 @@ def launch(
                 )
 
             from hf_serve.routers import predict_image_router
-            from hf_serve.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
+            from hf_serve.tasks.diffusers.text_to_image import TextToImage
 
             predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             if cloud is not None and cloud == "google":
-                from hf_serve.compatibility.google.tasks.diffusers.text_to_image import (
-                    VertexInput,
-                    VertexOutput,
-                    VertexPredictor,
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.diffusers.text_to_image import (
+                    TextToImageGoogleInput,
+                    TextToImageGoogleOutput,
                 )
 
                 app.include_router(
-                    router=predict_router(
-                        predictor=VertexPredictor(predictor=predictor),
-                        input_schema=VertexInput,
-                        output_schema=VertexOutput,
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TextToImageGoogleInput,
+                        output_schema=TextToImageGoogleOutput,
                     )
                 )
             else:
+                from hf_serve.tasks.diffusers.text_to_image import TextToImageInput
+
                 app.include_router(
                     router=predict_image_router(
                         predictor=predictor,
@@ -237,29 +239,29 @@ def launch(
             )
         # sentence-transformers
         case "sentence-similarity":
-            from hf_serve.tasks.sentence_transformers.sentence_similarity import (
-                SentenceSimilarity,
-                SentenceSimilarityInput,
-                SentenceSimilarityOutput,
-            )
+            from hf_serve.tasks.sentence_transformers.sentence_similarity import SentenceSimilarity
 
             predictor = SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             if cloud is not None and cloud == "google":
-                from hf_serve.compatibility.google.tasks.sentence_transformers.sentence_similarity import (
-                    VertexInput,
-                    VertexOutput,
-                    VertexPredictor,
+                from hf_serve.compatibility.google.schemas.sentence_transformers.sentence_similarity import (
+                    SentenceSimilarityGoogleInput,
+                    SentenceSimilarityGoogleOutput,
                 )
 
                 app.include_router(
                     router=predict_router(
-                        predictor=VertexPredictor(predictor=predictor),
-                        input_schema=VertexInput,
-                        output_schema=VertexOutput,
+                        predictor=predictor,
+                        input_schema=SentenceSimilarityGoogleInput,
+                        output_schema=SentenceSimilarityGoogleOutput,
                     )
                 )
             else:
+                from hf_serve.tasks.sentence_transformers.sentence_similarity import (
+                    SentenceSimilarityInput,
+                    SentenceSimilarityOutput,
+                )
+
                 app.include_router(
                     router=predict_router(
                         predictor=predictor,
@@ -283,29 +285,29 @@ def launch(
 
             app.include_router(router=text_embeddings_inference_router)
         case "feature-extraction" | "sentence-embeddings" | "embeddings":
-            from hf_serve.tasks.sentence_transformers.feature_extraction import (
-                FeatureExtraction,
-                FeatureExtractionInput,
-                FeatureExtractionOutput,
-            )
+            from hf_serve.tasks.sentence_transformers.feature_extraction import FeatureExtraction
 
             predictor = FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             if cloud is not None and cloud == "google":
-                from hf_serve.compatibility.google.tasks.sentence_transformers.feature_extraction import (
-                    VertexInput,
-                    VertexOutput,
-                    VertexPredictor,
+                from hf_serve.compatibility.google.schemas.sentence_transformers.feature_extraction import (
+                    FeatureExtractionGoogleInput,
+                    FeatureExtractionGoogleOutput,
                 )
 
                 app.include_router(
                     router=predict_router(
-                        predictor=VertexPredictor(predictor=predictor),
-                        input_schema=VertexInput,
-                        output_schema=VertexOutput,
+                        predictor=predictor,
+                        input_schema=FeatureExtractionGoogleInput,
+                        output_schema=FeatureExtractionGoogleOutput,
                     )
                 )
             else:
+                from hf_serve.tasks.sentence_transformers.feature_extraction import (
+                    FeatureExtractionInput,
+                    FeatureExtractionOutput,
+                )
+
                 app.include_router(
                     router=predict_router(
                         predictor=predictor,
