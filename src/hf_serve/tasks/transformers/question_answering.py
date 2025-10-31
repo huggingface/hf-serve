@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, RootModel
 from hf_serve.tasks.predictor import Predictor
 
 
-class QuestionAnsweringInputData(BaseModel):
+class QuestionAnsweringInputs(BaseModel):
     context: str
     question: str
 
@@ -22,7 +22,7 @@ class QuestionAnsweringParameters(BaseModel):
 
 
 class QuestionAnsweringInput(BaseModel):
-    inputs: QuestionAnsweringInputData
+    inputs: QuestionAnsweringInputs
     parameters: Optional[QuestionAnsweringParameters] = None
 
     model_config = ConfigDict(
