@@ -75,26 +75,38 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
                 )
 
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        self.pairs = {}
 
-        # TODO(alvarobartt): Given that I didn't implement this myself, I'll check to make sure that this is the
-        # only way of pulling the available language pairs as it feels odd
-        languages = self.model.config.task_specific_params
-        if languages is None or not isinstance(languages, dict):
+        # NOTE: Single pair i.e. the model is fine-tuned for a single translation pair
+        if (target_lang := self.tokenizer.init_kwargs.get("target_lang", None)) and (
+            source_lang := self.tokenizer.init_kwargs.get("source_lang", None)
+        ):
+            self.pairs = {f"{source_lang}_to_{target_lang}"}
+
+        # NOTE: The model is fine-tuned for multiple translation pairs
+        if languages := getattr(self.model.config, "task_specific_params", None):
+            if languages is None or not isinstance(languages, dict):
+                raise ValueError(
+                    "`task_specific_params` with the available `translation_` pairs is not defined in the `config.json`, hence the available languages cannot be inferred."
+                )
+
+            self.pairs = {
+                key.replace("translation_", "")
+                for key, _ in languages.items()
+                if key.startswith("translation_")
+            }
+
+        if not self.pairs or self.pairs == {}:
             raise ValueError(
-                "`task_specific_params` with the available `translation_` pairs is not defined in the `config.json`, hence the available languages cannot be inferred."
+                "Translation pairs were not found neither on the `tokenizer_config.json` nor on the `config.json`, meaning that the pipeline might not be suited for `translation` tasks, but rather a model fine-tuned for another task but capable of performing `translation`."
             )
 
-        self.translation_pairs = {
-            key.replace("translation_", ""): params
-            for key, params in languages.items()
-            if key.startswith("translation_")
-        }
-        logger.info(f"Available translation pairs: {list(self.translation_pairs.keys())}")
+        logger.info(f"Translation pairs (formatted as `<source>_to_<target>`): {self.pairs}")
 
         self.pipelines: Dict[str, TranslationPipeline] = {}
-        for lang_pair in self.translation_pairs.keys():
-            self.pipelines[lang_pair] = pipeline(
-                task=f"translation_{lang_pair}",  # type: ignore
+        for pair in self.pairs:
+            self.pipelines[pair] = pipeline(
+                task=f"translation_{pair}",  # type: ignore
                 model=self.model,
                 tokenizer=self.tokenizer,
                 device=device,
@@ -109,17 +121,23 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
+        pair = None
         if (src_lang := parameters.get("src_lang", None)) and (tgt_lang := parameters.get("tgt_lang", None)):
-            lang_pair = f"{src_lang}_to_{tgt_lang}"
-            logger.info(f"language pair specified {lang_pair}")
+            pair = f"{src_lang}_to_{tgt_lang}"
 
-            if lang_pair not in self.pipelines:
+            if pair not in self.pipelines:
                 raise ValueError(
-                    f"Unsupported language pair: {lang_pair}. Available pairs are: {list(self.pipelines.keys())}"
+                    f"The translation pair {pair} is not supported. Available translation pairs are (formatted as `<source>_to_<target>`): {self.pairs}"
                 )
-        else:
-            lang_pair = next(iter(self.pipelines.keys()))
-            logger.info(f"No language pair specified, defaulting to {lang_pair}")
 
-        output = self.pipelines[lang_pair](payload.inputs, **parameters)
+        if pair is None:
+            pair = next(iter(self.pairs))
+            logger.warning(
+                f"Given that no translation pair has been specified, {pair} (formatted as `<source>_to_<target>`) will be used."
+            )
+
+        # NOTE: In this point we already know that the `pair` does indeed exist within the `pipelines` meaning
+        # that there's no need to explore the `None` path
+        pipeline = self.pipelines.get(pair, None)
+        output = pipeline(payload.inputs, **parameters)  # type: ignore
         return TranslationOutput(root=output)  # type: ignore
