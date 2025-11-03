@@ -12,8 +12,8 @@ dependencies = [
     "torchvision",
     # NOTE: `torchcodec` as opposed to `torch` won't install the CUDA-compatible
     # version by default but rather the CPU-only one.
-    # NOTE: pinning version to 0.5 for compatibility with ffmpeg and torch versions for cuda.
-    "torchcodec==0.5",
+    # Reference: https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec
+    "torchcodec<0.6",
     "diffusers>=0.32.1",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
@@ -40,8 +40,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
-cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec"]
+cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
+cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
 flash-attn = ["flash-attn==2.8.3"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]
