@@ -1,21 +1,33 @@
 from typing import List, Optional
 
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.tasks.predictor import Predictor
 
 
 class ZeroShotClassificationParameters(BaseModel):
-    candidate_labels: List[str]
+    candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
     hypothesis_template: Optional[str] = None
     multi_label: Optional[bool] = None
+
+    @field_validator("candidate_labels")
+    def validate_candidate_labels(cls, v):
+        if not v:
+            raise ValueError("candidate_labels must contain at least one label")
+        return v
+
+    @field_validator("hypothesis_template")
+    def validate_hypothesis_template(cls, v):
+        if v is not None and "{}" not in v:
+            raise ValueError("hypothesis_template must contain '{}' placeholder for label insertion")
+        return v
 
 
 class ZeroShotClassificationInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", "sequences", "text"),
     )
-    parameters: Optional[ZeroShotClassificationParameters] = None
+    parameters: ZeroShotClassificationParameters
 
     model_config = ConfigDict(
         json_schema_extra={

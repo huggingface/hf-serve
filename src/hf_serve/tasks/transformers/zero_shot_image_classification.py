@@ -7,11 +7,9 @@ from hf_serve.tasks.predictor import Predictor
 
 
 class ZeroShotImageClassificationParameters(BaseModel):
-    candidate_labels: List[str]
+    candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
     hypothesis_template: Optional[str] = Field(default="This is a photo of {}")
 
-    # TODO: Revisit the other `zero-shot-...` implementations to make sure those also include the validation
-    # for both `candidate_labels` and `hypothesis_template`
     @field_validator("candidate_labels")
     def validate_candidate_labels(cls, v):
         if not v:
@@ -31,7 +29,7 @@ class ZeroShotImageClassificationParameters(BaseModel):
 
 class ZeroShotImageClassificationInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
-    parameters: Optional[ZeroShotImageClassificationParameters] = Field(default=None)
+    parameters: ZeroShotImageClassificationParameters
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -54,8 +52,6 @@ class ZeroShotImageClassificationOutputValue(BaseModel):
 
 
 class ZeroShotImageClassificationOutput(RootModel):
-    # TODO: Revisit the other `zero-shot-...` implementations to make sure this is a `root` rather than a key
-    # as e.g. `results`
     root: List[ZeroShotImageClassificationOutputValue]
 
 
