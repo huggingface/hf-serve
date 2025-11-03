@@ -6,7 +6,7 @@ from pydantic import BaseModel, Field
 from hf_serve.tasks.transformers.token_classification import TokenClassificationOutput
 
 
-class TokenClassificationParameters:
+class TokenClassificationParameters(BaseModel):
     aggregation_strategy: Optional[Literal["none", "simple", "first", "average", "max"]] = Field(default=None)
     ignore_labels: Optional[List[str]] = Field(default=None)
     stride: Optional[int] = Field(default=None)
