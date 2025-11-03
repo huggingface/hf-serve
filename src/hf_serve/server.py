@@ -372,13 +372,34 @@ def launch(
                 TextRankingOutput,
             )
 
-            app.include_router(
-                router=predict_router(
-                    predictor=TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device),  # type: ignore
-                    input_schema=TextRankingInput,  # type: ignore
-                    output_schema=TextRankingOutput,  # type: ignore
+            predictor = TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.sentence_transformers.text_ranking import (
+                    TextRankingInputForGoogle,
+                    TextRankingOutputForGoogle,
                 )
-            )
+
+                # NOTE: Here we need to patch the existing `TextRanking` predictor given that it's matching
+                # on schema types, and given that the Google Cloud compatible schemas are custom, we also need
+                # a custom implementation for the predictor
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=TextRankingInputForGoogle,  # type: ignore
+                        output_schema=TextRankingOutputForGoogle,  # type: ignore
+                        inner_input_schema=TextRankingInput,  # type: ignore
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=TextRankingInput,  # type: ignore
+                        output_schema=TextRankingOutput,  # type: ignore
+                    )
+                )
 
             from hf_serve.compatibility.text_embeddings_inference import (
                 router as text_embeddings_inference_router,
