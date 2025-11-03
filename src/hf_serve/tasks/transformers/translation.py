@@ -58,17 +58,35 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
             # e.g. DistilBertForSequenceClassification won't support it
             device = "cuda" if torch.cuda.is_available() else "mps" if torch.mps.is_available() else "cpu"
 
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(
-            model_id,
-            dtype=getattr(torch, dtype) if dtype is not None else "auto",
-            device=device,
-        )
+        try:
+            self.model = AutoModelForSeq2SeqLM.from_pretrained(
+                model_id,
+                dtype=getattr(torch, dtype) if dtype is not None else "auto",
+                device=device,
+            )
+        except TypeError as e:
+            # NOTE: Some models won't support the `device` argument as e.g. `facebook/nllb-200-3.3B`, which will
+            # fail with the following exception:
+            # TypeError: M2M100ForConditionalGeneration.__init__() got an unexpected keyword argument 'device'
+            if str(e).__contains__(".__init__() got an unexpected keyword argument 'device'"):
+                self.model = AutoModelForSeq2SeqLM.from_pretrained(
+                    model_id,
+                    dtype=getattr(torch, dtype) if dtype is not None else "auto",
+                )
+
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
 
-        available_languages = self.model.config.task_specific_params
+        # TODO(alvarobartt): Given that I didn't implement this myself, I'll check to make sure that this is the
+        # only way of pulling the available language pairs as it feels odd
+        languages = self.model.config.task_specific_params
+        if languages is None or not isinstance(languages, dict):
+            raise ValueError(
+                "`task_specific_params` with the available `translation_` pairs is not defined in the `config.json`, hence the available languages cannot be inferred."
+            )
+
         self.translation_pairs = {
             key.replace("translation_", ""): params
-            for key, params in available_languages.items()
+            for key, params in languages.items()
             if key.startswith("translation_")
         }
         logger.info(f"Available translation pairs: {list(self.translation_pairs.keys())}")
