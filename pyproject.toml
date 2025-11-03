@@ -17,7 +17,8 @@ dependencies = [
     "diffusers>=0.32.1",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
-    "transformers[accelerate,hf_xet,hub-kernels,torch-speech]>=4.53.2",
+    "transformers[accelerate,hf_xet,hub-kernels,torch-speech]>=4.53.2,<5.0.0",
+    "timm>=1.0.21",
     "pydantic>=2.10.5",
     "sentence-transformers>=5.1.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
@@ -77,8 +78,8 @@ conflicts = [
 ]
 
 [tool.uv.sources]
-transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
-diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
+# transformers = { git = "https://github.com/huggingface/transformers", rev = "main" }
+# diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
