@@ -105,5 +105,5 @@ class ZeroShotAudioClassification(
         elif isinstance(payload.inputs, str):
             audio_bytes = Audio.deserialize(payload.inputs)
 
-        results = self.pipeline(audio_bytes, candidate_labels=payload.candidate_labels, **parameters)  # type: ignore
+        results = self.pipeline(audio_bytes, **parameters)  # type: ignore
         return ZeroShotAudioClassificationOutput(results=results)  # type: ignore
