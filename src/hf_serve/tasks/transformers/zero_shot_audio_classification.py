@@ -8,7 +8,14 @@ from hf_serve.tasks.predictor import Predictor
 
 
 class ZeroShotAudioClassificationParameters(BaseModel):
+    candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
     hypothesis_template: Optional[str] = None
+
+    @field_validator("candidate_labels")
+    def validate_candidate_labels(cls, v):
+        if not v:
+            raise ValueError("candidate_labels must contain at least one label")
+        return v
 
     @field_validator("hypothesis_template")
     def validate_hypothesis_template(cls, v):
@@ -19,13 +26,7 @@ class ZeroShotAudioClassificationParameters(BaseModel):
 
 class ZeroShotAudioClassificationInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
-    # TODO(juanjucm): `candidate_labels` here is placed outside `parameters` which I get as in enforcing those
-    # and being mandatory, but wouldn't it be better to just remove the default value for `parameters`, complain
-    # if not provided, and adding validation to `candidate_labels` to ensure that at least 2 are provided?
-    # Also to keep consistency with the rest of the `zero-shot...` task, we should unify that and make sure that
-    # those are aligned.
-    candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
-    parameters: Optional[ZeroShotAudioClassificationParameters] = None
+    parameters: ZeroShotAudioClassificationParameters
 
     model_config = ConfigDict(
         json_schema_extra={
