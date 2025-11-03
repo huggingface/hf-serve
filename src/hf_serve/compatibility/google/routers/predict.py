@@ -13,6 +13,7 @@ def router(
     predictor: Predictor,
     input_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
     output_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
+    inner_input_schema: Union[Type[BaseModel], Type[Union[BaseModel, ...]]],  # type: ignore
 ) -> APIRouter:
     router = APIRouter()
 
@@ -22,10 +23,25 @@ def router(
 
         try:
             logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
+
+            parameters = {}
+            if payload.parameters is not None:
+                parameters = payload.parameters.model_dump()
+
             predictions = []
             for instance in payload.instances:
-                prediction = predictor(payload={"inputs": instance, "parameters": payload.parameters})
-                predictions.append(prediction)
+                if isinstance(instance, BaseModel):
+                    instance = instance.model_dump()
+
+                payload = inner_input_schema(**{"inputs": instance, "parameters": parameters})
+                prediction = predictor(payload=payload)
+                if prediction is None:
+                    logger.error(f"[{request_id}] Prediction failed unexpectedly as it produced None...")
+                    raise HTTPException(
+                        status_code=500, detail="Prediction failed unexpectedly and produced None..."
+                    )
+
+                predictions.append(prediction.model_dump())
             return output_schema(predictions=predictions)
         except (ValueError, ValidationError) as e:
             logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")

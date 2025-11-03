@@ -150,6 +150,7 @@ def launch(
                         predictor=predictor,
                         input_schema=ImageTextToTextInputForGoogle,
                         output_schema=ImageTextToTextOutputForGoogle,
+                        inner_input_schema=ImageTextToTextInput,
                     )
                 )
             else:
@@ -196,6 +197,7 @@ def launch(
                         predictor=predictor,
                         input_schema=TextGenerationInputForGoogle,
                         output_schema=TextGenerationOutputForGoogle,
+                        inner_input_schema=TextGenerationInput,
                     )
                 )
             else:
@@ -233,7 +235,7 @@ def launch(
                 )
 
             from hf_serve.routers import predict_image_router
-            from hf_serve.tasks.diffusers.text_to_image import TextToImage
+            from hf_serve.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
 
             predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
@@ -249,11 +251,10 @@ def launch(
                         predictor=predictor,
                         input_schema=TextToImageInputForGoogle,
                         output_schema=TextToImageOutputForGoogle,
+                        inner_input_schema=TextToImageInput,
                     )
                 )
             else:
-                from hf_serve.tasks.diffusers.text_to_image import TextToImageInput
-
                 app.include_router(
                     router=predict_image_router(
                         predictor=predictor,
@@ -271,29 +272,30 @@ def launch(
             )
         # sentence-transformers
         case "sentence-similarity":
-            from hf_serve.tasks.sentence_transformers.sentence_similarity import SentenceSimilarity
+            from hf_serve.tasks.sentence_transformers.sentence_similarity import (
+                SentenceSimilarity,
+                SentenceSimilarityInput,
+                SentenceSimilarityOutput,
+            )
 
             predictor = SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
                 from hf_serve.compatibility.google.schemas.sentence_transformers.sentence_similarity import (
                     SentenceSimilarityInputForGoogle,
                     SentenceSimilarityOutputForGoogle,
                 )
 
                 app.include_router(
-                    router=predict_router(
+                    router=google_predict_router(
                         predictor=predictor,
                         input_schema=SentenceSimilarityInputForGoogle,
                         output_schema=SentenceSimilarityOutputForGoogle,
+                        inner_input_schema=SentenceSimilarityInput,
                     )
                 )
             else:
-                from hf_serve.tasks.sentence_transformers.sentence_similarity import (
-                    SentenceSimilarityInput,
-                    SentenceSimilarityOutput,
-                )
-
                 app.include_router(
                     router=predict_router(
                         predictor=predictor,
@@ -317,29 +319,30 @@ def launch(
 
             app.include_router(router=text_embeddings_inference_router)
         case "feature-extraction" | "sentence-embeddings" | "embeddings":
-            from hf_serve.tasks.sentence_transformers.feature_extraction import FeatureExtraction
+            from hf_serve.tasks.sentence_transformers.feature_extraction import (
+                FeatureExtraction,
+                FeatureExtractionInput,
+                FeatureExtractionOutput,
+            )
 
             predictor = FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
 
             if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
                 from hf_serve.compatibility.google.schemas.sentence_transformers.feature_extraction import (
                     FeatureExtractionInputForGoogle,
                     FeatureExtractionOutputForGoogle,
                 )
 
                 app.include_router(
-                    router=predict_router(
+                    router=google_predict_router(
                         predictor=predictor,
                         input_schema=FeatureExtractionInputForGoogle,
                         output_schema=FeatureExtractionOutputForGoogle,
+                        inner_input_schema=FeatureExtractionInput,
                     )
                 )
             else:
-                from hf_serve.tasks.sentence_transformers.feature_extraction import (
-                    FeatureExtractionInput,
-                    FeatureExtractionOutput,
-                )
-
                 app.include_router(
                     router=predict_router(
                         predictor=predictor,
@@ -404,6 +407,7 @@ def launch(
                         predictor=predictor,
                         input_schema=TextClassificationInputForGoogle,
                         output_schema=TextClassificationOutputForGoogle,
+                        inner_input_schema=TextClassificationInput,
                     )
                 )
             else:
@@ -435,6 +439,7 @@ def launch(
                         predictor=predictor,
                         input_schema=FillMaskInputForGoogle,
                         output_schema=FillMaskOutputForGoogle,
+                        inner_input_schema=FillMaskInput,
                     )
                 )
             else:
@@ -466,6 +471,7 @@ def launch(
                         predictor=predictor,
                         input_schema=QuestionAnsweringInputForGoogle,
                         output_schema=QuestionAnsweringOutputForGoogle,
+                        inner_input_schema=QuestionAnsweringInput,
                     )
                 )
             else:
@@ -497,6 +503,7 @@ def launch(
                         predictor=predictor,
                         input_schema=SummarizationInputForGoogle,
                         output_schema=SummarizationOutputForGoogle,
+                        inner_input_schema=SummarizationInput,
                     )
                 )
             else:
@@ -532,6 +539,7 @@ def launch(
                         predictor=predictor,
                         input_schema=ZeroShotClassificationInputForGoogle,
                         output_schema=ZeroShotClassificationOutputForGoogle,
+                        inner_input_schema=ZeroShotClassificationInput,
                     )
                 )
             else:
@@ -563,6 +571,7 @@ def launch(
                         predictor=predictor,
                         input_schema=TokenClassificationInputForGoogle,
                         output_schema=TokenClassificationOutputForGoogle,
+                        inner_input_schema=TokenClassificationInput,
                     )
                 )
             else:
@@ -598,6 +607,7 @@ def launch(
                         predictor=predictor,
                         input_schema=TableQuestionAnsweringInputForGoogle,
                         output_schema=TableQuestionAnsweringOutputForGoogle,
+                        inner_input_schema=TableQuestionAnsweringInput,
                     )
                 )
             else:
@@ -629,6 +639,7 @@ def launch(
                         predictor=predictor,
                         input_schema=TranslationInputForGoogle,
                         output_schema=TranslationOutputForGoogle,
+                        inner_input_schema=TranslationInput,
                     )
                 )
             else:
@@ -697,6 +708,7 @@ def launch(
                         predictor=predictor,
                         input_schema=AudioClassificationInputForGoogle,
                         output_schema=AudioClassificationOutputForGoogle,
+                        inner_input_schema=AudioClassificationInput,
                     )
                 )
             else:
@@ -741,6 +753,7 @@ def launch(
                         predictor=predictor,
                         input_schema=AutomaticSpeechRecognitionInputForGoogle,
                         output_schema=AutomaticSpeechRecognitionOutputForGoogle,
+                        inner_input_schema=AutomaticSpeechRecognitionInput,
                     )
                 )
             else:
@@ -782,6 +795,7 @@ def launch(
                         predictor=predictor,
                         input_schema=ImageClassificationInputForGoogle,
                         output_schema=ImageClassificationOutputForGoogle,
+                        inner_input_schema=ImageClassificationInput,
                     )
                 )
             else:
@@ -822,6 +836,7 @@ def launch(
                         predictor=predictor,
                         input_schema=ImageSegmentationInputForGoogle,
                         output_schema=ImageSegmentationOutputForGoogle,
+                        inner_input_schema=ImageSegmentationInput,
                     )
                 )
             else:
@@ -862,6 +877,7 @@ def launch(
                         predictor=predictor,
                         input_schema=ObjectDetectionInputForGoogle,
                         output_schema=ObjectDetectionOutputForGoogle,
+                        inner_input_schema=ObjectDetectionInput,
                     )
                 )
             else:
@@ -905,6 +921,7 @@ def launch(
                         predictor=predictor,
                         input_schema=VisualQuestionAnsweringInputForGoogle,
                         output_schema=VisualQuestionAnsweringOutputForGoogle,
+                        inner_input_schema=VisualQuestionAnsweringInput,
                     )
                 )
             else:
@@ -940,6 +957,7 @@ def launch(
                         predictor=predictor,
                         input_schema=ZeroShotImageClassificationInputForGoogle,
                         output_schema=ZeroShotImageClassificationOutputForGoogle,
+                        inner_input_schema=ZeroShotImageClassificationInput,
                     )
                 )
             else:
