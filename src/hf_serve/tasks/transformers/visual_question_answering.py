@@ -39,11 +39,7 @@ class VisualQuestionAnsweringInput(BaseModel):
 class VisualQuestionAnsweringOutputValue(BaseModel):
     # NOTE: Transformers documentation says this should be `label` but apparently it's `answer` instead
     answer: str
-
-    # NOTE: `score` should be optional if `image_processor.is_vqa` was supported, given that's not the
-    # case for the moment, it's left as mandatory
-    # score: Optional[float] = Field(default=None)
-    score: float
+    score: Optional[float] = Field(default=None)
 
 
 class VisualQuestionAnsweringOutput(RootModel):
