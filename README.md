@@ -177,6 +177,14 @@ To run `facebook/wav2vec2-lv-60-espeak-cv-ft` on e.g. MacOS, you need to run the
 DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
 ```
 
+Note that if you have installed another version of `ffmpeg` with `brew` as e.g. `brew install ffmpeg@7`, you should use the following command instead:
+
+```bash
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/ffmpeg@7/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
+```
+
+The main difference relies on the path used for `DYLD_FALLBACK_LIBRARY_PATH` which is now pointing to the exact `brew`-installed version of `ffmpeg` instead. More information on the compatibility issues with `ffmpeg`, `torchcodec` and `torch` at https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
+
 ## 🔮 Upcoming
 
 - [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-serve sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
