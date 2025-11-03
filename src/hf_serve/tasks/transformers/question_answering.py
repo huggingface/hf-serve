@@ -51,7 +51,7 @@ class QuestionAnsweringOutputValue(BaseModel):
 
 
 class QuestionAnsweringOutput(RootModel):
-    root: List[QuestionAnsweringOutputValue]
+    root: QuestionAnsweringOutputValue
 
 
 class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutput]):
@@ -83,5 +83,5 @@ class QuestionAnswering(Predictor[QuestionAnsweringInput, QuestionAnsweringOutpu
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        output = self.pipeline(payload.inputs, **parameters)
+        output = self.pipeline(question=payload.inputs.question, context=payload.inputs.context, **parameters)
         return QuestionAnsweringOutput(root=output)  # type: ignore
