@@ -1,7 +1,7 @@
 from typing import Annotated, List, Optional, Union
 
 from fastapi import File, Form
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Audio
 from hf_serve.tasks.predictor import Predictor
@@ -62,8 +62,8 @@ class ZeroShotAudioClassificationOutputValue(BaseModel):
     score: float
 
 
-class ZeroShotAudioClassificationOutput(BaseModel):
-    results: List[ZeroShotAudioClassificationOutputValue]
+class ZeroShotAudioClassificationOutput(RootModel):
+    root: List[ZeroShotAudioClassificationOutputValue]
 
 
 class ZeroShotAudioClassification(
@@ -106,4 +106,4 @@ class ZeroShotAudioClassification(
             audio_bytes = Audio.deserialize(payload.inputs)
 
         results = self.pipeline(audio_bytes, **parameters)  # type: ignore
-        return ZeroShotAudioClassificationOutput(results=results)  # type: ignore
+        return ZeroShotAudioClassificationOutput(root=results)  # type: ignore
