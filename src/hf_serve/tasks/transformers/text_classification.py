@@ -66,4 +66,9 @@ class TextClassification(Predictor[TextClassificationInput, TextClassificationOu
             torch.mps.set_per_process_memory_fraction(0.9)
 
     def __call__(self, payload: TextClassificationInput) -> TextClassificationOutput:
-        return TextClassificationOutput(root=self.pipeline(payload.inputs))  # type: ignore
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
+
+        output = self.pipeline(payload.inputs, **parameters)
+        return TextClassificationOutput(root=output)  # type: ignore
