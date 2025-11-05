@@ -203,3 +203,6 @@ The main difference relies on the path used for `DYLD_FALLBACK_LIBRARY_PATH` whi
     - We could simply provide the `request_id` as an optional argument to the `__call__` method of each `Predictor` i.e., task, but there's most likely a better way to ensure that the logging messages within a given method include the `request_id` e.g. with a context manager maybe
 
 - [ ] Eventually remove the generic types from `Predictor` given that those don't provide any real benefit since we're leveraging those via FastAPI already, and those are preventing inheritance + method override due to mismatching types; and at the current stage it seems that there's no real benefit, hence dropping those makes sense
+
+- [ ] Detach Google Cloud and Microsoft Azure packages from `hf-serve` so that the core logic is targeting Inference Endpoints and local usage, whilst `hf-serve-gcp` and `hf-serve-az` packages are independent and built on top of `hf-serve` so that those are somehow independent, particularly given the need for custom stuff on `hf-serve-gcp` and `hf-serve-az`, so that `hf-serve` is the lib and the main CLI
+    - Not sure about this, but just throwing the idea https://docs.astral.sh/uv/concepts/projects/workspaces/#getting-started
