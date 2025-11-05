@@ -39,11 +39,7 @@ class VisualQuestionAnsweringInput(BaseModel):
 class VisualQuestionAnsweringOutputValue(BaseModel):
     # NOTE: Transformers documentation says this should be `label` but apparently it's `answer` instead
     answer: str
-
-    # NOTE: `score` should be optional if `image_processor.is_vqa` was supported, given that's not the
-    # case for the moment, it's left as mandatory
-    # score: Optional[float] = Field(default=None)
-    score: float
+    score: Optional[float] = Field(default=None)
 
 
 class VisualQuestionAnsweringOutput(RootModel):
@@ -51,7 +47,7 @@ class VisualQuestionAnsweringOutput(RootModel):
 
 
 class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQuestionAnsweringOutput]):
-    def __init__(self, model_id: str, dtype: str = "float16", device: str = "auto") -> None:
+    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
         import torch
@@ -67,7 +63,7 @@ class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQues
         self.pipeline: VisualQuestionAnsweringPipeline = pipeline(
             task="visual-question-answering",
             model=model_id,
-            dtype=getattr(torch, dtype),
+            dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,
         )

@@ -91,9 +91,9 @@ parser.add_argument(
     "--cloud",
     type=str,
     default=os.getenv("CLOUD", None),
-    choices=["azure"],
+    choices=["azure", "google"],
     required=False,
-    help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments.",
+    help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments (among others); or e.g. `instances` needs to be a list of inputs for Vertex AI (among others).",
 )
 
 

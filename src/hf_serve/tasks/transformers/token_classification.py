@@ -10,6 +10,7 @@ class TokenClassificationInput(BaseModel):
     inputs: str = Field(
         validation_alias=AliasChoices("inputs", AliasPath("text"), AliasPath("inputs", "text")),
     )
+
     aggregation_strategy: Optional[Literal["none", "simple", "first", "average", "max"]] = Field(
         None,
         validation_alias=AliasChoices("aggregation_strategy", AliasPath("parameters", "aggregation_strategy")),

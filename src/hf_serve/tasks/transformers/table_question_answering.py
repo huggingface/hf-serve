@@ -57,6 +57,11 @@ class TableQuestionAnswering(Predictor[TableQuestionAnsweringInput, TableQuestio
     def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
 
+        from hf_serve.installer import DynamicInstaller
+
+        installer = DynamicInstaller()
+        installer.pip(["pandas"])
+
         import torch
         from transformers import pipeline
         from transformers.pipelines.table_question_answering import TableQuestionAnsweringPipeline

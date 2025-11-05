@@ -1,14 +1,21 @@
 from typing import Annotated, List, Optional, Union
 
 from fastapi import File, Form
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Audio
 from hf_serve.tasks.predictor import Predictor
 
 
 class ZeroShotAudioClassificationParameters(BaseModel):
+    candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
     hypothesis_template: Optional[str] = None
+
+    @field_validator("candidate_labels")
+    def validate_candidate_labels(cls, v):
+        if not v:
+            raise ValueError("candidate_labels must contain at least one label")
+        return v
 
     @field_validator("hypothesis_template")
     def validate_hypothesis_template(cls, v):
@@ -19,8 +26,7 @@ class ZeroShotAudioClassificationParameters(BaseModel):
 
 class ZeroShotAudioClassificationInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
-    candidate_labels: List[str] = Field(validation_alias=AliasChoices("candidate_labels", "labels"))
-    parameters: Optional[ZeroShotAudioClassificationParameters] = None
+    parameters: ZeroShotAudioClassificationParameters
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -56,8 +62,8 @@ class ZeroShotAudioClassificationOutputValue(BaseModel):
     score: float
 
 
-class ZeroShotAudioClassificationOutput(BaseModel):
-    results: List[ZeroShotAudioClassificationOutputValue]
+class ZeroShotAudioClassificationOutput(RootModel):
+    root: List[ZeroShotAudioClassificationOutputValue]
 
 
 class ZeroShotAudioClassification(
@@ -99,5 +105,5 @@ class ZeroShotAudioClassification(
         elif isinstance(payload.inputs, str):
             audio_bytes = Audio.deserialize(payload.inputs)
 
-        results = self.pipeline(audio_bytes, candidate_labels=payload.candidate_labels, **parameters)  # type: ignore
-        return ZeroShotAudioClassificationOutput(results=results)  # type: ignore
+        results = self.pipeline(audio_bytes, **parameters)  # type: ignore
+        return ZeroShotAudioClassificationOutput(root=results)  # type: ignore

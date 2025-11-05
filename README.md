@@ -177,6 +177,14 @@ To run `facebook/wav2vec2-lv-60-espeak-cv-ft` on e.g. MacOS, you need to run the
 DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
 ```
 
+Note that if you have installed another version of `ffmpeg` with `brew` as e.g. `brew install ffmpeg@7`, you should use the following command instead:
+
+```bash
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/ffmpeg@7/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
+```
+
+The main difference relies on the path used for `DYLD_FALLBACK_LIBRARY_PATH` which is now pointing to the exact `brew`-installed version of `ffmpeg` instead. More information on the compatibility issues with `ffmpeg`, `torchcodec` and `torch` at https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
+
 ## 🔮 Upcoming
 
 - [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-serve sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
@@ -193,3 +201,8 @@ DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook
 
 - [ ] Contextualize each `__call__` within its request, so as to make sure that the logging within a task is using the same identifier as the request
     - We could simply provide the `request_id` as an optional argument to the `__call__` method of each `Predictor` i.e., task, but there's most likely a better way to ensure that the logging messages within a given method include the `request_id` e.g. with a context manager maybe
+
+- [ ] Eventually remove the generic types from `Predictor` given that those don't provide any real benefit since we're leveraging those via FastAPI already, and those are preventing inheritance + method override due to mismatching types; and at the current stage it seems that there's no real benefit, hence dropping those makes sense
+
+- [ ] Detach Google Cloud and Microsoft Azure packages from `hf-serve` so that the core logic is targeting Inference Endpoints and local usage, whilst `hf-serve-gcp` and `hf-serve-az` packages are independent and built on top of `hf-serve` so that those are somehow independent, particularly given the need for custom stuff on `hf-serve-gcp` and `hf-serve-az`, so that `hf-serve` is the lib and the main CLI
+    - Not sure about this, but just throwing the idea https://docs.astral.sh/uv/concepts/projects/workspaces/#getting-started
