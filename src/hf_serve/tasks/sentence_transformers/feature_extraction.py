@@ -102,8 +102,17 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
         )
 
     def __call__(self, payload: FeatureExtractionInput) -> FeatureExtractionOutput:
-        payload_json = payload.model_dump(exclude_none=True, exclude_defaults=True)
-        embeddings = self.pipeline.encode(**payload_json, convert_to_tensor=True)
+        # NOTE: Exclude both `sentences` and `dimensions`. `sentences` because it's the input i.e. not a parameter;
+        # and the `dimensions` as it's named `truncate_dim` in Sentence Transformers.
+        parameters = payload.model_dump(
+            exclude={"sentences", "dimensions"}, exclude_none=True, exclude_defaults=True
+        )
+
+        parameters["convert_to_tensor"] = True
+        if payload.dimensions:
+            parameters["truncate_dim"] = payload.dimensions
+
+        embeddings = self.pipeline.encode(payload.sentences, **parameters)
 
         # NOTE: if embeddings doesn't contain the batch dimension i.e., the provided `inputs` only contains a
         # single sequence instead of a batch, then we add the batch dimension to make sure the outputs are
