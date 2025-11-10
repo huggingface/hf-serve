@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser(description="Hugging Face Serve API")
 parser.add_argument(
     "--host",
     type=str,
-    default=os.getenv("HOST", "0.0.0.0"),
+    default=os.getenv("HOST", None) or "0.0.0.0",
     required=False,
     help="The host into which the FastAPI API will be deployed to, defaults to 0.0.0.0. It can also be set via the environment variable `HOST`.",
 )
@@ -23,7 +23,7 @@ parser.add_argument(
 parser.add_argument(
     "--port",
     type=int,
-    default=os.getenv("PORT", 8080),
+    default=os.getenv("PORT", None) or 8080,
     required=False,
     help="The port in which the FastAPI API will listen to, defaults to 8080. It can also be set via the environment variable `PORT`.",
 )
@@ -54,7 +54,7 @@ parser.add_argument(
 parser.add_argument(
     "--device",
     type=str,
-    default=os.getenv("DEVICE", "auto"),
+    default=os.getenv("DEVICE", None) or "auto",
     choices=["auto", "balanced", "cuda", "cpu", "mps"],
     required=False,
     help="The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU. It can also be set via the environment variable `DEVICE`.",
@@ -63,7 +63,11 @@ parser.add_argument(
 parser.add_argument(
     "--dtype",
     type=str,
-    default=os.getenv("DTYPE", None),
+    # NOTE: This might seem weird, but if `DTYPE=""` then it won't be None,
+    # hence its value will be `""` but since we don't want that, we need to add
+    # the check `or None` to make sure that if `""` is set, then we default to
+    # `None`
+    default=os.getenv("DTYPE", None) or None,
     choices=["float32", "float16", "bfloat16", "float8", "int8", "int4"],
     required=False,
     help="The PyTorch dtype in which the model weights will be loaded, defaults to None meaning that the default dtype for the given model will be used i.e., the dtype in which the model weights are available. It can also be set via the environment variable `DTYPE`.",
@@ -82,7 +86,9 @@ parser.add_argument(
 parser.add_argument(
     "--max-file-size",
     type=int,
-    default=os.getenv("MAX_FILE_SIZE", None),
+    # TODO: Maybe remove the `or None` and instead of checking that `if max_file_size is not None`
+    # we could just `if not max_file_size` (which handles `""`)
+    default=os.getenv("MAX_FILE_SIZE", None) or None,
     required=False,
     help="The maximum file size in bytes for file uploads (e.g 10485760 for 10MB). By default, no file size limit is considered. It can also be set via the environment variable `MAX_FILE_SIZE`.",
 )
@@ -90,7 +96,7 @@ parser.add_argument(
 parser.add_argument(
     "--cloud",
     type=str,
-    default=os.getenv("CLOUD", None),
+    default=os.getenv("CLOUD", None) or None,
     choices=["azure", "google"],
     required=False,
     help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments (among others); or e.g. `instances` needs to be a list of inputs for Vertex AI (among others).",
@@ -108,7 +114,8 @@ def main() -> None:
         task=args.task,
         device=args.device,
         dtype=args.dtype,
-        # TODO: this can most likely be a list, and it will automatically be formatted this way without having to handle that here
+        # TODO(juanjucm): This can most likely be a list, and it will automatically be formatted this way
+        # without having to handle that here
         accepted_mimetypes=args.accepted_mimetypes.split(",") if args.accepted_mimetypes else None,
         max_file_size=args.max_file_size,
         cloud=args.cloud,
