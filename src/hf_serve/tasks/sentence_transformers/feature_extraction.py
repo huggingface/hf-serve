@@ -21,7 +21,7 @@ class FeatureExtractionInput(BaseModel):
     )
     dimensions: Optional[int] = Field(
         default=None,
-        validation_alias=AliasChoices("normalize", AliasPath("parameters", "normalize")),
+        validation_alias=AliasChoices("dimensions", AliasPath("parameters", "dimensions")),
     )
     prompt_name: Optional[str] = Field(
         default=None, validation_alias=AliasChoices("prompt_name", AliasPath("parameters", "prompt_name"))
