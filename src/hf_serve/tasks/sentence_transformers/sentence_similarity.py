@@ -1,6 +1,6 @@
-from typing import Annotated, List, Literal, Optional
+from typing import Annotated, Any, List, Literal, Optional, Self, Type
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
@@ -8,13 +8,32 @@ from hf_serve.tasks.predictor import Predictor
 
 class SentenceSimilarityInputs(BaseModel):
     source_sentence: Annotated[str, Field(strict=True, min_length=1)]
-    sentences: Annotated[List[str], Field(strict=True, gt=0)]
+    sentences: Annotated[List[str], Field(strict=True, min_length=1)]
 
 
 class SentenceSimilarityParameters(BaseModel):
-    truncate: Optional[bool] = Field(default=False)
-    truncation_direction: Optional[Literal["Left", "Right"]] = Field(default="Right")
     prompt_name: Optional[str] = Field(default=None)
+
+    # NOTE: Both `truncate` and `truncation_direction` are not allowed / supported on Sentence Transformers, and
+    # given that those are there only due to compatibility with Text Embeddings Inference (TEI) those will be
+    # excluded with a warning that those won't have any effect on the underlying `encode` method
+    truncate: Optional[bool] = Field(default=None, exclude=True)
+    truncation_direction: Optional[Literal["left", "Left", "right", "Right"]] = Field(
+        default=None, exclude=True
+    )
+
+    @model_validator(mode="before")
+    @classmethod
+    def warn_unsupported_fields(cls: Type[Self], values: Any) -> Any:
+        # NOTE: Here using `any` is fine since we don't want to loop over both values, meaning that if `truncate`
+        # is provided we show the warning without waiting for the confirmation on whether `truncation_direction`
+        # is there or not, as we don't care as long as 1 is indeed provided. Also no need for removing those as
+        # we're using `exclude=True` already
+        if any(values.get(k, None) is not None for k in {"truncate", "truncation_direction"}):
+            logger.warning(
+                "Neither `truncate` nor `truncation_direction` are supported fields for `SentenceTransformer.encode`, hence those will be ignored."
+            )
+        return values
 
 
 class SentenceSimilarityInput(BaseModel):
@@ -29,7 +48,7 @@ class SentenceSimilarityInput(BaseModel):
                         "source_sentence": "I'm very happy",
                         "sentences": ["I'm filled with happiness", "I'm happy"],
                     },
-                    "parameters": {"truncate": True, "truncation_direction": "Left", "prompt_name": None},
+                    "parameters": {"truncate": True, "truncation_direction": "left", "prompt_name": None},
                 },
             ]
         }
@@ -90,8 +109,13 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         )
 
     def __call__(self, payload: SentenceSimilarityInput) -> SentenceSimilarityOutput:
-        source_embedding = self.pipeline.encode(payload.inputs.source_sentence, convert_to_tensor=True)
-        sentence_embeddings = self.pipeline.encode(payload.inputs.sentences, convert_to_tensor=True)
+        parameters = {}
+        if payload.parameters:
+            parameters = payload.parameters.model_dump(exclude_none=True)
+        parameters["convert_to_tensor"] = True
+
+        source_embedding = self.pipeline.encode(payload.inputs.source_sentence, **parameters)
+        sentence_embeddings = self.pipeline.encode(payload.inputs.sentences, **parameters)
 
         similarities = self.pipeline.similarity(source_embedding, sentence_embeddings).tolist()
         return SentenceSimilarityOutput(similarities=similarities)
