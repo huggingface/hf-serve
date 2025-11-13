@@ -25,7 +25,7 @@ def router(handler: Any) -> APIRouter:
         try:
             return ArbitraryResponse(root=handler(data))
         # TODO(alvarobartt): create better custom exceptions and handle those here with different
-        # error codes for I/O validation errors, ser/de errors, or pipeline errors
+        # error codes for I/O validation errors, serde errors, or pipeline errors
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
