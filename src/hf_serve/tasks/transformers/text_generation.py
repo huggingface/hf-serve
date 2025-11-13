@@ -73,7 +73,7 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
 
             set_seed(seed)
 
-        # NOTE: Removing these here intead of within the schema as otherwise when logging the schema the user
+        # NOTE: Removing these here instead of within the schema as otherwise when logging the schema the user
         # might be confused if they see that the schema is different to what they provided despite the warning
         for p in {"adapter_id", "grammar", "stop", "top_n_tokens", "truncate"}:
             parameters.pop(p, None)
