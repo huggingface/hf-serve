@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional
+from typing import Annotated, List, Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -7,11 +7,14 @@ from hf_serve.tasks.predictor import Predictor
 
 
 class SentenceSimilarityInputs(BaseModel):
-    source_sentence: str
-    sentences: List[str]
+    source_sentence: Annotated[str, Field(strict=True, min_length=1)]
+    sentences: Annotated[List[str], Field(strict=True, gt=0)]
 
 
-class SentenceSimilarityParameters(BaseModel): ...
+class SentenceSimilarityParameters(BaseModel):
+    truncate: Optional[bool] = Field(default=False)
+    truncation_direction: Optional[Literal["Left", "Right"]] = Field(default="Right")
+    prompt_name: Optional[str] = Field(default=None)
 
 
 class SentenceSimilarityInput(BaseModel):
@@ -26,7 +29,7 @@ class SentenceSimilarityInput(BaseModel):
                         "source_sentence": "I'm very happy",
                         "sentences": ["I'm filled with happiness", "I'm happy"],
                     },
-                    "parameters": None,
+                    "parameters": {"truncate": True, "truncation_direction": "Left", "prompt_name": None},
                 },
             ]
         }
