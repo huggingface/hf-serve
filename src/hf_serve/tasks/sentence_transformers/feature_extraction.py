@@ -1,6 +1,6 @@
-from typing import List, Literal, Optional, Union
+from typing import Any, List, Literal, Optional, Self, Type, Union
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
@@ -26,13 +26,42 @@ class FeatureExtractionInput(BaseModel):
     prompt_name: Optional[str] = Field(
         default=None, validation_alias=AliasChoices("prompt_name", AliasPath("parameters", "prompt_name"))
     )
-    truncate: bool = Field(
-        default=False, validation_alias=AliasChoices("truncate", AliasPath("parameters", "truncate"))
+
+    # NOTE: Both `truncate` and `truncation_direction` are not allowed / supported on Sentence Transformers, and
+    # given that those are there only due to compatibility with Text Embeddings Inference (TEI) those will be
+    # excluded with a warning that those won't have any effect on the underlying `encode` method
+    truncate: Optional[bool] = Field(default=None, exclude=True)
+    truncation_direction: Optional[Literal["left", "Left", "right", "Right"]] = Field(
+        default=None, exclude=True
     )
-    truncation_direction: Literal["left", "right"] = Field(
-        default="right",
-        validation_alias=AliasChoices("truncation_direction", AliasPath("parameters", "truncation_direction")),
-    )
+
+    @field_validator("sentences", mode="after")
+    @classmethod
+    def validate_sentences(cls: Type[Self], v: Union[str, List[str]]) -> Union[str, List[str]]:
+        if isinstance(v, str):
+            if len(v) < 1:
+                raise ValueError("When `sentences` is provided as a string, it must not be empty")
+        elif isinstance(v, list):
+            if len(v) == 0:
+                raise ValueError("When `sentences` is provided as a list, it must not be empty")
+            if not all(isinstance(s, str) and len(s) > 0 for s in v):
+                raise ValueError(
+                    "When `sentences` is provided as a list, all the items must be non-empty strings"
+                )
+        return v
+
+    @model_validator(mode="before")
+    @classmethod
+    def warn_unsupported_fields(cls: Type[Self], values: Any) -> Any:
+        # NOTE: Here using `any` is fine since we don't want to loop over both values, meaning that if `truncate`
+        # is provided we show the warning without waiting for the confirmation on whether `truncation_direction`
+        # is there or not, as we don't care as long as 1 is indeed provided. Also no need for removing those as
+        # we're using `exclude=True` already
+        if any(values.get(k, None) is not None for k in {"truncate", "truncation_direction"}):
+            logger.warning(
+                "Neither `truncate` nor `truncation_direction` are supported fields for `SentenceTransformer.encode`, hence those will be ignored."
+            )
+        return values
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -102,15 +131,14 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
         )
 
     def __call__(self, payload: FeatureExtractionInput) -> FeatureExtractionOutput:
-        # NOTE: Exclude both `sentences` and `dimensions`. `sentences` because it's the input i.e. not a parameter;
-        # and the `dimensions` as it's named `truncate_dim` in Sentence Transformers.
-        parameters = payload.model_dump(
-            exclude={"sentences", "dimensions"}, exclude_none=True, exclude_defaults=True
-        )
+        # NOTE: Exclude `sentences` because it's the input i.e. not a parameter
+        parameters = payload.model_dump(exclude={"sentences"}, exclude_none=True, exclude_defaults=True)
 
+        if dimensions := parameters.pop("dimensions", None):
+            parameters["truncate_dim"] = dimensions
+        if normalize_embeddings := parameters.pop("normalize", None):
+            parameters["normalize_embeddings"] = normalize_embeddings
         parameters["convert_to_tensor"] = True
-        if payload.dimensions:
-            parameters["truncate_dim"] = payload.dimensions
 
         embeddings = self.pipeline.encode(payload.sentences, **parameters)
 

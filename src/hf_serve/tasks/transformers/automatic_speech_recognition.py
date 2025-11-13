@@ -150,7 +150,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
         audio_length = AudioSegment.from_file(BytesIO(audio_bytes)).duration_seconds  # type: ignore
 
         # TODO: eventually look into a context logger so that everything logged within the `__call__` method
-        # of the task also containts the request ID to identify each request
+        # of the task also contains the request ID to identify each request
         logging.info(
             f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}"
         )

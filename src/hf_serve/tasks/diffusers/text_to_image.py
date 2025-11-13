@@ -74,7 +74,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             logger.warning(
                 f"{device=} is set, but on `diffusers` only `device_map='balanced'` is supported at the moment,"
                 " meaning that the different pipeline components will be distributed among the available devices."
-                " Alternatively, you can directly specify the devide to use instead being either 'cuda', 'mps' or 'cpu'."
+                " Alternatively, you can directly specify the device to use instead being either 'cuda', 'mps' or 'cpu'."
             )
             device = "balanced"
 

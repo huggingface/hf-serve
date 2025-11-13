@@ -1,6 +1,6 @@
 from typing import Annotated, List, Optional, Union
 
-from pydantic import BaseModel, ConfigDict, Field, RootModel, conint
+from pydantic import BaseModel, ConfigDict, Field, RootModel
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
@@ -12,7 +12,7 @@ class VisualQuestionAnsweringInputs(BaseModel):
 
 
 class VisualQuestionAnsweringParameters(BaseModel):
-    top_k: Optional[Annotated[int, conint(ge=0)]] = Field(default=1)
+    top_k: Optional[Annotated[int, Field(default=1, ge=0)]]
 
 
 class VisualQuestionAnsweringInput(BaseModel):

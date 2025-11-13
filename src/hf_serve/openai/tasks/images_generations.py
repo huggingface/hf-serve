@@ -72,7 +72,7 @@ class ImagesGenerations:
                 payload_json["height"] = int(height_str)
                 payload_json["width"] = int(width_str)
             except Exception as e:
-                message = f"[{request_id}] Provided `{payload.size=}` is not valid (parsing failed with `{e}`), it should either be an x-separated string with the heigth and width as integers as e.g. `1024x1024`, or `auto` to rely on the model default."
+                message = f"[{request_id}] Provided `{payload.size=}` is not valid (parsing failed with `{e}`), it should either be an x-separated string with the height and width as integers as e.g. `1024x1024`, or `auto` to rely on the model default."
                 logger.error(message)
                 raise ValueError(message)
 
