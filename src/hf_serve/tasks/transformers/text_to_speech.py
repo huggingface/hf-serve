@@ -78,13 +78,14 @@ class TextToSpeechInput(BaseModel):
     inputs: str
     parameters: Optional[TextToSpeechParameters] = None
 
-    model_config = ConfigDict(
-        json_schema_extra={
-            "examples": [
-                {"inputs": "What is the capital of France? Paris is the capital of France.", "parameters": None}
-            ]
-        }
-    )
+    # NOTE: The example has been temporarily excluded to prevent long start up times
+    # model_config = ConfigDict(
+    #     json_schema_extra={
+    #         "examples": [
+    #             {"inputs": "What is the capital of France? Paris is the capital of France.", "parameters": None}
+    #         ]
+    #     }
+    # )
 
 
 class TextToSpeechOutput(BaseModel):
