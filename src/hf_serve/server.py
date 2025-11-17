@@ -125,7 +125,7 @@ def launch(
 
     app.include_router(router=metrics_router)
 
-    logger.info(f"`hf-serve` starting for model `model_id or model_dir` with `{task=}` on `{device=}`")
+    logger.info(f"`hf-serve` starting for model `{model_id or model_dir}` with `{task=}` on `{device=}`")
 
     match task:
         # openai-compatible
