@@ -24,6 +24,6 @@ class Image:
 
     @staticmethod
     def serialize(image: ImageType, image_format: Literal["png", "jpeg", "webp"] = "png") -> str:
-        buffered = BytesIO()
-        image.save(buffered, **{"format": image_format})
-        return base64.b64encode(buffered.getvalue()).decode("utf-8")
+        buffer = BytesIO()
+        image.save(buffer, **{"format": image_format})
+        return base64.b64encode(buffer.getvalue()).decode("utf-8")
