@@ -169,7 +169,7 @@ def launch(
                 from hf_serve.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
-                    model=predictor.pipeline.model,
+                    model=predictor.pipeline.model,  # type: ignore
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
@@ -989,6 +989,30 @@ def launch(
                         output_schema=ZeroShotImageClassificationOutput,
                     )
                 )
+        # tentative tts
+        case "text-to-audio" | "text-to-speech" | "tts":
+            from hf_serve.tasks.transformers.text_to_speech import (
+                TextToSpeech,
+                TextToSpeechInput,
+                TextToSpeechOutput,
+            )
+
+            predictor = TextToSpeech(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            app.include_router(
+                router=predict_router(
+                    predictor=predictor, input_schema=TextToSpeechInput, output_schema=TextToSpeechOutput
+                )
+            )
+
+            # from hf_serve.openai.routers import models_router, speech_router
+            # from hf_serve.openai.tasks.speech import Speech
+            #
+            # speech = Speech(pipeline=predictor.pipeline)
+            # app.include_router(router=speech_router(predictor=speech))
+            # app.include_router(
+            #     router=models_router(model_id=speech.model_id or "unknown", timestamp=int(time.time()))
+            # )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {

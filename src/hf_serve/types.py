@@ -33,6 +33,9 @@ TaskTypes = Literal[
     "zero-shot-image-classification",
     "image-segmentation",
     "object-detection",
+    "text-to-audio",  # NOTE: actual Transformers name for `text-to-speech`
+    "text-to-speech",
+    "tts",  # NOTE: shortened common name for `text-to-speech` pipelines
     "custom",  # NOTE: ideally not recommended for production use-cases as it requires `trust_remote_code=True`, but here to ensure compatibility with the former `huggingface-inference-toolkit`
 ]
 
