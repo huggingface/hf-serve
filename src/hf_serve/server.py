@@ -1005,14 +1005,16 @@ def launch(
                 )
             )
 
-            # from hf_serve.openai.routers import models_router, speech_router
-            # from hf_serve.openai.tasks.speech import Speech
-            #
-            # speech = Speech(pipeline=predictor.pipeline)
-            # app.include_router(router=speech_router(predictor=speech))
-            # app.include_router(
-            #     router=models_router(model_id=speech.model_id or "unknown", timestamp=int(time.time()))
-            # )
+            from hf_serve.openai.routers import models_router, speech_router
+            from hf_serve.openai.tasks.speech import Speech
+
+            speech = Speech(
+                pipeline=predictor.pipeline, voices=predictor.voices, noise_scheduler=predictor.noise_scheduler
+            )
+            app.include_router(router=speech_router(predictor=speech))
+            app.include_router(
+                router=models_router(model_id=speech.model_id or "unknown", timestamp=int(time.time()))
+            )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
