@@ -61,7 +61,7 @@ def launch(
 ) -> None:
     if model_id and model_dir:
         logger.warning(
-            f"Both {model_id=} and {model_dir=} have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
+            f"Both `{model_id=}` and `{model_dir=}` have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
         )
         model_id = None
 
@@ -74,7 +74,7 @@ def launch(
     # environment variable is set
     if cloud is None and os.getenv("AIP_MODE") == "PREDICTION":
         logger.info(
-            f"Given that the environment variable `API_MODE=PREDICTION`, the `--cloud` arg will be enforced to `google` if none is provided."
+            "Given that the environment variable `API_MODE=PREDICTION`, the `--cloud` arg will be enforced to `google` if none is provided."
         )
         cloud = "google"
 
@@ -125,7 +125,7 @@ def launch(
 
     app.include_router(router=metrics_router)
 
-    logger.info(f"`hf-serve` starting for model {model_id or model_dir} with {task=} on {device=}")
+    logger.info(f"`hf-serve` starting for model `model_id or model_dir` with `{task=}` on `{device=}`")
 
     match task:
         # openai-compatible
@@ -1024,7 +1024,7 @@ def launch(
 
         app.include_router(router=azure_router)
 
-    logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
+    logger.info(f"Loaded `{model_id or model_dir=}` with `{task=}` on `{device=}`.")
     log_available_routes(app=app)
 
     uvicorn.run(
