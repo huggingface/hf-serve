@@ -64,6 +64,7 @@ RUN uv sync --active --frozen --extra cuda --extra flash-attn --preview-features
 RUN hf download bezzam/vibevoice_samples --repo-type dataset --local-dir audio --include "voices/*.wav" && \
     mv audio/voices/*.wav audio/ && \
     rmdir audio/voices
+
 ENV AUDIO_PATH /home/huggingface/app/audio
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
