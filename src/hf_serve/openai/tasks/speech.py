@@ -21,7 +21,6 @@ class Speech:
         pipeline: "TextToAudioPipeline",
         voices: Dict[str, Path],
         noise_scheduler: Optional["DPMSolverMultistepScheduler"] = None,
-        default_voice: Optional[str] = None,
     ) -> None:
         super().__init__()
 
@@ -29,12 +28,11 @@ class Speech:
         self.noise_scheduler = noise_scheduler
 
         self.voices = voices
-        self.default_voice = default_voice
 
         logger.info(
             f'The `voice` parameter in `v1/audio/speech` can be any of the following values: "'
             + '", "'.join(list(self.voices.keys()))
-            + "\". If either `voice` is not provided or `voice=''` then the default voice in `DEFAULT_VOICE={self.default_voice}` will be used if not None, else a random voice will be selected from the available voices. Note that providing the `voice` parameter is recommended to ensure consistency with the voice used to generate the audio."
+            + '".'
         )
 
     @property
@@ -57,38 +55,22 @@ class Speech:
         # NOTE: `stream_format` is supported, but only for "audio" given that audio streaming is not yet in `transformers`
         # stream_format: Optional[Literal["audio", "sse"]] = Field(default="audio")
 
-        messages = [{"role": "0", "content": [{"type": "text", "text": payload.input_}]}]
+        if payload.voice not in self.voices:
+            raise RuntimeError(
+                f'[{request_id}] The provided `voice={payload.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
+                + '", "'.join(list(self.voices.keys()))
+                + '"'
+            )
 
-        match payload.voice:
-            case "":
-                if self.default_voice:
-                    voice, path = self.default_voice, self.voices[self.default_voice]
-
-                    logger.info(
-                        f'[{request_id}] Given that `voice` was not provided or provided empty but the `DEFAULT_VOICE` is set to `{self.default_voice}` it will be used to generate the audio. If you intend to use another voice then you need to set the `voice` parameter is provided with any of the following values: "'
-                        + '", "'.join(list(self.voices.keys()))
-                        + '".'
-                    )
-                else:
-                    voice, path = random.choice(list(self.voices.items()))
-
-                    logger.info(
-                        f"[{request_id}] Given that `voice` was not provided or provided empty (and `DEFAULT_VOICE` is not set either), the default voice will be `{voice}`. In any case, it's recommended that the `voice` parameter is provided with any of the following values: \""
-                        + '", "'.join(list(self.voices.keys()))
-                        + '".'
-                    )
-            case _:
-                if payload.voice not in self.voices:
-                    raise RuntimeError(
-                        f'[{request_id}] The provided `voice={payload.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
-                        + '", "'.join(list(self.voices.keys()))
-                        + '"'
-                    )
-
-                path = self.voices[payload.voice]
-
-        print(path)
-        messages[0]["content"].append({"type": "audio", "path": path})
+        messages = [
+            {
+                "role": "0",
+                "content": [
+                    {"type": "text", "text": payload.input_},
+                    {"type": "audio", "path": self.voices[payload.voice]},
+                ],
+            }
+        ]
 
         if self.pipeline.tokenizer is None:
             raise RuntimeError(
