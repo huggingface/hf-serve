@@ -65,7 +65,7 @@ RUN hf download bezzam/vibevoice_samples --repo-type dataset --local-dir audio -
     mv audio/voices/*.wav audio/ && \
     rmdir audio/voices
 
-ENV AUDIO_PATH /home/huggingface/app/audio
+ENV AUDIO_PATH=/home/huggingface/app/audio
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
