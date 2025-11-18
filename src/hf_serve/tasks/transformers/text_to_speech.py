@@ -1,4 +1,5 @@
 import os
+import random
 from io import BytesIO
 from pathlib import Path
 from typing import Literal, Optional, Union
@@ -6,6 +7,7 @@ from typing import Literal, Optional, Union
 import soundfile as sf
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
 
+from hf_serve.logging import logger
 from hf_serve.serde.audio import Audio
 from hf_serve.tasks.predictor import Predictor
 
@@ -73,6 +75,10 @@ class TextToSpeechParameters(BaseModel):
         validation_alias=AliasChoices("use_cache", AliasPath("generation_parameters", "use_cache")),
     )
 
+    # NOTE: The `voice` parameter has been manually included given that otherwise there's no way for the users
+    # to specify which `voice` to use as of today
+    voice: Optional[str] = Field(default=None)
+
 
 class TextToSpeechInput(BaseModel):
     inputs: str
@@ -111,18 +117,26 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
 
         if not self.audio_path.exists():
             raise RuntimeError(
-                "The provided `AUDIO_PATH` doesn't exist. Please make sure you provide an audio path that exists and contains at least one wav file inside for the default voice of the `text-to-speech` / `tts` model."
+                f"The provided `AUDIO_PATH={audio_path}` doesn't exist. Please make sure you provide an audio path that exists and contains at least one wav file inside for the default voice of the `text-to-speech` model."
             )
 
         if len([file for file in self.audio_path.glob("*.wav")]) < 1:
             raise RuntimeError(
-                "The provided `AUDIO_PATH` doesn't contain any valid audio (wav) file, required for the `text-to-speech` / `tts` model to generate the audio."
+                f"The provided `AUDIO_PATH={audio_path}` doesn't contain any valid audio (wav) file, required for the `text-to-speech` model to generate the audio."
             )
 
         self.voices = {file.stem: audio_path / file for file in self.audio_path.glob("*.wav")}
         if len(self.voices) < 1:
             raise RuntimeError(
-                "The provided `AUDIO_PATH` does not contain any audio (wav) file, hence it's not valid as it doesn't contain the required audio files for the voices."
+                f"The provided `AUDIO_PATH={audio_path}` does not contain any audio (wav) file, hence it's not valid as it doesn't contain the required audio files for the voices."
+            )
+
+        self.default_voice = os.getenv("DEFAULT_VOICE", None)
+        if self.default_voice and self.default_voice not in self.voices:
+            raise ValueError(
+                f'The provided `DEFAULT_VOICE={self.default_voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please make sure to unset the `DEFAULT_VOICE` environment variable or rather set it to any of the following values instead: "'
+                + '", "'.join(list(self.voices.keys()))
+                + '".'
             )
 
         import torch
@@ -150,13 +164,43 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
         )
 
     def __call__(self, payload: TextToSpeechInput) -> TextToSpeechOutput:
+        messages = [{"role": "0", "content": [{"type": "text", "text": payload.inputs}]}]
+
+        if payload.parameters is not None and payload.parameters.voice is not None:
+            if payload.parameters.voice not in self.voices:
+                raise ValueError(
+                    f'The provided `voice={payload.parameters.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
+                    + '", "'.join(list(self.voices.keys()))
+                    + '".'
+                )
+
+            path = self.voices[payload.parameters.voice]
+        elif self.default_voice is not None:
+            logger.info(
+                f"The `voice` parameter inside `parameters` hasn't been provided but the `DEFAULT_VOICE` is set to `{self.default_voice}`, meaning that it will be used unless the `voice` in `parameters` is set to any of the following values instead: \""
+                + '", "'.join(list(self.voices.keys()))
+                + '".'
+            )
+            path = self.voices[self.default_voice]
+        else:
+            voice = random.choice(list(self.voices.keys()))
+            path = self.voices[voice]
+
+            logger.warning(
+                f"Given that the `voice` in `parameters` is either not provided or empty, the default `voice` will be set to `{voice}` (random selection). It's recommended that the `voice` parameter is provided as `{{'inputs':'...','parameters':{{'voice':'{voice}',...}}}}`, with any of the following values: \""
+                + '", "'.join(list(self.voices.keys()))
+                + '".'
+            )
+
+        messages[0]["content"].append({"type": "audio", "path": path})
+
+        inputs = self.pipeline.tokenizer.apply_chat_template(messages, tokenize=False)  # type: ignore
+
         parameters = {}
         if payload.parameters:
-            parameters = payload.parameters.model_dump(exclude_none=True)
+            parameters = payload.parameters.model_dump(exclude={"voice"}, exclude_none=True)
 
-        output = self.pipeline(
-            payload.inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters}
-        )
+        output = self.pipeline(inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters})
         audio = output["audio"][0].squeeze()
 
         buf = BytesIO()

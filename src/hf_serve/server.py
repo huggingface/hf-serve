@@ -1009,7 +1009,10 @@ def launch(
             from hf_serve.openai.tasks.speech import Speech
 
             speech = Speech(
-                pipeline=predictor.pipeline, voices=predictor.voices, noise_scheduler=predictor.noise_scheduler
+                pipeline=predictor.pipeline,
+                voices=predictor.voices,
+                noise_scheduler=predictor.noise_scheduler,
+                default_voice=predictor.default_voice,
             )
             app.include_router(router=speech_router(predictor=speech))
             app.include_router(

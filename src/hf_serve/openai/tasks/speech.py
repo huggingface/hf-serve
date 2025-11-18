@@ -1,4 +1,5 @@
 import os
+import random
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
@@ -6,7 +7,7 @@ from typing import TYPE_CHECKING, Dict, Optional, Union
 
 import soundfile as sf
 
-# from hf_serve.logging import logger
+from hf_serve.logging import logger
 from hf_serve.openai.schemas.speech import SpeechInput, SpeechOutput
 
 if TYPE_CHECKING:
@@ -20,6 +21,7 @@ class Speech:
         pipeline: "TextToAudioPipeline",
         voices: Dict[str, Path],
         noise_scheduler: Optional["DPMSolverMultistepScheduler"] = None,
+        default_voice: Optional[str] = None,
     ) -> None:
         super().__init__()
 
@@ -27,6 +29,13 @@ class Speech:
         self.noise_scheduler = noise_scheduler
 
         self.voices = voices
+        self.default_voice = default_voice
+
+        logger.info(
+            f'The `voice` parameter in `v1/audio/speech` can be any of the following values: "'
+            + '", "'.join(list(self.voices.keys()))
+            + "\". If either `voice` is not provided or `voice=''` then the default voice in `DEFAULT_VOICE={self.default_voice}` will be used if not None, else a random voice will be selected from the available voices. Note that providing the `voice` parameter is recommended to ensure consistency with the voice used to generate the audio."
+        )
 
     @property
     @lru_cache(maxsize=1)
@@ -52,20 +61,38 @@ class Speech:
 
         match payload.voice:
             case "":
-                path = next(iter(self.voices.values()))
+                if self.default_voice:
+                    voice, path = self.default_voice, self.voices[self.default_voice]
+
+                    logger.info(
+                        f'[{request_id}] Given that `voice` was not provided or provided empty but the `DEFAULT_VOICE` is set to `{self.default_voice}` it will be used to generate the audio. If you intend to use another voice then you need to set the `voice` parameter is provided with any of the following values: "'
+                        + '", "'.join(list(self.voices.keys()))
+                        + '".'
+                    )
+                else:
+                    voice, path = random.choice(list(self.voices.items()))
+
+                    logger.info(
+                        f"[{request_id}] Given that `voice` was not provided or provided empty (and `DEFAULT_VOICE` is not set either), the default voice will be `{voice}`. In any case, it's recommended that the `voice` parameter is provided with any of the following values: \""
+                        + '", "'.join(list(self.voices.keys()))
+                        + '".'
+                    )
             case _:
                 if payload.voice not in self.voices:
                     raise RuntimeError(
-                        f"The provided `voice={payload.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv('AUDIO_PATH')}`.\nPlease use any of the following voices instead: {', '.join(list(self.voices.keys()))}"
+                        f'[{request_id}] The provided `voice={payload.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
+                        + '", "'.join(list(self.voices.keys()))
+                        + '"'
                     )
 
                 path = self.voices[payload.voice]
 
+        print(path)
         messages[0]["content"].append({"type": "audio", "path": path})
 
         if self.pipeline.tokenizer is None:
             raise RuntimeError(
-                "The provided `pipeline` contains an invalid `tokenizer`. Please raise an issue at https://github.com/huggingface/hf-serve to help us debug and fix the issue."
+                f"[{request_id}] The provided `pipeline` contains an invalid `tokenizer`. Please raise an issue at https://github.com/huggingface/hf-serve to help us debug and fix the issue."
             )
 
         inputs = self.pipeline.tokenizer.apply_chat_template(messages, tokenize=False)
