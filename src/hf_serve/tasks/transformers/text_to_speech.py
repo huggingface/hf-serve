@@ -224,7 +224,7 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
         audio = output["audio"][0]
         if audio.ndim > 1:
             audio = audio.squeeze()
-        sampling_rate = int(sr[0]) if (sr := output.get("sampling_rate", None)) else 24000
+        sampling_rate = sr if (sr := output.get("sampling_rate", None)) else 24000
 
         buf = BytesIO()
         buf.name = "file.wav"

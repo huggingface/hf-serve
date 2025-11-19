@@ -81,7 +81,7 @@ class Speech:
 
         inputs = self.pipeline.tokenizer.apply_chat_template(messages, tokenize=False)
 
-        output = self.pipeline.__call__(
+        output = self.pipeline(
             inputs,
             preprocess_params={"audio": self.audios[payload.voice]},
             generate_kwargs={
@@ -96,7 +96,7 @@ class Speech:
         audio = output["audio"][0]
         if audio.ndim > 1:
             audio = audio.squeeze()
-        sampling_rate = int(sr[0]) if (sr := output.get("sampling_rate", None)) else 24000
+        sampling_rate = sr if (sr := output.get("sampling_rate", None)) else 24000
 
         buf = BytesIO()
         buf.name = f"file.{payload.response_format}"
