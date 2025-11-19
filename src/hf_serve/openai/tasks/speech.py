@@ -80,7 +80,10 @@ class Speech:
         inputs = self.pipeline.tokenizer.apply_chat_template(messages, tokenize=False)
 
         output = self.pipeline(inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler})
-        audio = output["audio"][0].squeeze()
+
+        audio = output["audio"][0]
+        if audio.ndim > 1:
+            audio = audio.squeeze()
 
         buf = BytesIO()
         buf.name = f"file.{payload.response_format}"

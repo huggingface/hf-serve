@@ -201,7 +201,10 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
             parameters = payload.parameters.model_dump(exclude={"voice"}, exclude_none=True)
 
         output = self.pipeline(inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters})
-        audio = output["audio"][0].squeeze()
+
+        audio = output["audio"][0]
+        if audio.ndim > 1:
+            audio = audio.squeeze()
 
         buf = BytesIO()
         buf.name = "file.wav"
