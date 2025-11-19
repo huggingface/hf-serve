@@ -79,7 +79,16 @@ class Speech:
 
         inputs = self.pipeline.tokenizer.apply_chat_template(messages, tokenize=False)
 
-        output = self.pipeline(inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler})
+        output = self.pipeline.__call__(
+            inputs,
+            generate_kwargs={
+                "noise_scheduler": self.noise_scheduler,
+                "max_new_tokens": self.pipeline.model.generation_config.max_new_tokens
+                if self.pipeline.model.generation_config is not None
+                and hasattr(self.pipeline.model.generation_config, "max_new_tokens")
+                else None,
+            },
+        )
 
         audio = output["audio"][0]
         if audio.ndim > 1:

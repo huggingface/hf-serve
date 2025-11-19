@@ -200,6 +200,14 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude={"voice"}, exclude_none=True)
 
+        if "max_new_tokens" not in parameters:
+            parameters["max_new_tokens"] = (
+                self.pipeline.model.generation_config.max_new_tokens
+                if self.pipeline.model.generation_config is not None
+                and hasattr(self.pipeline.model.generation_config, "max_new_tokens")
+                else None
+            )
+
         output = self.pipeline(inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters})
 
         audio = output["audio"][0]
