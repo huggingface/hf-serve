@@ -84,10 +84,11 @@ class Speech:
         audio = output["audio"][0]
         if audio.ndim > 1:
             audio = audio.squeeze()
+        sampling_rate = int(sr[0]) if (sr := output.get("sampling_rate", None)) else 24000
 
         buf = BytesIO()
         buf.name = f"file.{payload.response_format}"
-        sf.write(buf, audio, 24000, format=payload.response_format)
+        sf.write(buf, audio, sampling_rate, format=payload.response_format)
         buf.seek(0)
 
         return SpeechOutput(root=buf.read())
