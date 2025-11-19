@@ -131,6 +131,10 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
                 f"The provided `AUDIO_PATH={audio_path}` does not contain any audio (wav) file, hence it's not valid as it doesn't contain the required audio files for the voices."
             )
 
+        from transformers.audio_utils import load_audio_librosa
+
+        self.audios = {k: load_audio_librosa(v.as_posix(), sampling_rate=24000) for k, v in self.voices.items()}
+
         self.default_voice = os.getenv("DEFAULT_VOICE", None)
         if self.default_voice and self.default_voice not in self.voices:
             raise ValueError(
@@ -151,6 +155,7 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
+            no_processor=False,
         )
 
         if torch.mps.is_available():
@@ -174,14 +179,16 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
                     + '".'
                 )
 
-            path = self.voices[payload.parameters.voice]
+            voice = payload.parameters.voice
+            path = self.voices[voice]
         elif self.default_voice is not None:
             logger.info(
                 f"The `voice` parameter inside `parameters` hasn't been provided but the `DEFAULT_VOICE` is set to `{self.default_voice}`, meaning that it will be used unless the `voice` in `parameters` is set to any of the following values instead: \""
                 + '", "'.join(list(self.voices.keys()))
                 + '".'
             )
-            path = self.voices[self.default_voice]
+            voice = self.default_voice
+            path = self.voices[voice]
         else:
             voice = random.choice(list(self.voices.keys()))
             path = self.voices[voice]
@@ -208,7 +215,11 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
                 else None
             )
 
-        output = self.pipeline(inputs, generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters})
+        output = self.pipeline(
+            inputs,
+            preprocess_params={"audio": self.audios[voice]},
+            generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters},
+        )
 
         audio = output["audio"][0]
         if audio.ndim > 1:
