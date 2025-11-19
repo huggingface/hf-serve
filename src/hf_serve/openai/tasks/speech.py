@@ -1,5 +1,4 @@
 import os
-import random
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
@@ -11,6 +10,7 @@ from hf_serve.logging import logger
 from hf_serve.openai.schemas.speech import SpeechInput, SpeechOutput
 
 if TYPE_CHECKING:
+    import numpy as np
     from diffusers.schedulers.scheduling_dpmsolver_multistep import DPMSolverMultistepScheduler
     from transformers import TextToAudioPipeline
 
@@ -20,6 +20,7 @@ class Speech:
         self,
         pipeline: "TextToAudioPipeline",
         voices: Dict[str, Path],
+        audios: Dict[str, "np.ndarray"],
         noise_scheduler: Optional["DPMSolverMultistepScheduler"] = None,
     ) -> None:
         super().__init__()
@@ -28,6 +29,7 @@ class Speech:
         self.noise_scheduler = noise_scheduler
 
         self.voices = voices
+        self.audios = audios
 
         logger.info(
             f'The `voice` parameter in `v1/audio/speech` can be any of the following values: "'
@@ -81,6 +83,7 @@ class Speech:
 
         output = self.pipeline.__call__(
             inputs,
+            preprocess_params={"audio": self.audios[payload.voice]},
             generate_kwargs={
                 "noise_scheduler": self.noise_scheduler,
                 "max_new_tokens": self.pipeline.model.generation_config.max_new_tokens

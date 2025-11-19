@@ -1011,6 +1011,7 @@ def launch(
             speech = Speech(
                 pipeline=predictor.pipeline,
                 voices=predictor.voices,
+                audios=predictor.audios,
                 noise_scheduler=predictor.noise_scheduler,
             )
             app.include_router(router=speech_router(predictor=speech))
