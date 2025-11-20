@@ -25,15 +25,16 @@ class MaskGenerationInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
     parameters: Optional[MaskGenerationParameters] = Field(default=None)
 
-    # model_config = ConfigDict(
-    #     json_schema_extra={
-    #         "examples": [
-    #             {
-    #                 "inputs": "https://huggingface.co/datasets/hf-internal-testing/sam2-fixtures/resolve/main/truck.jpg"
-    #             }
-    #         ]
-    #     },
-    # )
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "inputs": "https://huggingface.co/datasets/hf-internal-testing/sam2-fixtures/resolve/main/truck.jpg",
+                    "parameters": {"points_per_batch": 64},
+                }
+            ]
+        },
+    )
 
 
 class MaskGenerationFormInput(BaseModel):
