@@ -4,7 +4,7 @@ from typing import get_args
 
 from hf_serve.compatibility.backwards import ensure_backwards_compatibility
 from hf_serve.server import launch
-from hf_serve.types import TaskTypes
+from hf_serve.types.task import TaskTypes
 
 # NOTE: required in order for the actual values for the environment variables
 # to be set before the defaults are provided to the `argparse` arguments

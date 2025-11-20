@@ -1,11 +1,12 @@
 from typing import Annotated, List, Literal, Optional, Union
 
-from fastapi import File, Form
+from fastapi import Form
 from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types.form import FileForm, FloatForm
 
 
 class ImageSegmentationParameters(BaseModel):
@@ -37,11 +38,12 @@ class ImageSegmentationInput(BaseModel):
 
 
 class ImageSegmentationFormInput(BaseModel):
-    file: Annotated[bytes, File(...)]
-    mask_threshold: Optional[Annotated[float, Form()]] = None
-    overlap_mask_area_threshold: Optional[Annotated[float, Form()]] = None
+    file: FileForm
+
+    mask_threshold: Optional[FloatForm] = None
+    overlap_mask_area_threshold: Optional[FloatForm] = None
     subtask: Optional[Annotated[Literal["instance", "panoptic", "semantic"], Form()]] = None
-    threshold: Optional[Annotated[float, Form()]] = None
+    threshold: Optional[FloatForm] = None
 
     model_config = ConfigDict(extra="forbid")
 

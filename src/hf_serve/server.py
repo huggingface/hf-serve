@@ -23,7 +23,7 @@ from hf_serve.routers import (
     predict_router,
 )
 from hf_serve.server_utils import log_available_routes
-from hf_serve.types import TaskTypes
+from hf_serve.types.task import TaskTypes
 
 app = FastAPI(title="Hugging Face Serve API")
 
