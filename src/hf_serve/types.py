@@ -33,6 +33,7 @@ TaskTypes = Literal[
     "zero-shot-image-classification",
     "image-segmentation",
     "object-detection",
+    "mask-generation",
     "custom",  # NOTE: ideally not recommended for production use-cases as it requires `trust_remote_code=True`, but here to ensure compatibility with the former `huggingface-inference-toolkit`
 ]
 

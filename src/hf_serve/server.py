@@ -1016,6 +1016,43 @@ def launch(
                 raise RuntimeError(
                     f"Attempted to load a custom handler i.e. the class `{os.getenv('CUSTOM_HANDLER')}` from `{model_dir=}/{os.getenv('CUSTOM_HANDLER_FILE')}`, but either didn't find any or couldn't load it (as per \"{e}\")"
                 )
+        case "mask-generation":
+            from hf_serve.tasks.transformers.mask_generation import (
+                MaskGeneration,
+                MaskGenerationInput,
+                MaskGenerationOutput,
+            )
+
+            predictor = MaskGeneration(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
+            )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                from hf_serve.compatibility.google.schemas.transformers.mask_generation import (
+                    MaskGenerationInputForGoogle,
+                    MaskGenerationOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=MaskGenerationInputForGoogle,
+                        output_schema=MaskGenerationOutputForGoogle,
+                        inner_input_schema=MaskGenerationInput,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=MaskGenerationInput,
+                        output_schema=MaskGenerationOutput,
+                    )
+                )
+
         case _:
             raise ValueError(f"{task=} not supported!")
 
