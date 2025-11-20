@@ -6,11 +6,19 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
-from hf_serve.types import FileForm
+from hf_serve.types.form import FileForm, FloatForm, IntForm
 
 
-# TODO(alvarobartt): Add `parameters` from https://huggingface.co/docs/transformers/v4.57.1/en/main_classes/pipelines#transformers.MaskGenerationPipeline.__call__
-class MaskGenerationParameters(BaseModel): ...
+class MaskGenerationParameters(BaseModel):
+    mask_threshold: Optional[float] = Field(default=0.0)
+    pred_iou_thresh: Optional[float] = Field(default=0.88)
+    stability_score_thresh: Optional[float] = Field(default=0.95)
+    stability_score_offset: Optional[int] = Field(default=1)
+    crops_nms_thresh: Optional[float] = Field(default=0.7)
+    crops_n_layers: Optional[int] = Field(default=0)
+    crop_overlap_ratio: Optional[float] = Field(default=512 / 1500)
+    crop_n_points_downscale_factor: Optional[int] = Field(default=1)
+    timeout: Optional[float] = Field(default=None)
 
 
 class MaskGenerationInput(BaseModel):
@@ -30,7 +38,16 @@ class MaskGenerationInput(BaseModel):
 
 class MaskGenerationFormInput(BaseModel):
     file: FileForm
-    # TODO(alvarobartt): Add `parameters` from https://huggingface.co/docs/transformers/v4.57.1/en/main_classes/pipelines#transformers.MaskGenerationPipeline.__call__
+
+    mask_threshold: Optional[FloatForm] = Field(default=0.0)
+    pred_iou_thresh: Optional[FloatForm] = Field(default=0.88)
+    stability_score_thresh: Optional[FloatForm] = Field(default=0.95)
+    stability_score_offset: Optional[IntForm] = Field(default=1)
+    crops_nms_thresh: Optional[FloatForm] = Field(default=0.7)
+    crops_n_layers: Optional[IntForm] = Field(default=0)
+    crop_overlap_ratio: Optional[FloatForm] = Field(default=512 / 1500)
+    crop_n_points_downscale_factor: Optional[IntForm] = Field(default=1)
+    timeout: Optional[FloatForm] = Field(default=None)
 
     model_config = ConfigDict(extra="forbid")
 
