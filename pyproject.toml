@@ -80,7 +80,7 @@ conflicts = [
 ]
 
 [tool.uv.sources]
-transformers = { git = "https://github.com/pengzhiliang/transformers", rev = "main" }
+transformers = { git = "https://github.com/pengzhiliang/transformers", rev = "32ddd2798a1cbae9cc8c4c6ce481f0d45e9f5dae" }
 # diffusers = { git = "https://github.com/huggingface/diffusers", rev = "main" }
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
