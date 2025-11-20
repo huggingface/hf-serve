@@ -4,7 +4,7 @@ from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from PIL.Image import Image as PILImage
+from PIL.Image import Image as ImageType
 
 from hf_serve.logging import logger
 from hf_serve.openai.schemas.images_generations import (
@@ -76,7 +76,7 @@ class ImagesGenerations:
                 logger.error(message)
                 raise ValueError(message)
 
-        images: List[PILImage] = self.pipeline(**payload_json)[0]  # type: ignore
+        images: List[ImageType] = self.pipeline(**payload_json)[0]  # type: ignore
 
         return ImagesGenerationsOutput(
             background=None,

@@ -1,7 +1,7 @@
 from typing import Any, Dict
 
-import PIL
 from fastapi import APIRouter, HTTPException
+from PIL.Image import Image as ImageType
 from pydantic import ConfigDict, RootModel
 
 from hf_serve.serde import Image
@@ -12,8 +12,9 @@ def router(handler: Any) -> APIRouter:
 
     class ArbitraryResponse(RootModel):
         root: Any
+
         model_config = ConfigDict(
-            json_encoders={PIL.Image.Image: Image.serialize},  # type: ignore
+            json_encoders={ImageType: Image.serialize},
             arbitrary_types_allowed=True,
         )
 
