@@ -86,9 +86,7 @@ class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutpu
         if payload.parameters:
             parameters = payload.parameters.model_dump(exclude_none=True)
 
-        image_input = Image.deserialize(payload.inputs)
-
-        results = self.pipeline(image_input, **parameters)
+        results = self.pipeline(Image.deserialize(payload.inputs), **parameters)
 
         # Convert masks to base64 strings if they are PIL images
         for result in results:
