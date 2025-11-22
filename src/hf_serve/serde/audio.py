@@ -24,3 +24,7 @@ class Audio:
             raise ValueError(
                 f"Input '{audio}' is neither a valid base64 string, public URL, nor a valid file system path"
             )
+
+    @staticmethod
+    def serialize(audio: bytes) -> str:
+        return base64.b64encode(audio).decode("utf-8")

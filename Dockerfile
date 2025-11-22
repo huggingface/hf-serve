@@ -60,6 +60,14 @@ COPY --chown=huggingface:huggingface . .
 
 RUN uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 
+# NOTE: The following is specific to `microsoft/VibeVoice-1.5B` so might change in the future
+RUN hf download bezzam/vibevoice_samples --repo-type dataset --local-dir audio --include "voices/*.wav" && \
+    mv audio/voices/*.wav audio/ && \
+    rmdir audio/voices
+
+ENV AUDIO_PATH=/home/huggingface/app/audio \
+    DEFAULT_AUDIO=en-Alice_woman
+
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
 

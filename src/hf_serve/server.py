@@ -61,7 +61,7 @@ def launch(
 ) -> None:
     if model_id and model_dir:
         logger.warning(
-            f"Both {model_id=} and {model_dir=} have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
+            f"Both `{model_id=}` and `{model_dir=}` have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
         )
         model_id = None
 
@@ -74,7 +74,7 @@ def launch(
     # environment variable is set
     if cloud is None and os.getenv("AIP_MODE") == "PREDICTION":
         logger.info(
-            f"Given that the environment variable `API_MODE=PREDICTION`, the `--cloud` arg will be enforced to `google` if none is provided."
+            "Given that the environment variable `API_MODE=PREDICTION`, the `--cloud` arg will be enforced to `google` if none is provided."
         )
         cloud = "google"
 
@@ -125,7 +125,7 @@ def launch(
 
     app.include_router(router=metrics_router)
 
-    logger.info(f"`hf-serve` starting for model {model_id or model_dir} with {task=} on {device=}")
+    logger.info(f"`hf-serve` starting for model `{model_id or model_dir}` with `{task=}` on `{device=}`")
 
     match task:
         # openai-compatible
@@ -169,7 +169,7 @@ def launch(
                 from hf_serve.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
-                    model=predictor.pipeline.model,
+                    model=predictor.pipeline.model,  # type: ignore
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
@@ -989,6 +989,34 @@ def launch(
                         output_schema=ZeroShotImageClassificationOutput,
                     )
                 )
+        # tentative tts
+        case "text-to-audio" | "text-to-speech" | "tts":
+            from hf_serve.tasks.transformers.text_to_speech import (
+                TextToSpeech,
+                TextToSpeechInput,
+                TextToSpeechOutput,
+            )
+
+            predictor = TextToSpeech(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+
+            app.include_router(
+                router=predict_router(
+                    predictor=predictor, input_schema=TextToSpeechInput, output_schema=TextToSpeechOutput
+                )
+            )
+
+            from hf_serve.openai.routers import models_router, speech_router
+            from hf_serve.openai.tasks.speech import Speech
+
+            speech = Speech(
+                pipeline=predictor.pipeline,
+                audios=predictor.audios,
+                noise_scheduler=predictor.noise_scheduler,
+            )
+            app.include_router(router=speech_router(predictor=speech))
+            app.include_router(
+                router=models_router(model_id=speech.model_id or "unknown", timestamp=int(time.time()))
+            )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
@@ -1024,7 +1052,7 @@ def launch(
 
         app.include_router(router=azure_router)
 
-    logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
+    logger.info(f"Loaded `{model_id or model_dir=}` with `{task=}` on `{device=}`.")
     log_available_routes(app=app)
 
     uvicorn.run(
