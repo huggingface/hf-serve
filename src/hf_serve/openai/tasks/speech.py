@@ -2,7 +2,7 @@ import os
 from functools import lru_cache
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Dict, Optional, Tuple, Union
 
 import soundfile as sf
 
@@ -19,8 +19,7 @@ class Speech:
     def __init__(
         self,
         pipeline: "TextToAudioPipeline",
-        voices: Dict[str, Path],
-        audios: Dict[str, "np.ndarray"],
+        audios: Dict[str, Tuple[Path, "np.ndarray"]],
         noise_scheduler: Optional["DPMSolverMultistepScheduler"] = None,
     ) -> None:
         super().__init__()
@@ -28,12 +27,11 @@ class Speech:
         self.pipeline = pipeline
         self.noise_scheduler = noise_scheduler
 
-        self.voices = voices
         self.audios = audios
 
         logger.info(
             f'The `voice` parameter in `v1/audio/speech` can be any of the following values: "'
-            + '", "'.join(list(self.voices.keys()))
+            + '", "'.join(list(self.audios.keys()))
             + '".'
         )
 
@@ -57,19 +55,21 @@ class Speech:
         # NOTE: `stream_format` is supported, but only for "audio" given that audio streaming is not yet in `transformers`
         # stream_format: Optional[Literal["audio", "sse"]] = Field(default="audio")
 
-        if payload.voice not in self.voices:
+        if payload.voice not in self.audios:
             raise RuntimeError(
                 f'[{request_id}] The provided `voice={payload.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
-                + '", "'.join(list(self.voices.keys()))
+                + '", "'.join(list(self.audios.keys()))
                 + '"'
             )
+
+        path, audio = self.audios[payload.voice]
 
         messages = [
             {
                 "role": "0",
                 "content": [
                     {"type": "text", "text": payload.input_},
-                    {"type": "audio", "path": self.voices[payload.voice]},
+                    {"type": "audio", "path": path.as_posix()},
                 ],
             }
         ]
@@ -83,7 +83,7 @@ class Speech:
 
         output = self.pipeline(
             inputs,
-            preprocess_params={"audio": self.audios[payload.voice]},
+            preprocess_params={"audio": audio},
             generate_kwargs={
                 "noise_scheduler": self.noise_scheduler,
                 "max_new_tokens": self.pipeline.model.generation_config.max_new_tokens
@@ -93,14 +93,14 @@ class Speech:
             },
         )
 
-        audio = output["audio"][0]
-        if audio.ndim > 1:
-            audio = audio.squeeze()
+        audio_out = output["audio"][0]
+        if audio_out.ndim > 1:
+            audio_out = audio_out.squeeze()
         sampling_rate = sr if (sr := output.get("sampling_rate", None)) else 24000
 
         buf = BytesIO()
         buf.name = f"file.{payload.response_format}"
-        sf.write(buf, audio, sampling_rate, format=payload.response_format)
+        sf.write(buf, audio_out, sampling_rate, format=payload.response_format)
         buf.seek(0)
 
         return SpeechOutput(root=buf.read())

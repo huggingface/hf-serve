@@ -1010,7 +1010,6 @@ def launch(
 
             speech = Speech(
                 pipeline=predictor.pipeline,
-                voices=predictor.voices,
                 audios=predictor.audios,
                 noise_scheduler=predictor.noise_scheduler,
             )

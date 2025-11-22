@@ -2,7 +2,7 @@ import os
 import random
 from io import BytesIO
 from pathlib import Path
-from typing import Literal, Optional, Union
+from typing import Any, Dict, List, Literal, Optional, Union
 
 import soundfile as sf
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
@@ -81,10 +81,11 @@ class TextToSpeechParameters(BaseModel):
 
 
 class TextToSpeechInput(BaseModel):
-    inputs: str
+    # NOTE: `inputs` as per the Hugging Face API Specification should only be a string, but given that one interesting
+    # use case for some `text-to-speech` models is generating conversations, it also allows a conversation-like input
+    inputs: Union[str, List[Dict[str, Any]]]
     parameters: Optional[TextToSpeechParameters] = None
 
-    # NOTE: The example has been temporarily excluded to prevent long start up times
     # model_config = ConfigDict(
     #     json_schema_extra={
     #         "examples": [
@@ -104,6 +105,13 @@ class TextToSpeechOutput(BaseModel):
     )
 
 
+# TODO: Will the `AUDIO_PATH` be required for every `text-to-speech` model, or rather just for a handful collection
+# of those? In such case, should `AUDIO_PATH` be optional? If so, what should we do if `AUDIO_PATH` not provided
+# but *required*, given that we don't know that in advance?
+# NOTE: This pipeline has only been extensively tested for VibeVoice, this being said, it should still be considered
+# experimental
+# TODO: Add a `decorator` as `@experimental` to flag the experimental pipelines given that now that all the standard
+# `huggingface-inference-toolkit` tasks are covered, we'll start adding support for other tasks as e.g. `text-to-speech`
 class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
     def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
         super().__init__()
@@ -125,21 +133,21 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
                 f"The provided `AUDIO_PATH={audio_path}` doesn't contain any valid audio (wav) file, required for the `text-to-speech` model to generate the audio."
             )
 
-        self.voices = {file.stem: audio_path / file for file in self.audio_path.glob("*.wav")}
-        if len(self.voices) < 1:
+        audios = {file.stem: audio_path / file for file in self.audio_path.glob("*.wav")}
+        if len(audios) < 1:
             raise RuntimeError(
                 f"The provided `AUDIO_PATH={audio_path}` does not contain any audio (wav) file, hence it's not valid as it doesn't contain the required audio files for the voices."
             )
 
         from transformers.audio_utils import load_audio_librosa
 
-        self.audios = {k: load_audio_librosa(v.as_posix(), sampling_rate=24000) for k, v in self.voices.items()}
+        self.audios = {k: (v, load_audio_librosa(v.as_posix(), sampling_rate=24000)) for k, v in audios.items()}
 
-        self.default_voice = os.getenv("DEFAULT_VOICE", None)
-        if self.default_voice and self.default_voice not in self.voices:
+        self.default_audio = os.getenv("DEFAULT_AUDIO", None)
+        if self.default_audio and self.default_audio not in self.audios:
             raise ValueError(
-                f'The provided `DEFAULT_VOICE={self.default_voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please make sure to unset the `DEFAULT_VOICE` environment variable or rather set it to any of the following values instead: "'
-                + '", "'.join(list(self.voices.keys()))
+                f'The provided `DEFAULT_AUDIO={self.default_audio}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please make sure to unset the `DEFAULT_AUDIO` environment variable or rather set it to any of the following values instead: "'
+                + '", "'.join(list(self.audios.keys()))
                 + '".'
             )
 
@@ -169,37 +177,65 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
         )
 
     def __call__(self, payload: TextToSpeechInput) -> TextToSpeechOutput:
-        messages = [{"role": "0", "content": [{"type": "text", "text": payload.inputs}]}]
+        if isinstance(payload.inputs, str):
+            if payload.parameters is not None and payload.parameters.voice is not None:
+                if payload.parameters.voice not in self.audios:
+                    raise ValueError(
+                        f'The provided `voice={payload.parameters.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
+                        + '", "'.join(list(self.audios.keys()))
+                        + '".'
+                    )
 
-        if payload.parameters is not None and payload.parameters.voice is not None:
-            if payload.parameters.voice not in self.voices:
-                raise ValueError(
-                    f'The provided `voice={payload.parameters.voice}` is not listed among the available voices within the provided `AUDIO_PATH={os.getenv("AUDIO_PATH")}`. Please use any of the following voices instead: "'
-                    + '", "'.join(list(self.voices.keys()))
+                path, audio = self.audios[payload.parameters.voice]
+            elif self.default_audio is not None:
+                logger.info(
+                    f"The `voice` parameter inside `parameters` hasn't been provided but the `DEFAULT_AUDIO` is set to `{self.default_audio}`, meaning that it will be used unless the `voice` in `parameters` is set to any of the following values instead: \""
+                    + '", "'.join(list(self.audios.keys()))
+                    + '".'
+                )
+                path, audio = self.audios[self.default_audio]
+            else:
+                voice = random.choice(list(self.audios.keys()))
+                path, audio = self.audios[voice]
+
+                logger.warning(
+                    f"Given that the `voice` in `parameters` is either not provided or empty, the default `voice` will be set to `{voice}` (random selection). It's recommended that the `voice` parameter is provided as `{{'inputs':'...','parameters':{{'voice':'{voice}',...}}}}`, with any of the following values: \""
+                    + '", "'.join(list(self.audios.keys()))
                     + '".'
                 )
 
-            voice = payload.parameters.voice
-            path = self.voices[voice]
-        elif self.default_voice is not None:
-            logger.info(
-                f"The `voice` parameter inside `parameters` hasn't been provided but the `DEFAULT_VOICE` is set to `{self.default_voice}`, meaning that it will be used unless the `voice` in `parameters` is set to any of the following values instead: \""
-                + '", "'.join(list(self.voices.keys()))
-                + '".'
-            )
-            voice = self.default_voice
-            path = self.voices[voice]
-        else:
-            voice = random.choice(list(self.voices.keys()))
-            path = self.voices[voice]
+            messages = [
+                {
+                    "role": "0",
+                    "content": [
+                        {"type": "text", "text": payload.inputs},
+                        {"type": "audio", "path": path.as_posix()},
+                    ],
+                }
+            ]
 
-            logger.warning(
-                f"Given that the `voice` in `parameters` is either not provided or empty, the default `voice` will be set to `{voice}` (random selection). It's recommended that the `voice` parameter is provided as `{{'inputs':'...','parameters':{{'voice':'{voice}',...}}}}`, with any of the following values: \""
-                + '", "'.join(list(self.voices.keys()))
-                + '".'
-            )
+            preprocess_params = {"audio": audio}
+        # NOTE: Non-compliant with the current Hugging Face API, but supports conversation-like inputs too
+        elif isinstance(payload.inputs, list):
+            messages = payload.inputs
 
-        messages[0]["content"].append({"type": "audio", "path": path})
+            paths, audios = [], []
+            for message in messages:
+                for content in message["content"]:
+                    if content.get("type") == "audio" and "path" in content:
+                        # NOTE: If the `path` (provided as *only* the filename e.g. `en-Frank_man` for VibeVoice)
+                        # is not in the "processed" paths, then add it to the list to prevent from loading the
+                        # audio more than once (not loading but rather creating a list of those, but given that
+                        # it needs to be a set, we skip the duplicates). Then we add the `audio` to `audios` if
+                        # not there already, and update the `content["path"]` to point to the file path rather than
+                        # the filename.
+                        path, audio = self.audios[content["path"]]
+                        if content["path"] not in paths:
+                            paths.append(content["path"])
+                            audios.append(audio)
+                        content["path"] = path.as_posix()
+
+            preprocess_params = {"audio": audios}
 
         inputs = self.pipeline.tokenizer.apply_chat_template(messages, tokenize=False)  # type: ignore
 
@@ -217,7 +253,7 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
 
         output = self.pipeline(
             inputs,
-            preprocess_params={"audio": self.audios[voice]},
+            preprocess_params=preprocess_params,
             generate_kwargs={"noise_scheduler": self.noise_scheduler, **parameters},
         )
 

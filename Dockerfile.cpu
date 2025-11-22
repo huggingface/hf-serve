@@ -54,7 +54,7 @@ RUN hf download bezzam/vibevoice_samples --repo-type dataset --local-dir audio -
     rmdir audio/voices
 
 ENV AUDIO_PATH=/home/huggingface/app/audio \
-    DEFAULT_VOICE=en-Alice_woman
+    DEFAULT_AUDIO=en-Alice_woman
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
