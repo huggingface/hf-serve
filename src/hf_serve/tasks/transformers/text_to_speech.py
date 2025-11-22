@@ -2,10 +2,10 @@ import os
 import random
 from io import BytesIO
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 import soundfile as sf
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel
 
 from hf_serve.logging import logger
 from hf_serve.serde.audio import Audio
@@ -80,10 +80,36 @@ class TextToSpeechParameters(BaseModel):
     voice: Optional[str] = Field(default=None)
 
 
+class TextMessage(BaseModel):
+    # NOTE: Using `alias="type"` because `type` is a reserved keyword. Note that when dumping the schema into
+    # a JSON, you should use `.model_dump(by_alias=True)` so that the dump uses the alias rather than `type_`
+    type_: Literal["text"] = Field(..., alias="type")
+    text: str
+
+
+class AudioMessage(BaseModel):
+    # NOTE: Using `alias="type"` because `type` is a reserved keyword. Note that when dumping the schema into
+    # a JSON, you should use `.model_dump(by_alias=True)` so that the dump uses the alias rather than `type_`
+    type_: Literal["audio"] = Field(..., alias="type")
+    path: str
+
+
+MessageType = Annotated[Union[TextMessage, AudioMessage], Field(discriminator="type_")]
+
+
+class TextToSpeechMessage(BaseModel):
+    role: str
+    content: List[MessageType]
+
+
+class TextToSpeechMessages(RootModel):
+    root: List[TextToSpeechMessage]
+
+
 class TextToSpeechInput(BaseModel):
     # NOTE: `inputs` as per the Hugging Face API Specification should only be a string, but given that one interesting
     # use case for some `text-to-speech` models is generating conversations, it also allows a conversation-like input
-    inputs: Union[str, List[Dict[str, Any]]]
+    inputs: Union[str, TextToSpeechMessages]
     parameters: Optional[TextToSpeechParameters] = None
 
     model_config = ConfigDict(
@@ -91,7 +117,7 @@ class TextToSpeechInput(BaseModel):
             "examples": [
                 {"inputs": "What is the capital of France? Paris is the capital of France.", "parameters": None}
             ]
-        }
+        },
     )
 
 
@@ -216,24 +242,23 @@ class TextToSpeech(Predictor[TextToSpeechInput, TextToSpeechOutput]):
 
             preprocess_params = {"audio": audio}
         # NOTE: Non-compliant with the current Hugging Face API, but supports conversation-like inputs too
-        elif isinstance(payload.inputs, list):
-            messages = payload.inputs
-
-            paths, audios = [], []
-            for message in messages:
-                for content in message["content"]:
-                    if content.get("type") == "audio" and "path" in content:
+        elif isinstance(payload.inputs, TextToSpeechMessages):
+            messages, paths, audios = [], [], []
+            for message in payload.inputs.root:
+                for content in message.content:
+                    if isinstance(content, AudioMessage):
                         # NOTE: If the `path` (provided as *only* the filename e.g. `en-Frank_man` for VibeVoice)
                         # is not in the "processed" paths, then add it to the list to prevent from loading the
                         # audio more than once (not loading but rather creating a list of those, but given that
                         # it needs to be a set, we skip the duplicates). Then we add the `audio` to `audios` if
-                        # not there already, and update the `content["path"]` to point to the file path rather than
+                        # not there already, and update the `content.path` to point to the file path rather than
                         # the filename.
-                        path, audio = self.audios[content["path"]]
-                        if content["path"] not in paths:
-                            paths.append(content["path"])
+                        path, audio = self.audios[content.path]
+                        if content.path not in paths:
+                            paths.append(content.path)
                             audios.append(audio)
-                        content["path"] = path.as_posix()
+                        content.path = path.as_posix()
+                messages.append(message.model_dump(by_alias=True))
 
             preprocess_params = {"audio": audios}
 
