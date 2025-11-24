@@ -1,6 +1,4 @@
-from typing import Annotated, Literal
-
-from fastapi import File, Form
+from typing import Literal
 
 TaskTypes = Literal[
     "image-text-to-text",
@@ -33,13 +31,6 @@ TaskTypes = Literal[
     "zero-shot-image-classification",
     "image-segmentation",
     "object-detection",
+    "mask-generation",
     "custom",  # NOTE: ideally not recommended for production use-cases as it requires `trust_remote_code=True`, but here to ensure compatibility with the former `huggingface-inference-toolkit`
 ]
-
-IntForm = Annotated[int, Form()]
-
-FloatForm = Annotated[float, Form()]
-
-BoolForm = Annotated[bool, Form()]
-
-FileForm = Annotated[bytes, File(...)]

@@ -1,7 +1,7 @@
 from typing import Optional
 
-import PIL
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
+from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.logging import logger
@@ -61,8 +61,10 @@ class TextToImageInput(BaseModel):
 
 
 class TextToImageOutput(RootModel):
-    root: PIL.Image.Image  # type: ignore
+    root: ImageType
 
+    # NOTE: No serialization to bytes here, given that the Hugging Face API expects the `Accept` header to reply
+    # with the image rather than the bytes
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
 

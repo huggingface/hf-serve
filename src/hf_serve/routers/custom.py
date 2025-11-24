@@ -1,9 +1,10 @@
 from typing import Any, Dict
 
-import PIL
-from fastapi import APIRouter, HTTPException
-from pydantic import ConfigDict, RootModel
+from fastapi import APIRouter, Body, HTTPException, Request
+from PIL.Image import Image as ImageType
+from pydantic import ConfigDict, RootModel, ValidationError
 
+from hf_serve.logging import logger
 from hf_serve.serde import Image
 
 
@@ -12,8 +13,9 @@ def router(handler: Any) -> APIRouter:
 
     class ArbitraryResponse(RootModel):
         root: Any
+
         model_config = ConfigDict(
-            json_encoders={PIL.Image.Image: Image.serialize},  # type: ignore
+            json_encoders={ImageType: Image.serialize},
             arbitrary_types_allowed=True,
         )
 
@@ -21,12 +23,17 @@ def router(handler: Any) -> APIRouter:
     # that's the endpoint being hit within the Inference API widgets
     @router.post("/")
     @router.post("/predict")
-    async def predict(data: Dict[str, Any]) -> ArbitraryResponse:
+    async def predict(request: Request, payload: Dict[str, Any] = Body(...)) -> ArbitraryResponse:
+        request_id = getattr(request.state, "request_id", None)
+
         try:
-            return ArbitraryResponse(root=handler(data))
-        # TODO(alvarobartt): create better custom exceptions and handle those here with different
-        # error codes for I/O validation errors, serde errors, or pipeline errors
+            logger.info(f"[{request_id}] Received request with: {payload}")
+            return ArbitraryResponse(root=handler(payload))
+        except (ValueError, ValidationError) as e:
+            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+            raise HTTPException(status_code=400, detail=str(e))
         except Exception as e:
+            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))
 
     return router

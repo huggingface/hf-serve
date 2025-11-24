@@ -5,6 +5,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, fiel
 
 from hf_serve.serde import Audio
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.types.form import FileForm, StrForm
 
 
 class ZeroShotAudioClassificationParameters(BaseModel):
@@ -50,9 +51,10 @@ class ZeroShotAudioClassificationInput(BaseModel):
 
 
 class ZeroShotAudioClassificationFormInput(BaseModel):
-    file: Annotated[bytes, File(...)]
+    file: FileForm
+
     candidate_labels: Annotated[List[str], Form()]
-    hypothesis_template: Optional[Annotated[str, Form()]] = None
+    hypothesis_template: Optional[StrForm] = None
 
     model_config = ConfigDict(extra="forbid")
 
