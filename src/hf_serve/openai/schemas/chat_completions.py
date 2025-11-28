@@ -181,7 +181,7 @@ class ChatCompletionsInput(BaseModel):
     frequency_penalty: Optional[float] = Field(default=0.0, ge=-2.0, le=2.0)
     function_call: Optional[Union[Literal["none", "auto"], str]] = Field(default=None, deprecated=True)
     functions: Optional[Dict[str, Any]] = Field(default=None, deprecated=True)
-    logit_bias: Optional[Dict[int, Annotated[int, Field(default=None, ge=-100, le=100)]]] = Field(default=None)
+    logit_bias: Optional[Dict[int, Annotated[int, Field(..., ge=-100, le=100)]]] = Field(default=None)
     logprobs: Optional[bool] = Field(default=False)
     max_completion_tokens: Optional[int] = Field(
         default=None,
