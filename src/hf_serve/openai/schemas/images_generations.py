@@ -8,10 +8,10 @@ class ImagesGenerationsInput(BaseModel):
     background: Optional[Literal["transparent", "opaque", "auto"]] = Field(default=None)
     model: Optional[str]
     moderation: Optional[Literal["low", "auto"]] = Field(default=None)
-    n: Optional[Annotated[int, Field(default=1, ge=1, le=10)]]
-    output_compression: Optional[Annotated[int, Field(default=None, ge=0, le=100)]]
+    n: Optional[Annotated[int, Field(..., ge=1, le=10)]] = Field(default=None)
+    output_compression: Optional[Annotated[int, Field(..., ge=0, le=100)]] = Field(default=None)
     output_format: Literal["png", "jpeg", "webp"] = Field(default="png")
-    partial_images: Optional[Annotated[int, Field(default=None, ge=0, le=3)]]
+    partial_images: Optional[Annotated[int, Field(..., ge=0, le=3)]] = Field(default=None)
     quality: Optional[Literal["auto", "high", "medium", "low", "hd", "standard"]] = Field(default=None)
     response_format: Optional[Literal["url", "b64_json"]] = Field(default="url")
     size: Optional[str] = Field(default="auto")
