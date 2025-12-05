@@ -73,7 +73,8 @@ class Score(BaseModel):
     # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/rerank
     index: int = Field(validation_alias=AliasChoices("index", "corpus_id"))
     score: float
-    text: str
+    # NOTE: `text` is optional as it won't be provided is `return_documents=False`
+    text: Optional[str] = Field(default=None)
 
 
 class RankOutput(BaseModel):
