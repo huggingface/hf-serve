@@ -1,3 +1,4 @@
+from io import BytesIO
 from typing import Type, Union
 
 from fastapi import APIRouter, Body, Request, Response
@@ -5,7 +6,6 @@ from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, ValidationError
 
 from hf_serve.logging import logger
-from hf_serve.serde.image import Image
 from hf_serve.tasks.diffusers.text_to_image import TextToImage
 
 
@@ -40,14 +40,15 @@ def router(
         try:
             logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
 
-            image = predictor(payload=payload)
-            return Response(
-                content=Image.serialize(
-                    image=image.root,
-                    image_format=image_format,  # type: ignore
-                ),
-                media_type=media_type,
-            )
+            output = predictor(payload=payload)
+
+            # NOTE: We don't use the `Image.serialize` as we don't need to serialize it
+            # as base64 but rather provide the file bytes instead
+            buffer = BytesIO()
+            output.root.save(buffer, **{"format": image_format})
+            content = buffer.getvalue()
+
+            return Response(content=content, media_type=media_type)
         except (ValueError, ValidationError) as e:
             logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
             raise HTTPException(status_code=400, detail=str(e))
