@@ -73,7 +73,8 @@ class Score(BaseModel):
     # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/rerank
     index: int = Field(validation_alias=AliasChoices("index", "corpus_id"))
     score: float
-    text: str
+    # NOTE: `text` is optional as it won't be provided is `return_documents=False`
+    text: Optional[str] = Field(default=None)
 
 
 class RankOutput(BaseModel):
@@ -112,7 +113,9 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
             # and Sentence Transformers raises a warning starting on 5.1.0
             "dtype": dtype or "auto",
             # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
-            "attn_implementation": attn_implementation or "sdpa",
+            # NOTE: Default to `eager` instead of `sdpa`, even if `sdpa` tends to be supported and more
+            # performant, there are still some models that won't support it e.g. `sentence-transformers/all-mpnet-base-v2`
+            "attn_implementation": attn_implementation or "eager",
         }
         if device == "auto":
             model_kwargs["device_map"] = device
