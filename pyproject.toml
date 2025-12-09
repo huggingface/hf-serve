@@ -14,7 +14,7 @@ dependencies = [
     # version by default but rather the CPU-only one.
     # Reference: https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec
     "torchcodec<0.6",
-    "diffusers>=0.32.1",
+    "diffusers>=0.36.0",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
     "transformers[accelerate,hf-xet,hub-kernels,torch-speech]>=5.0.0",
