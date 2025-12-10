@@ -2,6 +2,7 @@ import argparse
 import os
 from typing import get_args
 
+from hf_serve.cli_utils import strtobool
 from hf_serve.compatibility.backwards import ensure_backwards_compatibility
 from hf_serve.server import launch
 from hf_serve.types.task import TaskTypes
@@ -73,6 +74,16 @@ parser.add_argument(
     help="The PyTorch dtype in which the model weights will be loaded, defaults to None meaning that the default dtype for the given model will be used i.e., the dtype in which the model weights are available. It can also be set via the environment variable `DTYPE`.",
 )
 
+parser.add_argument(
+    "--trust-remote-code",
+    type=bool,
+    # TODO(alvarobartt): Eventually review this, as I'm not super happy with this line here
+    default=strtobool(os.getenv("TRUST_REMOTE_CODE", None)) or False,
+    action="store_true",
+    required=False,
+    help="Whether to trust remote code execution from the Hugging Face Hub, more information at https://huggingface.co/docs/transformers/v4.57.3/en/models#custom-models. Defaults to False, as it's not recommended unless required.",
+)
+
 # TODO(juanjucm): validate accepted_mimetypes values based on the task.
 # Check processor's accepted file formats (e.g. ffmpeg for audio (https://www.ffmpeg.org/general.html#File-Formats))
 parser.add_argument(
@@ -114,6 +125,7 @@ def main() -> None:
         task=args.task,
         device=args.device,
         dtype=args.dtype,
+        trust_remote_code=args.trust_remote_code,
         # TODO(juanjucm): This can most likely be a list, and it will automatically be formatted this way
         # without having to handle that here
         accepted_mimetypes=args.accepted_mimetypes.split(",") if args.accepted_mimetypes else None,

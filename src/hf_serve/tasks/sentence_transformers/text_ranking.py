@@ -94,6 +94,7 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
         device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
         backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -129,6 +130,7 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
             backend=backend,
             model_kwargs=model_kwargs,
             activation_fn=torch.nn.Sigmoid(),
+            trust_remote_code=trust_remote_code,
         )
 
     def __call__(self, payload: TextRankingInput) -> TextRankingOutput:

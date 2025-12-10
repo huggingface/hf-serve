@@ -68,7 +68,9 @@ class MaskGenerationOutput(BaseModel):
 
 
 class MaskGeneration(Predictor[MaskGenerationInput, MaskGenerationOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
+    def __init__(
+        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+    ) -> None:
         super().__init__()
 
         import torch
@@ -87,6 +89,7 @@ class MaskGeneration(Predictor[MaskGenerationInput, MaskGenerationOutput]):
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         if device == "mps" and torch.mps.is_available():

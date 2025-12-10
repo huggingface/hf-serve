@@ -69,7 +69,13 @@ class TextToImageOutput(RootModel):
 
 
 class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "balanced") -> None:
+    def __init__(
+        self,
+        model_id: str,
+        dtype: Optional[str] = None,
+        device: str = "balanced",
+        trust_remote_code: bool = False,
+    ) -> None:
         super().__init__()
 
         if device == "auto":
@@ -96,6 +102,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             # NOTE: these are disabled to prevent generating black images
             safety_checker=None,
             requires_safety_checker=False,
+            trust_remote_code=trust_remote_code,
         )
 
         # NOTE: ValueError: It seems like you have activated a device mapping strategy on the pipeline so calling `enable_model_cpu_offload() isn't allowed. You can call `reset_device_map()` first and then call `enable_model_cpu_offload()`.

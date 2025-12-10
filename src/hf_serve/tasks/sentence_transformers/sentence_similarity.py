@@ -73,6 +73,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         # TODO: given that some tasks come with specific arguments, eventually rewrite `hf-serve` so that the
         # CLI interface is `hf-serve <TASK> --model-id ...` rather than `hf-serve --model-id ... --task ...`
         similarity_fn_name: Literal["cosine", "dot", "euclidean", "manhattan"] = "cosine",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -108,6 +109,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
             backend=backend,
             model_kwargs=model_kwargs,
             similarity_fn_name=similarity_fn_name,
+            trust_remote_code=trust_remote_code,
         )
 
     def __call__(self, payload: SentenceSimilarityInput) -> SentenceSimilarityOutput:

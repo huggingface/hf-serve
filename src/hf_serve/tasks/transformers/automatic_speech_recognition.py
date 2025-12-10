@@ -90,7 +90,9 @@ class AutomaticSpeechRecognitionOutput(BaseModel):
 
 
 class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, AutomaticSpeechRecognitionOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
+    def __init__(
+        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+    ) -> None:
         super().__init__()
 
         from hf_serve.installer import DynamicInstaller
@@ -122,6 +124,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         if torch.mps.is_available():

@@ -45,7 +45,9 @@ class TranslationOutput(RootModel):
 
 
 class Translation(Predictor[TranslationInput, TranslationOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
+    def __init__(
+        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+    ) -> None:
         super().__init__()
 
         import torch
@@ -63,6 +65,7 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
                 model_id,
                 dtype=getattr(torch, dtype) if dtype is not None else "auto",
                 device=device,
+                trust_remote_code=trust_remote_code,
             )
         except TypeError as e:
             # NOTE: Some models won't support the `device` argument as e.g. `facebook/nllb-200-3.3B`, which will
@@ -72,9 +75,10 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
                 self.model = AutoModelForSeq2SeqLM.from_pretrained(
                     model_id,
                     dtype=getattr(torch, dtype) if dtype is not None else "auto",
+                    trust_remote_code=trust_remote_code,
                 )
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id)
+        self.tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=trust_remote_code)
         self.pairs = {}
 
         # NOTE: Single pair i.e. the model is fine-tuned for a single translation pair
@@ -110,6 +114,7 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
                 model=self.model,
                 tokenizer=self.tokenizer,
                 device=device,
+                trust_remote_code=trust_remote_code,
             )
 
         if torch.mps.is_available():

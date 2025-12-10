@@ -59,7 +59,9 @@ class ImageSegmentationOutput(BaseModel):
 
 
 class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
+    def __init__(
+        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+    ) -> None:
         super().__init__()
 
         import torch
@@ -77,6 +79,7 @@ class ImageSegmentation(Predictor[ImageSegmentationInput, ImageSegmentationOutpu
             model=model_id,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
+            trust_remote_code=trust_remote_code,
         )
 
         if torch.mps.is_available():

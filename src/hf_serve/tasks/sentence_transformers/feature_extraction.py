@@ -93,6 +93,7 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
         device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
         backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -130,6 +131,7 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
             else None,
             backend=backend,
             model_kwargs=model_kwargs,
+            trust_remote_code=trust_remote_code,
         )
 
     def __call__(self, payload: FeatureExtractionInput) -> FeatureExtractionOutput:
