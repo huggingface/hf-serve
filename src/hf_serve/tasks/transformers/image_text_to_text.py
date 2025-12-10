@@ -27,9 +27,9 @@ class ImageTextToTextParameters(BaseModel):
 
     @model_validator(mode="after")
     def validate_unsupported_params(self: Self) -> Self:
-        if any(getattr(self, p) for p in {"adapter_id", "grammar", "stop", "top_n_tokens", "truncate"}):
+        if any(getattr(self, p) for p in {"adapter_id", "grammar", "top_n_tokens", "truncate"}):
             logger.warning(
-                "Unsupported parameters will be ignored: adapter_id, grammar, stop, top_n_tokens, truncate"
+                "Unsupported parameters will be ignored: adapter_id, grammar, top_n_tokens, truncate"
             )
         return self
 
@@ -78,11 +78,28 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
 
             set_seed(seed)
 
+        # NOTE: We need to capture the `generate_kwargs` manually, given that the I/O interface for `text-generation`
+        # on the Inference API is aligned with Text Generation Inference (TGI) not with Transformers, meaning that
+        # there might be some subtle differences on how the parameters are handled. In any case, this should be a
+        # discussion point anytime soon, given that Transformers offers much more paremeters during the forward pass
+        # than the ones captured in the input schemas, meaning that we're "losing" some capabilities as of today
+        # when using `hf-serve` for `text-generation` via the Inference API.
+        generate_kwargs = {}
+
+        # NOTE: https://huggingface.co/docs/transformers/v4.57.3/en/main_classes/text_generation#transformers.GenerationConfig.stop_strings
+        if stop_strings := parameters.pop("stop", None):
+            generate_kwargs["stop_strings"] = stop_strings
+
         # NOTE: Removing these here instead of within the schema as otherwise when logging the schema the user
         # might be confused if they see that the schema is different to what they provided despite the warning
-        for p in {"adapter_id", "grammar", "stop", "top_n_tokens", "truncate"}:
+        for p in {"adapter_id", "grammar", "top_n_tokens", "truncate"}:
+            logger.warning(
+                f"`{p}={parameters.get(p)}` was provided, which is valid as per the Inference Endpoints API Specification, but given that's a parameter only supported on Text Generation Inference (TGI), it will be skipped!"
+            )
             parameters.pop(p, None)
 
-        output = self.pipeline(image=payload.inputs.image, text=payload.inputs.text, **parameters)
+        output = self.pipeline(
+            image=payload.inputs.image, text=payload.inputs.text, generate_kwargs=generate_kwargs, **parameters
+        )
         generated_text = output[0]["generated_text"]
         return ImageTextToTextOutput(generated_text=generated_text)
