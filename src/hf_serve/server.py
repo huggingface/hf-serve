@@ -53,6 +53,7 @@ def launch(
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
     dtype: Optional[Literal["float32", "float16", "bfloat16", "float8", "int8", "int4"]] = None,
+    trust_remote_code: bool = False,
     accepted_mimetypes: Optional[List[str]] = None,
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
@@ -125,7 +126,12 @@ def launch(
 
     app.include_router(router=metrics_router)
 
-    logger.info(f"`hf-serve` starting for model {model_id or model_dir} with {task=} on {device=}")
+    if trust_remote_code:
+        logger.warning(
+            f"You have set `trust_remote_code=True`, which is not recommended, meaning that you will run remote code (if applicable) for `{model_id or model_dir}`. Please make sure that you trust the model author or organization that has created the custom files before proceeding."
+        )
+
+    logger.info(f"`hf-serve` starting for model `{model_id or model_dir}` with {task=} on {device=}")
 
     match task:
         # openai-compatible
@@ -136,7 +142,12 @@ def launch(
                 ImageTextToTextOutput,
             )
 
-            predictor = ImageTextToText(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = ImageTextToText(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -161,9 +172,14 @@ def launch(
                         output_schema=ImageTextToTextOutput,
                     )
                 )
-            if (
-                predictor.pipeline.tokenizer is not None
-                and predictor.pipeline.tokenizer.chat_template is not None
+            if predictor.pipeline.tokenizer is not None and (
+                predictor.pipeline.tokenizer.chat_template is not None
+                # or (
+                #     hasattr(predictor.pipeline, "processor")
+                #     and predictor.pipeline.processor is not None
+                #     and hasattr(predictor.pipeline.processor, "chat_template")
+                #     and predictor.pipeline.processor.chat_template is not None
+                # )
             ):
                 from hf_serve.openai.routers import chat_completions_router, models_router
                 from hf_serve.openai.tasks.chat_completions import ChatCompletions
@@ -183,7 +199,12 @@ def launch(
                 TextGenerationOutput,
             )
 
-            predictor = TextGeneration(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = TextGeneration(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -237,7 +258,12 @@ def launch(
             from hf_serve.routers import predict_image_router
             from hf_serve.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
 
-            predictor = TextToImage(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = TextToImage(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -278,7 +304,12 @@ def launch(
                 SentenceSimilarityOutput,
             )
 
-            predictor = SentenceSimilarity(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = SentenceSimilarity(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -325,7 +356,12 @@ def launch(
                 FeatureExtractionOutput,
             )
 
-            predictor = FeatureExtraction(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = FeatureExtraction(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -372,7 +408,12 @@ def launch(
                 TextRankingOutput,
             )
 
-            predictor = TextRanking(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = TextRanking(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,  # type: ignore
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -414,7 +455,12 @@ def launch(
                 TextClassificationOutput,
             )
 
-            predictor = TextClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = TextClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -446,7 +492,12 @@ def launch(
                 FillMaskOutput,
             )
 
-            predictor = FillMask(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = FillMask(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -478,7 +529,12 @@ def launch(
                 QuestionAnsweringOutput,
             )
 
-            predictor = QuestionAnswering(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = QuestionAnswering(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -510,7 +566,12 @@ def launch(
                 SummarizationOutput,
             )
 
-            predictor = Summarization(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = Summarization(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -544,8 +605,9 @@ def launch(
 
             predictor = ZeroShotClassification(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             if cloud is not None and cloud == "google":
@@ -578,7 +640,12 @@ def launch(
                 TokenClassificationOutput,
             )
 
-            predictor = TokenClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = TokenClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -612,8 +679,9 @@ def launch(
 
             predictor = TableQuestionAnswering(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             if cloud is not None and cloud == "google":
@@ -646,7 +714,12 @@ def launch(
                 TranslationOutput,
             )
 
-            predictor = Translation(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = Translation(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             if cloud is not None and cloud == "google":
                 from hf_serve.compatibility.google.routers.predict import router as google_predict_router
@@ -682,8 +755,9 @@ def launch(
 
             predictor = ZeroShotAudioClassification(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             match cloud:
@@ -718,7 +792,12 @@ def launch(
                 AudioClassificationOutput,
             )
 
-            predictor = AudioClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = AudioClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             match cloud:
                 case "google":
@@ -765,8 +844,9 @@ def launch(
 
             predictor = AutomaticSpeechRecognition(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             match cloud:
@@ -817,7 +897,12 @@ def launch(
                 ImageClassificationOutput,
             )
 
-            predictor = ImageClassification(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = ImageClassification(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             match cloud:
                 case "google":
@@ -864,7 +949,12 @@ def launch(
                 ImageSegmentationOutput,
             )
 
-            predictor = ImageSegmentation(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = ImageSegmentation(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             match cloud:
                 case "google":
@@ -911,7 +1001,12 @@ def launch(
                 ObjectDetectionOutput,
             )
 
-            predictor = ObjectDetection(model_id=model_id or model_dir, dtype=dtype, device=device)  # type: ignore
+            predictor = ObjectDetection(
+                model_id=model_id or model_dir,  # type: ignore
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
 
             match cloud:
                 case "google":
@@ -959,8 +1054,9 @@ def launch(
 
             predictor = VisualQuestionAnswering(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             if cloud is not None and cloud == "google":
@@ -995,8 +1091,9 @@ def launch(
 
             predictor = ZeroShotImageClassification(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             if cloud is not None and cloud == "google":
@@ -1031,8 +1128,9 @@ def launch(
 
             predictor = MaskGeneration(
                 model_id=model_id or model_dir,  # type: ignore
-                dtype=dtype,  # type: ignore
+                dtype=dtype,
                 device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
             )
 
             match cloud:
@@ -1107,7 +1205,7 @@ def launch(
 
         app.include_router(router=azure_router)
 
-    logger.info(f"Loaded {model_id or model_dir=} with {task=} on {device=}.")
+    logger.info(f"Loaded `{model_id or model_dir}` with {task=} on {device=}.")
     log_available_routes(app=app)
 
     uvicorn.run(

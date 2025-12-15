@@ -44,7 +44,9 @@ class TextGenerationOutput(BaseModel):
 
 
 class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
-    def __init__(self, model_id: str, dtype: Optional[str] = None, device: str = "auto") -> None:
+    def __init__(
+        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+    ) -> None:
         super().__init__()
 
         import torch
@@ -57,6 +59,7 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device != "auto" else None,
             device_map=device if device == "auto" else None,
+            trust_remote_code=trust_remote_code,
         )
 
         if torch.mps.is_available():
