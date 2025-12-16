@@ -76,7 +76,6 @@ parser.add_argument(
 
 parser.add_argument(
     "--trust-remote-code",
-    type=bool,
     # TODO(alvarobartt): Eventually review this, as I'm not super happy with this line here
     default=strtobool(os.getenv("TRUST_REMOTE_CODE", None)) or False,
     action="store_true",
