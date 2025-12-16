@@ -17,10 +17,10 @@ dependencies = [
     "diffusers>=0.36.0",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
-    "transformers[accelerate,hf-xet,hub-kernels,torch-speech]>=4.57.3,<5.0.0rc0",
+    "transformers[accelerate,hf-xet,hub-kernels,torch-speech]>=5.0.0rc1",
     "timm>=1.0.21",
     "pydantic>=2.10.5",
-    "sentence-transformers>=5.1.2",
+    "sentence-transformers>=5.2.0",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
     # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
     # but still has the cap on `transformers<4.56.0` which prevents us from relying on `main`
