@@ -47,7 +47,7 @@ parser.add_argument(
 parser.add_argument(
     "--revision",
     type=str,
-    default=os.getenv("REVISION", None),
+    default=os.getenv("REVISION", None) or None,
     help="The revision of model on the Hugging Face Hub. It can also be set via the environment variable `REVISION`.",
 )
 
@@ -95,7 +95,7 @@ parser.add_argument(
 parser.add_argument(
     "--accepted-mimetypes",
     type=str,
-    default=os.getenv("ACCEPTED_MIMETYPES", None),
+    default=os.getenv("ACCEPTED_MIMETYPES", None) or None,
     required=False,
     help="A comma-separated list of accepted MIME types for file uploads. By default, each task will have all valid MIME types (e.g. audio/* for audio tasks, image/* for image tasks). It can also be set via the environment variable `ACCEPTED_MIMETYPES`.",
 )
