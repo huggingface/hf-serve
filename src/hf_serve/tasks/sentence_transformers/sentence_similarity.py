@@ -65,6 +65,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
     def __init__(
         self,
         model_id: str,
+        revision: Optional[str] = None,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
         device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
         backend: Literal["torch", "onnx", "openvino"] = "torch",
@@ -102,6 +103,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
 
         self.pipeline = SentenceTransformer(
             model_id,
+            revision=revision,
             device=device
             or ("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
             if device != "auto"

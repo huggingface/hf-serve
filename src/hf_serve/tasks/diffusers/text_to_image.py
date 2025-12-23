@@ -72,6 +72,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
     def __init__(
         self,
         model_id: str,
+        revision: Optional[str] = None,
         dtype: Optional[str] = None,
         device: str = "balanced",
         trust_remote_code: bool = False,
@@ -96,6 +97,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         # meaning that e.g. the fix for `diffusers` should be applied there
         self.pipeline = AutoPipelineForText2Image.from_pretrained(
             model_id,
+            revision=revision,
             torch_dtype=getattr(torch, dtype) if dtype is not None else None,
             device=device if device != "balanced" else None,
             device_map=device,

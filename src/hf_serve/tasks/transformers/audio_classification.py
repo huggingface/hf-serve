@@ -51,7 +51,12 @@ class AudioClassificationOutput(BaseModel):
 
 class AudioClassification(Predictor[AudioClassificationInput, AudioClassificationOutput]):
     def __init__(
-        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        dtype: Optional[str] = None,
+        device: str = "auto",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -68,6 +73,7 @@ class AudioClassification(Predictor[AudioClassificationInput, AudioClassificatio
         self.pipeline: AudioClassificationPipeline = pipeline(
             task="audio-classification",
             model=model_id,
+            revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
             trust_remote_code=trust_remote_code,

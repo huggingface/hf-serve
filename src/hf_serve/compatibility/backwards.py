@@ -18,14 +18,14 @@ def ensure_backwards_compatibility() -> None:
     for old_key, new_key in mappings.items():
         if old_key in os.environ:
             logger.warning(
-                f"Environment variable '{old_key}' is deprecated. Please use '{new_key}' instead. Remapping '{old_key}' to '{new_key}'."
+                f"Environment variable `{old_key}` is deprecated. Please use `{new_key}` instead. Remapping `{old_key}` to `{new_key}`."
             )
             if new_key not in os.environ:
                 os.environ[new_key] = os.environ[old_key]
 
     if "HF_FRAMEWORK" in os.environ:
         logger.warning(
-            "Environment variable 'HF_FRAMEWORK' is deprecated and now defaults to 'torch'. The provided value is ignored."
+            "Environment variable `HF_FRAMEWORK` is deprecated and now defaults to `torch`. The provided value is ignored."
         )
         os.environ["FRAMEWORK"] = "torch"
 
