@@ -48,7 +48,12 @@ class VisualQuestionAnsweringOutput(RootModel):
 
 class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQuestionAnsweringOutput]):
     def __init__(
-        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        dtype: Optional[str] = None,
+        device: str = "auto",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -65,6 +70,7 @@ class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQues
         self.pipeline: VisualQuestionAnsweringPipeline = pipeline(
             task="visual-question-answering",
             model=model_id,
+            revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,

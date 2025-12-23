@@ -59,7 +59,12 @@ class ZeroShotImageClassification(
     Predictor[ZeroShotImageClassificationInput, ZeroShotImageClassificationOutput]
 ):
     def __init__(
-        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        dtype: Optional[str] = None,
+        device: str = "auto",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -76,6 +81,7 @@ class ZeroShotImageClassification(
         self.pipeline: ZeroShotImageClassificationPipeline = pipeline(
             task="zero-shot-image-classification",
             model=model_id,
+            revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device not in {"auto"} else None,
             device_map=device if device in {"auto"} else None,

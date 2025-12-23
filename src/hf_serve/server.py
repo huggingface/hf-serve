@@ -46,6 +46,7 @@ def launch(
     # NOTE: on Inference Endpoints the model is downloaded in advance into the `/repository` directory
     # meaning that the `model_id` will always be None there, and the `model_dir` will be used instead
     model_dir: Union[str, None],
+    revision: Union[str, None],
     task: TaskTypes,
     # TODO: maybe we should include `npu` too as supported by `sentence-transformers`?
     device: Optional[Literal["auto", "balanced", "cuda", "cpu", "mps"]] = "auto",
@@ -144,6 +145,7 @@ def launch(
 
             predictor = ImageTextToText(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -201,6 +203,7 @@ def launch(
 
             predictor = TextGeneration(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -260,6 +263,7 @@ def launch(
 
             predictor = TextToImage(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -306,6 +310,7 @@ def launch(
 
             predictor = SentenceSimilarity(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,  # type: ignore
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -358,6 +363,7 @@ def launch(
 
             predictor = FeatureExtraction(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,  # type: ignore
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -410,6 +416,7 @@ def launch(
 
             predictor = TextRanking(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,  # type: ignore
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -457,6 +464,7 @@ def launch(
 
             predictor = TextClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -494,6 +502,7 @@ def launch(
 
             predictor = FillMask(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -531,6 +540,7 @@ def launch(
 
             predictor = QuestionAnswering(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -568,6 +578,7 @@ def launch(
 
             predictor = Summarization(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -605,6 +616,7 @@ def launch(
 
             predictor = ZeroShotClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -642,6 +654,7 @@ def launch(
 
             predictor = TokenClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -679,6 +692,7 @@ def launch(
 
             predictor = TableQuestionAnswering(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -716,6 +730,7 @@ def launch(
 
             predictor = Translation(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -755,6 +770,7 @@ def launch(
 
             predictor = ZeroShotAudioClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -794,6 +810,7 @@ def launch(
 
             predictor = AudioClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -844,6 +861,7 @@ def launch(
 
             predictor = AutomaticSpeechRecognition(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -899,6 +917,7 @@ def launch(
 
             predictor = ImageClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -951,6 +970,7 @@ def launch(
 
             predictor = ImageSegmentation(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -1003,6 +1023,7 @@ def launch(
 
             predictor = ObjectDetection(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -1054,6 +1075,7 @@ def launch(
 
             predictor = VisualQuestionAnswering(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -1091,6 +1113,7 @@ def launch(
 
             predictor = ZeroShotImageClassification(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -1128,6 +1151,7 @@ def launch(
 
             predictor = MaskGeneration(
                 model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
                 dtype=dtype,
                 device=device,  # type: ignore
                 trust_remote_code=trust_remote_code,
@@ -1189,7 +1213,7 @@ def launch(
             # if already there); note that if `model_id` is not None here that means that `model_dir` is None and
             # the other way around
             if model_id is not None:
-                model_dir = snapshot_download(repo_id=model_id, repo_type="model")
+                model_dir = snapshot_download(repo_id=model_id, repo_type="model", revision=revision)
 
             try:
                 app.include_router(router=custom_router(handler=Custom.load(model_dir)))  # type: ignore
@@ -1205,7 +1229,7 @@ def launch(
 
         app.include_router(router=azure_router)
 
-    logger.info(f"Loaded `{model_id or model_dir}` with {task=} on {device=}.")
+    logger.info(f"Loaded `{model_id or model_dir}` ({revision=}) with {task=} on {device=}.")
     log_available_routes(app=app)
 
     uvicorn.run(

@@ -46,7 +46,12 @@ class TranslationOutput(RootModel):
 
 class Translation(Predictor[TranslationInput, TranslationOutput]):
     def __init__(
-        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        dtype: Optional[str] = None,
+        device: str = "auto",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -63,6 +68,7 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
         try:
             self.model = AutoModelForSeq2SeqLM.from_pretrained(
                 model_id,
+                revision=revision,
                 dtype=getattr(torch, dtype) if dtype is not None else "auto",
                 device=device,
                 trust_remote_code=trust_remote_code,
@@ -74,11 +80,14 @@ class Translation(Predictor[TranslationInput, TranslationOutput]):
             if str(e).__contains__(".__init__() got an unexpected keyword argument 'device'"):
                 self.model = AutoModelForSeq2SeqLM.from_pretrained(
                     model_id,
+                    revision=revision,
                     dtype=getattr(torch, dtype) if dtype is not None else "auto",
                     trust_remote_code=trust_remote_code,
                 )
 
-        self.tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=trust_remote_code)
+        self.tokenizer = AutoTokenizer.from_pretrained(
+            model_id, revision=revision, trust_remote_code=trust_remote_code
+        )
         self.pairs = {}
 
         # NOTE: Single pair i.e. the model is fine-tuned for a single translation pair

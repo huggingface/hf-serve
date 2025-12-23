@@ -45,6 +45,13 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--revision",
+    type=str,
+    default=os.getenv("REVISION", None),
+    help="The revision of model on the Hugging Face Hub. It can also be set via the environment variable `REVISION`.",
+)
+
+parser.add_argument(
     "--task",
     type=str,
     default=os.getenv("TASK", None),
@@ -121,6 +128,7 @@ def main() -> None:
         port=args.port,
         model_id=args.model_id,
         model_dir=args.model_dir,
+        revision=args.revision,
         task=args.task,
         device=args.device,
         dtype=args.dtype,

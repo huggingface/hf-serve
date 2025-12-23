@@ -55,7 +55,12 @@ class ObjectDetectionOutput(BaseModel):
 
 class ObjectDetection(Predictor[ObjectDetectionInput, ObjectDetectionOutput]):
     def __init__(
-        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        dtype: Optional[str] = None,
+        device: str = "auto",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 

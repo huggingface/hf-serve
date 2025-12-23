@@ -1,6 +1,6 @@
 from typing import Annotated, List, Optional, Union
 
-from fastapi import File, Form
+from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Audio
@@ -72,7 +72,12 @@ class ZeroShotAudioClassification(
     Predictor[ZeroShotAudioClassificationInput, ZeroShotAudioClassificationOutput]
 ):
     def __init__(
-        self, model_id: str, dtype: Optional[str] = None, device: str = "auto", trust_remote_code: bool = False
+        self,
+        model_id: str,
+        revision: Optional[str] = None,
+        dtype: Optional[str] = None,
+        device: str = "auto",
+        trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
 
@@ -89,6 +94,7 @@ class ZeroShotAudioClassification(
         self.pipeline: ZeroShotAudioClassificationPipeline = pipeline(
             task="zero-shot-audio-classification",
             model=model_id,
+            revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
             trust_remote_code=trust_remote_code,
