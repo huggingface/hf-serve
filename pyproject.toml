@@ -17,6 +17,10 @@ dependencies = [
     "diffusers>=0.36.0",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
+    # NOTE: `transformers` is pinned < 5.0.0rc0 given that even `sentence-transformers`
+    # 5.2.0 comes with support for it, `diffusers` is still not there, and even if
+    # installating `diffusers` w/ `transformers` 5.0.0rc0+ won't fail, then some models
+    # and pipelines will fail due to wrong imports e.g. https://github.com/huggingface/diffusers/pull/12877
     "transformers[accelerate,hf-xet,hub-kernels,torch-speech]>=4.57.3,<5.0.0rc0",
     "timm>=1.0.21",
     "pydantic>=2.10.5",
