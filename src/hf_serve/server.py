@@ -134,6 +134,25 @@ def launch(
 
     logger.info(f"`hf-serve` starting for model `{model_id or model_dir}` with {task=} on {device=}")
 
+    if (
+        task == "mask-generation"
+        and (model_id is not None and model_id == "facebook/sam3")
+        or (model_dir is not None and all(model_dir.__contains__(k) for k in {"facebook", "sam3"}))
+    ):
+        logger.warning(
+            f"Task is set to `mask-generation` and model is `facebook/sam3`, hence deploying with task `promptable-concept-segmentation` which is the same as `mask-generation` but including the `prompt` parameter to only segment based on the provided prompt, rather than segmenting anything in the image, which is the default on `mask-generation` and on `promptable-concept-segmentation` when the provided `prompt` is None or not provided."
+        )
+
+        from hf_serve.models.facebook__sam3 import FacebookSAM3, FacebookSAM3Input, FacebookSAM3Output
+
+        predictor = FacebookSAM3(
+            model_id=model_id or model_dir,  # type: ignore
+            revision=revision,
+            dtype=dtype,
+            device=device,  # type: ignore
+            trust_remote_code=trust_remote_code,
+        )
+
     match task:
         # openai-compatible
         case "image-text-to-text":
