@@ -92,6 +92,7 @@ class MaskGeneration(Predictor[MaskGenerationInput, MaskGenerationOutput]):
         self.pipeline: MaskGenerationPipeline = pipeline(
             task="mask-generation",
             model=model_id,
+            revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
             trust_remote_code=trust_remote_code,

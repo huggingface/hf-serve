@@ -818,7 +818,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_serve.compatibility.google.schemas.transformers.audio_classification import (
                         AudioClassificationInputForGoogle,
                         AudioClassificationOutputForGoogle,
@@ -869,7 +871,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_serve.compatibility.google.schemas.transformers.automatic_speech_recognition import (
                         AutomaticSpeechRecognitionInputForGoogle,
                         AutomaticSpeechRecognitionOutputForGoogle,
@@ -925,7 +929,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_serve.compatibility.google.schemas.transformers.image_classification import (
                         ImageClassificationInputForGoogle,
                         ImageClassificationOutputForGoogle,
@@ -948,7 +954,9 @@ def launch(
                         )
                     )
                 case _:
-                    from hf_serve.tasks.transformers.image_classification import ImageClassificationFormInput
+                    from hf_serve.tasks.transformers.image_classification import (
+                        ImageClassificationFormInput,
+                    )
 
                     app.include_router(
                         router=predict_media_router(
@@ -978,7 +986,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_serve.compatibility.google.schemas.transformers.image_segmentation import (
                         ImageSegmentationInputForGoogle,
                         ImageSegmentationOutputForGoogle,
@@ -1031,7 +1041,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_serve.compatibility.google.schemas.transformers.object_detection import (
                         ObjectDetectionInputForGoogle,
                         ObjectDetectionOutputForGoogle,
@@ -1159,7 +1171,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_serve.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_serve.compatibility.google.schemas.transformers.mask_generation import (
                         MaskGenerationInputForGoogle,
                         MaskGenerationOutputForGoogle,
@@ -1194,6 +1208,33 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
+
+            if (model_id is not None and model_id == "facebook/sam3") or (
+                model_dir is not None and all(model_dir.__contains__(k) for k in {"facebook", "sam3"})
+            ):
+                logger.warning(
+                    f"Task is set to `mask-generation` and model is `facebook/sam3`, hence adding the `/promptable-concept-segmentation` endpoint which also does image segmentation but including the `prompt` parameter to only segment based on the provided prompt, rather than segmenting anything in the image, which is the default on `mask-generation`."
+                )
+
+                from hf_serve.models.facebook__sam3 import Sam3, Sam3Input, Sam3Output
+                from hf_serve.routers import any_router
+
+                predictor = Sam3(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
+
+                app.include_router(
+                    router=any_router(
+                        predictor=predictor,
+                        route="/promptable-concept-segmentation",
+                        input_schema=Sam3Input,
+                        output_schema=Sam3Output,
+                    )
+                )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
