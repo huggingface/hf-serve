@@ -3,13 +3,14 @@ from typing import List, Optional, Tuple, Union
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL import Image as ImageModule
 from PIL.Image import Image as ImageType
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
 
 
 class Sam3Parameters(BaseModel):
+    threshold: Optional[float] = Field(default=0.3)
     mask_threshold: Optional[float] = Field(default=0.5)
 
 
@@ -97,10 +98,12 @@ class Sam3(Predictor[Sam3Input, Sam3Output]):
 
         output = self.processor.post_process_instance_segmentation(
             outputs,
-            threshold=0.5,  # ?
+            threshold=payload.parameters.threshold
+            if payload.parameters and payload.parameters.threshold is not None
+            else 0.3,
             mask_threshold=payload.parameters.mask_threshold
             if payload.parameters and payload.parameters.mask_threshold is not None
-            else 0.0,
+            else 0.5,
             target_sizes=inputs.get("original_sizes").tolist(),  # type: ignore
         )[0]
 
