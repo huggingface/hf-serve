@@ -1,53 +1,58 @@
-from typing import Optional, Union
+from typing import List, Optional, Tuple, Union
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL import Image as ImageModule
+from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
-from hf_serve.logging import logger
 from hf_serve.serde import Image
 from hf_serve.tasks.predictor import Predictor
-from hf_serve.tasks.transformers.mask_generation import (
-    MaskGenerationOutput,
-    MaskGenerationOutputValue,
-    MaskGenerationParameters,
-)
 
 
-class FacebookSAM3Parameters(MaskGenerationParameters):
-    # mask_threshold: Optional[float] = Field(default=0.0)
-    # pred_iou_thresh: Optional[float] = Field(default=0.88)
-    # stability_score_thresh: Optional[float] = Field(default=0.95)
-    # stability_score_offset: Optional[int] = Field(default=1)
-    # crops_nms_thresh: Optional[float] = Field(default=0.7)
-    # crops_n_layers: Optional[int] = Field(default=0)
-    # crop_overlap_ratio: Optional[float] = Field(default=512 / 1500)
-    # crop_n_points_downscale_factor: Optional[int] = Field(default=1)
-    # timeout: Optional[float] = Field(default=None)
-
-    prompt: Optional[str] = Field(default=None)
+class Sam3Parameters(BaseModel):
+    mask_threshold: Optional[float] = Field(default=0.5)
 
 
-class FacebookSAM3Input(BaseModel):
-    inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "image"))
-    parameters: Optional[FacebookSAM3Parameters] = Field(default=None, json_schema_extra={"overridden": True})
+class Sam3Inputs(BaseModel):
+    text: str
+    image: Union[str, bytes]
+
+
+class Sam3Input(BaseModel):
+    inputs: Sam3Inputs
+    parameters: Optional[Sam3Parameters] = Field(default=None)
 
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/hf-internal-testing/sam2-fixtures/resolve/main/truck.jpg",
-                    "parameters": {"prompt": "truck", "points_per_batch": 64},
+                    "inputs": {
+                        "image": "https://huggingface.co/datasets/hf-internal-testing/sam2-fixtures/resolve/main/truck.jpg",
+                        "text": "prompt",
+                    },
+                    "parameters": {"mask_threshold": 0.5},
                 }
             ]
         },
     )
 
 
-FacebookSAM3Output = MaskGenerationOutput
+class Sam3OutputValue(BaseModel):
+    mask: ImageType
+    score: Optional[float] = Field(default=None)
+    box: Optional[Tuple[float, float, float, float]] = Field(default=None)
+
+    model_config = ConfigDict(
+        json_encoders={ImageType: Image.serialize},
+        arbitrary_types_allowed=True,
+    )
 
 
-class FacebookSAM3(Predictor[FacebookSAM3Input, FacebookSAM3Output]):
+class Sam3Output(BaseModel):
+    results: List[Sam3OutputValue]
+
+
+class Sam3(Predictor[Sam3Input, Sam3Output]):
     def __init__(
         self,
         model_id: str = "facebook/sam3",
@@ -66,32 +71,24 @@ class FacebookSAM3(Predictor[FacebookSAM3Input, FacebookSAM3Output]):
 
         self.model = Sam3Model.from_pretrained(
             model_id,
-            revision=revision,
+            revision=revision or "main",
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
-            device=device,
             trust_remote_code=trust_remote_code,
-        ).to(device)
+        )
+        self.model.to(device)  # type: ignore
 
         self.processor = Sam3Processor.from_pretrained(
-            model_id, revision=revision, trust_remote_code=trust_remote_code
+            model_id, revision=revision or "main", trust_remote_code=trust_remote_code
         )
 
         if device == "mps" and torch.mps.is_available():
             torch.mps.empty_cache()
             torch.mps.set_per_process_memory_fraction(0.9)
 
-    def __call__(self, payload: FacebookSAM3Input) -> FacebookSAM3Output:
-        if payload.parameters:
-            if timeout := payload.parameters.timeout:
-                logger.warning(
-                    f"`{{..., 'parameters': {{..., {timeout=}}} has been provided, but it will be ignored and won't have any effect via `hf-serve`."
-                )
-
+    def __call__(self, payload: Sam3Input) -> Sam3Output:
         inputs = self.processor(
-            images=Image.deserialize(payload.inputs),
-            text=payload.parameters.prompt
-            if payload.parameters and hasattr(payload.parameters, "prompt")
-            else None,
+            images=Image.deserialize(payload.inputs.image),
+            text=payload.inputs.text,
             return_tensors="pt",
         ).to(self.model.device)
 
@@ -101,27 +98,21 @@ class FacebookSAM3(Predictor[FacebookSAM3Input, FacebookSAM3Output]):
         output = self.processor.post_process_instance_segmentation(
             outputs,
             threshold=0.5,  # ?
-            mask_threshold=payload.parameters.mask_threshold if payload.parameters else None,
-            # pred_iou_thresh: Optional[float] = Field(default=0.88)
-            # stability_score_thresh: Optional[float] = Field(default=0.95)
-            # stability_score_offset: Optional[int] = Field(default=1)
-            # crops_nms_thresh: Optional[float] = Field(default=0.7)
-            # crops_n_layers: Optional[int] = Field(default=0)
-            # crop_overlap_ratio: Optional[float] = Field(default=512 / 1500)
-            # crop_n_points_downscale_factor: Optional[int] = Field(default=1)
-            # timeout: Optional[float] = Field(default=None)
-            target_sizes=inputs.get("original_sizes").tolist(),
+            mask_threshold=payload.parameters.mask_threshold
+            if payload.parameters and payload.parameters.mask_threshold is not None
+            else 0.0,
+            target_sizes=inputs.get("original_sizes").tolist(),  # type: ignore
         )[0]
-        # Results contain:
-        # - masks: Binary masks resized to original image size
-        # - boxes: Bounding boxes in absolute pixel coordinates (xyxy format)
-        # - scores: Confidence scores
 
-        return FacebookSAM3Output(
+        return Sam3Output(
             results=[
-                MaskGenerationOutputValue(
-                    mask=ImageModule.fromarray(mask.cpu().numpy().astype("uint8") * 255), score=score
+                Sam3OutputValue(
+                    mask=ImageModule.fromarray(mask.astype("uint8") * 255),
+                    score=score,
+                    box=box,
                 )
-                for (mask, score) in zip(output["masks"], output["scores"])
+                for (mask, score, box) in zip(
+                    output["masks"].cpu().numpy(), output["scores"], output["boxes"].cpu().numpy()
+                )
             ]
         )
