@@ -1,5 +1,5 @@
 [project]
-name = "hf-serve"
+name = "hf-inference-sdk"
 version = "0.1.0"
 description = "Hugging Face Inference API for Transformers, Diffusers and Sentence Transformers, written in Python."
 readme = "README.md"
@@ -16,12 +16,12 @@ dependencies = [
     "uvicorn>=0.34.0",
     "fastapi>=0.115.6",
     "prometheus-client>=0.21.1",
-    "torch>=2.5.1,<2.8.0",
+    "torch",
     "torchvision",
     # NOTE: `torchcodec` as opposed to `torch` won't install the CUDA-compatible
     # version by default but rather the CPU-only one.
     # Reference: https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec
-    "torchcodec<0.6",
+    "torchcodec",
     "diffusers>=0.36.0",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
@@ -48,7 +48,8 @@ dependencies = [
 
 [project.optional-dependencies]
 cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
-cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
+cuda-126 = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
+cuda-130 = ["torch>2.8.0", "torchvision", "torchcodec"]
 flash-attn = ["flash-attn==2.8.3"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]
@@ -65,7 +66,7 @@ requires = ["uv_build>=0.9.26,<0.10.0"]
 build-backend = "uv_build"
 
 [project.scripts]
-hf-serve = "hf_inference_sdk.cli:main"
+hf-inference-sdk = "hf_inference_sdk.cli:main"
 
 [tool.ruff]
 line-length = 112
