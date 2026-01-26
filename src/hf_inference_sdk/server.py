@@ -152,7 +152,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.image_text_to_text import (
                     ImageTextToTextInputForGoogle,
                     ImageTextToTextOutputForGoogle,
@@ -210,7 +212,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.text_generation import (
                     TextGenerationInputForGoogle,
                     TextGenerationOutputForGoogle,
@@ -270,7 +274,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.diffusers.text_to_image import (
                     TextToImageInputForGoogle,
                     TextToImageOutputForGoogle,
@@ -317,7 +323,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.sentence_transformers.sentence_similarity import (
                     SentenceSimilarityInputForGoogle,
                     SentenceSimilarityOutputForGoogle,
@@ -370,7 +378,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.sentence_transformers.feature_extraction import (
                     FeatureExtractionInputForGoogle,
                     FeatureExtractionOutputForGoogle,
@@ -423,7 +433,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.sentence_transformers.text_ranking import (
                     TextRankingInputForGoogle,
                     TextRankingOutputForGoogle,
@@ -471,7 +483,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.text_classification import (
                     TextClassificationInputForGoogle,
                     TextClassificationOutputForGoogle,
@@ -509,7 +523,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.fill_mask import (
                     FillMaskInputForGoogle,
                     FillMaskOutputForGoogle,
@@ -547,7 +563,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.question_answering import (
                     QuestionAnsweringInputForGoogle,
                     QuestionAnsweringOutputForGoogle,
@@ -585,7 +603,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.summarization import (
                     SummarizationInputForGoogle,
                     SummarizationOutputForGoogle,
@@ -623,7 +643,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.zero_shot_classification import (
                     ZeroShotClassificationInputForGoogle,
                     ZeroShotClassificationOutputForGoogle,
@@ -661,7 +683,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.token_classification import (
                     TokenClassificationInputForGoogle,
                     TokenClassificationOutputForGoogle,
@@ -699,7 +723,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.table_question_answering import (
                     TableQuestionAnsweringInputForGoogle,
                     TableQuestionAnsweringOutputForGoogle,
@@ -737,7 +763,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.translation import (
                     TranslationInputForGoogle,
                     TranslationOutputForGoogle,
@@ -818,7 +846,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_inference_sdk.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_inference_sdk.compatibility.google.schemas.transformers.audio_classification import (
                         AudioClassificationInputForGoogle,
                         AudioClassificationOutputForGoogle,
@@ -869,7 +899,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_inference_sdk.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_inference_sdk.compatibility.google.schemas.transformers.automatic_speech_recognition import (
                         AutomaticSpeechRecognitionInputForGoogle,
                         AutomaticSpeechRecognitionOutputForGoogle,
@@ -925,7 +957,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_inference_sdk.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_inference_sdk.compatibility.google.schemas.transformers.image_classification import (
                         ImageClassificationInputForGoogle,
                         ImageClassificationOutputForGoogle,
@@ -948,7 +982,9 @@ def launch(
                         )
                     )
                 case _:
-                    from hf_inference_sdk.tasks.transformers.image_classification import ImageClassificationFormInput
+                    from hf_inference_sdk.tasks.transformers.image_classification import (
+                        ImageClassificationFormInput,
+                    )
 
                     app.include_router(
                         router=predict_media_router(
@@ -978,7 +1014,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_inference_sdk.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_inference_sdk.compatibility.google.schemas.transformers.image_segmentation import (
                         ImageSegmentationInputForGoogle,
                         ImageSegmentationOutputForGoogle,
@@ -1001,7 +1039,9 @@ def launch(
                         )
                     )
                 case _:
-                    from hf_inference_sdk.tasks.transformers.image_segmentation import ImageSegmentationFormInput
+                    from hf_inference_sdk.tasks.transformers.image_segmentation import (
+                        ImageSegmentationFormInput,
+                    )
 
                     app.include_router(
                         router=predict_media_router(
@@ -1031,7 +1071,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_inference_sdk.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_inference_sdk.compatibility.google.schemas.transformers.object_detection import (
                         ObjectDetectionInputForGoogle,
                         ObjectDetectionOutputForGoogle,
@@ -1082,7 +1124,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.visual_question_answering import (
                     VisualQuestionAnsweringInputForGoogle,
                     VisualQuestionAnsweringOutputForGoogle,
@@ -1120,7 +1164,9 @@ def launch(
             )
 
             if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
                 from hf_inference_sdk.compatibility.google.schemas.transformers.zero_shot_image_classification import (
                     ZeroShotImageClassificationInputForGoogle,
                     ZeroShotImageClassificationOutputForGoogle,
@@ -1159,7 +1205,9 @@ def launch(
 
             match cloud:
                 case "google":
-                    from hf_inference_sdk.compatibility.google.routers.predict import router as google_predict_router
+                    from hf_inference_sdk.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
                     from hf_inference_sdk.compatibility.google.schemas.transformers.mask_generation import (
                         MaskGenerationInputForGoogle,
                         MaskGenerationOutputForGoogle,

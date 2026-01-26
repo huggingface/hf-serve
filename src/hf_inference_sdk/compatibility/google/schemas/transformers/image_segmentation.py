@@ -3,7 +3,10 @@ from typing import Annotated, List, Optional, Union
 from annotated_types import Len
 from pydantic import BaseModel, Field
 
-from hf_inference_sdk.tasks.transformers.image_segmentation import ImageSegmentationOutput, ImageSegmentationParameters
+from hf_inference_sdk.tasks.transformers.image_segmentation import (
+    ImageSegmentationOutput,
+    ImageSegmentationParameters,
+)
 
 
 class ImageSegmentationInputForGoogle(BaseModel):

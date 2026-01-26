@@ -3,7 +3,10 @@ from typing import Annotated, List, Optional, Union
 from annotated_types import Len
 from pydantic import BaseModel, Field
 
-from hf_inference_sdk.tasks.transformers.object_detection import ObjectDetectionOutput, ObjectDetectionParameters
+from hf_inference_sdk.tasks.transformers.object_detection import (
+    ObjectDetectionOutput,
+    ObjectDetectionParameters,
+)
 
 
 class ObjectDetectionInputForGoogle(BaseModel):

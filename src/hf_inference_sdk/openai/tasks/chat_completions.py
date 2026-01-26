@@ -147,10 +147,12 @@ class ChatCompletions:
                                 if isinstance(content, ContentPartText):
                                     formatted_message["content"].append({"type": "text", "text": content.text})
                                 elif isinstance(content, ContentPartRefusal):
-                                    formatted_message["content"].append({
-                                        "type": "text",
-                                        "text": content.refusal,
-                                    })
+                                    formatted_message["content"].append(
+                                        {
+                                            "type": "text",
+                                            "text": content.refusal,
+                                        }
+                                    )
                                 elif isinstance(content, ContentPartImage):
                                     images.append(load_image(content.image_url.url))
                                     formatted_message["content"].append({"type": "image"})
