@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.8.1-devel-ubuntu24.04
+FROM nvidia/cuda:12.6.0-devel-ubuntu24.04
 LABEL maintainer="Hugging Face"
 
 SHELL ["/bin/bash", "-c"]
@@ -64,16 +64,16 @@ RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH="/home/huggingface/.cargo/bin:/home/huggingface/.local/bin/:$PATH"
 
-RUN uv python install 3.11
+RUN uv python install 3.12
 
-RUN uv venv /home/huggingface/venv --python 3.11
+RUN uv venv /home/huggingface/venv --python 3.12
 ENV VIRTUAL_ENV=/home/huggingface/venv \
     PATH="/home/huggingface/venv/bin:$PATH"
 
 WORKDIR /home/huggingface/app
 COPY --chown=huggingface:huggingface . .
 
-RUN uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+RUN uv sync --active --frozen --extra cuda-126 --extra flash-attn --preview-features extra-build-dependencies
 
 RUN uv pip install google-cloud-storage crcmod --upgrade
 

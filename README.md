@@ -1,14 +1,12 @@
-# `hf-serve`
+# `hf-inference-sdk`
 
 > [!WARNING]
-> This project is still an experimental and early attempt of refactoring the former
-> [`huggingface-inference-toolkit`](https://github.com/huggingface/huggingface-inference-toolkit),
-> and it might ship breaking changes until stable.
+> This project is still experimental, meant to replace the former
+> [`huggingface-inference-toolkit`](https://github.com/huggingface/huggingface-inference-toolkit).
 
-## 🛠️ Installation
+## Installation
 
-First you need to setup your environment with [`uv`](https://github.com/astral-sh/uv),
-or with your preferred Python environment manager.
+First you need to setup your environment with [`uv`](https://github.com/astral-sh/uv) (or with your preferred Python environment manager).
 
 ```bash
 uv venv --python 3.12
@@ -33,10 +31,16 @@ Install it from the `uv.lock` file for CPU / MPS as follows:
 uv sync --active --frozen --extra cpu
 ```
 
-Alternatively, install it on NVIDIA CUDA as follows:
+Alternatively, install it on NVIDIA CUDA 12.6 as follows:
 
 ```bash
-uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+uv sync --active --frozen --extra cuda-126 --extra flash-attn --preview-features extra-build-dependencies
+```
+
+Or if you have CUDA +13.0 then:
+
+```bash
+uv sync --active --frozen --extra cuda-130 --extra flash-attn --preview-features extra-build-dependencies
 ```
 
 > [!WARNING]
@@ -48,30 +52,10 @@ uv sync --active --frozen --extra cuda --extra flash-attn --preview-features ext
 > Reference: https://docs.astral.sh/uv/guides/integration/pytorch/#automatic-backend-selection
 
 ```console
-$ uv run hf-serve --help
-usage: hf-serve [-h] [--host HOST] [--port PORT] [--model-id MODEL_ID] [--model-dir MODEL_DIR]
-                [--task {image-text-to-text,text-generation,text2text-generation,conversational,chat-completion,text-to-image,sentence-similarity,feature-extraction,sentence-embeddings,embeddings,text-ranking,sentence-ranking,text-classification,fill-mask,question-answering,summarization,zero-shot-classification,token-classification,table-question-answering,translation,translation_xx_to_yy,zero-shot-audio-classification,audio-classification,automatic-speech-recognition,image-classification,image-segmentation,object-detection,custom}]
-                [--device {auto,balanced,cuda,cpu,mps}] [--dtype {float32,float16,bfloat16,float8,int8,int4}]
-
-Hugging Face Serve API
-
-options:
-  -h, --help            show this help message and exit
-  --host HOST           The host into which the FastAPI API will be deployed to, defaults to 0.0.0.0, can also be set via the environment variable `HOST`
-  --port PORT           The port in which the FastAPI API will listen to, defaults to 8080, can also be set via the environment variable `PORT`
-  --model-id MODEL_ID   The model ID on the Hugging Face Hub, can also be set via the environment variable `MODEL_ID`
-  --model-dir MODEL_DIR
-                        A local directory that contains a Hugging Face compatible model, can also be set via the environment variable `MODEL_DIR`
-  --task {image-text-to-text,text-generation,text2text-generation,conversational,chat-completion,text-to-image,sentence-similarity,feature-extraction,sentence-embeddings,embeddings,text-ranking,sentence-ranking,text-classification,fill-mask,question-answering,summarization,zero-shot-classification,token-classification,table-question-answering,translation,translation_xx_to_yy,zero-shot-audio-classification,audio-classification,automatic-speech-recognition,image-classification,image-segmentation,object-detection,custom}
-                        Any of the supported tasks for either Transformers, Diffusers, or Sentence Transformers, can also be set via the environment variable `TASK`
-  --device {auto,balanced,cuda,cpu,mps}
-                        The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU, can also be set via the
-                        environment variable `DEVICE`
-  --dtype {float32,float16,bfloat16,float8,int8,int4}
-                        The PyTorch dtype in which the model weights will be loaded, defaults to `float16`, can also be set via the environment variable `DTYPE`
+$ uv run hf-inference-sdk --help
 ```
 
-## 💻 Examples
+## Examples
 
 > [!NOTE]
 > On the examples below, given the recently introduced `extra-build-dependencies`
@@ -85,11 +69,11 @@ options:
 ### 🤏 Run `HuggingFaceTB/SmolLM3-3B` with an OpenAI API
 
 ```bash
-uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dtype float16
+uv run hf-inference-sdk --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dtype float16
 ```
 
 > [!NOTE]
-> If you are running on an instance with NVIDIA GPU, it's recommended to install `hf-serve`
+> If you are running on an instance with NVIDIA GPU, it's recommended to install `hf-inference-sdk`
 > with `flash-attn` extra in order to benefit from accelerated inference:
 > ```bash
 > uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
@@ -98,7 +82,7 @@ uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dty
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 
 ```bash
-uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentence-similarity --dtype float32 --cloud azure
+uv run hf-inference-sdk --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentence-similarity --dtype float32 --cloud azure
 ```
 
 > [!WARNING]
@@ -119,7 +103,7 @@ uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentenc
 > in advance for those to work as `ffmpeg` and `libmagic-dev`.
 
 ```bash
-uv run hf-serve --model-id facebook/wav2vec2-large-960h --task automatic-speech-recognition --dtype float16
+uv run hf-inference-sdk --model-id facebook/wav2vec2-large-960h --task automatic-speech-recognition --dtype float16
 ```
 
 > [!WARNING]
@@ -145,7 +129,7 @@ curl -L http://localhost:8080/predict \
 > shouldn't be used as an routing route, but rather dedicated routes for those.
 
 > [!NOTE]
-> The OpenAI Audio Transcriptions API is still not yet part of `hf-serve` but it's
+> The OpenAI Audio Transcriptions API is still not yet part of `hf-inference-sdk` but it's
 > on the roadmap and it will be released soon, stay tuned!
 
 ### 🔈 Run `facebook/wav2vec2-lv-60-espeak-cv-ft` (with `phonemizer` and `espeak`)
@@ -156,7 +140,7 @@ curl -L http://localhost:8080/predict \
 > different Text-To-Speech (TTS) backends as e.g. `espeak-ng` which is supports a lot
 > of languages and IPA (International Phonetic Alphabet). This being said, such models
 > require custom dependencies that need to be installed beforehand as those don't come
-> as default `hf-serve` dependencies; whilst those can be installed as e.g. on MacOS:
+> as default `hf-inference-sdk` dependencies; whilst those can be installed as e.g. on MacOS:
 >
 > ```bash
 > brew install ffmpeg
@@ -174,20 +158,20 @@ curl -L http://localhost:8080/predict \
 To run `facebook/wav2vec2-lv-60-espeak-cv-ft` on e.g. MacOS, you need to run the following:
 
 ```bash
-DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/lib uv run hf-inference-sdk --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
 ```
 
 Note that if you have installed another version of `ffmpeg` with `brew` as e.g. `brew install ffmpeg@7`, you should use the following command instead:
 
 ```bash
-DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/ffmpeg@7/lib uv run hf-serve --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
+DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/ffmpeg@7/lib uv run hf-inference-sdk --model-id facebook/wav2vec2-lv-60-espeak-cv-ft --task automatic-speech-recognition --dtype float16 --device mps
 ```
 
 The main difference relies on the path used for `DYLD_FALLBACK_LIBRARY_PATH` which is now pointing to the exact `brew`-installed version of `ffmpeg` instead. More information on the compatibility issues with `ffmpeg`, `torchcodec` and `torch` at https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
 
 ## 🔮 Upcoming
 
-- [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-serve sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
+- [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-inference-sdk sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
 
 - [ ] Add support for OpenAI Responses API for `text-generation`
 
@@ -204,5 +188,5 @@ The main difference relies on the path used for `DYLD_FALLBACK_LIBRARY_PATH` whi
 
 - [ ] Eventually remove the generic types from `Predictor` given that those don't provide any real benefit since we're leveraging those via FastAPI already, and those are preventing inheritance + method override due to mismatching types; and at the current stage it seems that there's no real benefit, hence dropping those makes sense
 
-- [ ] Detach Google Cloud and Microsoft Azure packages from `hf-serve` so that the core logic is targeting Inference Endpoints and local usage, whilst `hf-serve-gcp` and `hf-serve-az` packages are independent and built on top of `hf-serve` so that those are somehow independent, particularly given the need for custom stuff on `hf-serve-gcp` and `hf-serve-az`, so that `hf-serve` is the lib and the main CLI
+- [ ] Detach Google Cloud and Microsoft Azure packages from `hf-inference-sdk` so that the core logic is targeting Inference Endpoints and local usage, whilst `hf-inference-sdk-gcp` and `hf-inference-sdk-az` packages are independent and built on top of `hf-inference-sdk` so that those are somehow independent, particularly given the need for custom stuff on `hf-inference-sdk-gcp` and `hf-inference-sdk-az`, so that `hf-inference-sdk` is the lib and the main CLI
     - Not sure about this, but just throwing the idea https://docs.astral.sh/uv/concepts/projects/workspaces/#getting-started
