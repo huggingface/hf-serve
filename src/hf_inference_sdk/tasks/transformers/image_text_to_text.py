@@ -18,7 +18,7 @@ class ImageTextToTextParameters(BaseModel):
     typical_p: Optional[float] = Field(default=1.0)
 
     # NOTE: All the parameters below are defined within the Inference API Specification but not supported within
-    # `hf-serve`, hence allowing those but raising a warning if those are provided
+    # `hf-inference-sdk`, hence allowing those but raising a warning if those are provided
     adapter_id: Optional[str] = Field(default=None)
     grammar: Optional[str] = Field(default=None)
     stop: Optional[list[str]] = Field(default=None)
@@ -92,7 +92,7 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
         # there might be some subtle differences on how the parameters are handled. In any case, this should be a
         # discussion point anytime soon, given that Transformers offers much more paremeters during the forward pass
         # than the ones captured in the input schemas, meaning that we're "losing" some capabilities as of today
-        # when using `hf-serve` for `text-generation` via the Inference API.
+        # when using `hf-inference-sdk` for `text-generation` via the Inference API.
         generate_kwargs = {}
 
         # NOTE: https://huggingface.co/docs/transformers/v4.57.3/en/main_classes/text_generation#transformers.GenerationConfig.stop_strings

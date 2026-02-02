@@ -82,7 +82,7 @@ class VisualQuestionAnswering(Predictor[VisualQuestionAnsweringInput, VisualQues
             and getattr(self.pipeline.image_processor, "is_vqa") is True
         ):
             raise RuntimeError(
-                f"{model_id=} is unsupported with the `visual-question-answering` pipeline. Feel free to open an issue describing the error on either https://github.com/huggingface/transformers/issues/new or rather in https://github.com/huggingface/hf-serve/issues/new instead."
+                f"{model_id=} is unsupported with the `visual-question-answering` pipeline. Feel free to open an issue describing the error on either https://github.com/huggingface/transformers/issues/new or rather in https://github.com/huggingface/hf-inference-sdk/issues/new instead."
             )
 
         if torch.mps.is_available():

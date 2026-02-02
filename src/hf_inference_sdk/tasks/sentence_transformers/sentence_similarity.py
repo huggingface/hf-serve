@@ -71,8 +71,8 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
         # NOTE: specific for sentence similarity
-        # TODO: given that some tasks come with specific arguments, eventually rewrite `hf-serve` so that the
-        # CLI interface is `hf-serve <TASK> --model-id ...` rather than `hf-serve --model-id ... --task ...`
+        # TODO: given that some tasks come with specific arguments, eventually rewrite `hf-inference-sdk` so that the
+        # CLI interface is `hf-inference-sdk <TASK> --model-id ...` rather than `hf-inference-sdk --model-id ... --task ...`
         similarity_fn_name: Literal["cosine", "dot", "euclidean", "manhattan"] = "cosine",
         trust_remote_code: bool = False,
     ) -> None:

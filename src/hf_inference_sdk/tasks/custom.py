@@ -22,7 +22,7 @@ class Custom:
         ```
 
         Note that the implementation above, and so on the default custom implementation supported within the
-        `Custom` class is not fully aligned with the current `hf-serve` leveraging all the features and
+        `Custom` class is not fully aligned with the current `hf-inference-sdk` leveraging all the features and
         improvements included here, but rather based on the former `huggingface-inference-toolkit`.
 
         To see some of the former `handler.py` models created on the Hub you can check the following:

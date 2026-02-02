@@ -12,4 +12,4 @@ logging.getLogger("uvicorn").handlers.clear()
 logging.getLogger("uvicorn.access").handlers.clear()
 logging.getLogger("uvicorn.error").handlers.clear()
 
-logger = logging.getLogger("hf-serve")
+logger = logging.getLogger("hf-inference-sdk")

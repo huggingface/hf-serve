@@ -132,7 +132,7 @@ def launch(
             f"You have set `trust_remote_code=True`, which is not recommended, meaning that you will run remote code (if applicable) for `{model_id or model_dir}`. Please make sure that you trust the model author or organization that has created the custom files before proceeding."
         )
 
-    logger.info(f"`hf-serve` starting for model `{model_id or model_dir}` with {task=} on {device=}")
+    logger.info(f"`hf-inference-sdk` starting for model `{model_id or model_dir}` with {task=} on {device=}")
 
     match task:
         # openai-compatible
