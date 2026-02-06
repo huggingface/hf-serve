@@ -85,4 +85,4 @@ if [[ -n "${MODEL_DIR:-}" ]]; then
     fi
 fi
 
-exec hf-serve "$@"
+exec hf-inference-sdk "$@"
