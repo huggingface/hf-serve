@@ -32,6 +32,9 @@ class AutomaticSpeechRecognitionGenerationParameters(BaseModel):
     penalty_alpha: Optional[float] = None
     use_cache: Optional[bool] = None
 
+    # NOTE: Some models seem to support extra `generation_parameters` e.g., https://huggingface.co/KBLab/kb-whisper-large#hugging-face
+    model_config = ConfigDict(extra="allow")
+
 
 class AutomaticSpeechRecognitionParameters(BaseModel):
     return_timestamps: Optional[Union[bool, str]] = Field(default=None)
