@@ -10,6 +10,7 @@ authors = [
 maintainers = [
   { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
   { name = "Juan Julian Cea", email = "juan.moran@huggingface.co" },
+  { name = "Erik Kaunismäki", email = "erik.kaunismaki@huggingface.co" },
 ]
 requires-python = ">=3.10,<3.13"
 dependencies = [
@@ -22,6 +23,8 @@ dependencies = [
     # version by default but rather the CPU-only one.
     # Reference: https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec
     "torchcodec",
+    # NOTE: `diffusers` won't complain, but support for `transformers` 5.0.0+
+    # is still work in progress as per https://github.com/huggingface/diffusers/pull/12976
     "diffusers>=0.36.0",
     # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
     # that needs to be installed as a system dependency e.g. `espeak-ng`
@@ -48,7 +51,7 @@ dependencies = [
 
 [project.optional-dependencies]
 cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
-cuda-126 = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
+cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
 cuda-130 = ["torch>2.8.0", "torchvision", "torchcodec"]
 flash-attn = ["flash-attn==2.8.3"]
 
@@ -81,7 +84,7 @@ force-single-line = false
 conflicts = [
     [
       { extra = "cpu" },
-      { extra = "cuda-126" },
+      { extra = "cuda" },
       { extra = "cuda-130" },
     ],
 ]
@@ -89,17 +92,17 @@ conflicts = [
 [tool.uv.sources]
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
-  { index = "pytorch-cu126", extra = "cuda-126" },
+  { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchvision = [
   { index = "pytorch-cpu", extra = "cpu" },
-  { index = "pytorch-cu126", extra = "cuda-126" },
+  { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchcodec = [
   { index = "pytorch-cpu", extra = "cpu" },
-  { index = "pytorch-cu126", extra = "cuda-126" },
+  { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 
