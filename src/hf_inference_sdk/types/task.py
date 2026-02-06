@@ -26,6 +26,7 @@ TaskTypes = Literal[
     "translation_xx_to_yy",  # NOTE: placeholder task name where `xx` and `yy` are the source and target languages, respectively
     "zero-shot-audio-classification",
     "audio-classification",
+    "asr",  # NOTE: shortened name for `automatic-speech-recognition`
     "automatic-speech-recognition",
     "image-classification",
     "zero-shot-image-classification",

@@ -881,7 +881,7 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
-        case "automatic-speech-recognition":
+        case "asr" | "automatic-speech-recognition":
             from hf_inference_sdk.tasks.transformers.automatic_speech_recognition import (
                 AutomaticSpeechRecognition,
                 AutomaticSpeechRecognitionFormInput,
