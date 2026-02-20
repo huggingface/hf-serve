@@ -132,7 +132,14 @@ def launch(
             f"You have set `trust_remote_code=True`, which is not recommended, meaning that you will run remote code (if applicable) for `{model_id or model_dir}`. Please make sure that you trust the model author or organization that has created the custom files before proceeding."
         )
 
-    logger.info(f"`hf-inference-sdk` starting for model `{model_id or model_dir}` with {task=} on {device=}")
+    if model_dir:
+        logger.info(
+            f"`hf-inference-sdk` initializing `model_dir={model_dir}` on `device={device}` for `task={task}`."
+        )
+    else:
+        logger.info(
+            f"`hf-inference-sdk` initializing `model_id={model_id}` w/ `revision={revision or 'main'}` on `device={device}` for `task={task}`."
+        )
 
     match task:
         # openai-compatible
@@ -1277,7 +1284,13 @@ def launch(
 
         app.include_router(router=azure_router)
 
-    logger.info(f"Loaded `{model_id or model_dir}` ({revision=}) with {task=} on {device=}.")
+    if model_dir:
+        logger.info(f"Loaded `model_dir={model_dir}` on `device={device}` for `task={task}`.")
+    else:
+        logger.info(
+            f"Loaded `model_id={model_id}` w/ `revision={revision or 'main'}` on `device={device}` for `task={task}`."
+        )
+
     log_available_routes(app=app)
 
     uvicorn.run(
