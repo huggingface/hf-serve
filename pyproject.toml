@@ -26,10 +26,10 @@ dependencies = [
     # NOTE: `diffusers` won't complain, but support for `transformers` 5.0.0+
     # is still work in progress as per https://github.com/huggingface/diffusers/pull/12976
     "diffusers>=0.36.0",
-    # NOTE: `torch-speech` includes `phonemizer` which also requires a backend,
-    # that needs to be installed as a system dependency e.g. `espeak-ng`
-    "transformers[accelerate,hf-xet,hub-kernels,torch-speech]>=5.0.0",
-    "timm>=1.0.21",
+    # NOTE: `torch-speech` is now `audio` in Transformers 5.0+ and `phonemizer`
+    # is included as a default dependency instead of an `audio` specific one.
+    # Anyway, `audio` models might need some system dependencies e.g. `espeak-ng`
+    "transformers[accelerate,audio,chat_template,kernels,timm,vision]>=5.1.0",
     "pydantic>=2.10.5",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
     # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
@@ -90,6 +90,10 @@ conflicts = [
 ]
 
 [tool.uv.sources]
+transformers = { git = "https://github.com/huggingface/transformers", rev = "7fdab84f7185fa7fd88a716a95e76c88d2cd5a31" }
+# NOTE: This is the latest commit in https://github.com/huggingface/diffusers/pull/12976,
+# which already seems to be working fine
+diffusers = { git = "https://github.com/huggingface/diffusers", rev = "e89b1b8af9205471e4b1a4374b1548aa3b664628" }
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
