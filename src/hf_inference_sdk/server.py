@@ -196,7 +196,7 @@ def launch(
                 from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
-                    model=predictor.pipeline.model,
+                    model=predictor.pipeline.model,  # type: ignore
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
@@ -251,7 +251,7 @@ def launch(
                 from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
-                    model=predictor.pipeline.model,
+                    model=predictor.pipeline.model,  # type: ignore
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
@@ -1249,6 +1249,43 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
+        # NOTE: Support for `any-to-any` is limited and still experimental
+        case "any-to-any":
+            from hf_inference_sdk.tasks.transformers.any_to_any import AnyToAny, AnyToAnyInput, AnyToAnyOutput
+
+            predictor = AnyToAny(
+                model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
+
+            if cloud is not None and cloud == "google":
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
+                from hf_inference_sdk.compatibility.google.schemas.transformers.text_generation import (
+                    AnyToAnyInputForGoogle,
+                    AnyToAnyOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=AnyToAnyInputForGoogle,
+                        output_schema=AnyToAnyOutputForGoogle,
+                        inner_input_schema=AnyToAnyInput,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=AnyToAnyInput,
+                        output_schema=AnyToAnyOutput,
+                    )
+                )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {

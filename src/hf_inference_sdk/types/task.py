@@ -1,6 +1,7 @@
 from typing import Literal
 
 TaskTypes = Literal[
+    "any-to-any",  # NOTE: support is still experimental
     "image-text-to-text",
     "text-generation",
     "text2text-generation",  # NOTE: deprecated in favour of `text-generation`
