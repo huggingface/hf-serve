@@ -1265,7 +1265,7 @@ def launch(
                 from hf_inference_sdk.compatibility.google.routers.predict import (
                     router as google_predict_router,
                 )
-                from hf_inference_sdk.compatibility.google.schemas.transformers.text_generation import (
+                from hf_inference_sdk.compatibility.google.schemas.transformers.any_to_any import (
                     AnyToAnyInputForGoogle,
                     AnyToAnyOutputForGoogle,
                 )
@@ -1285,6 +1285,27 @@ def launch(
                         input_schema=AnyToAnyInput,
                         output_schema=AnyToAnyOutput,
                     )
+                )
+            if predictor.pipeline.tokenizer is not None and (
+                predictor.pipeline.tokenizer.chat_template is not None
+                or (
+                    hasattr(predictor.pipeline, "processor")
+                    and predictor.pipeline.processor is not None
+                    and hasattr(predictor.pipeline.processor, "chat_template")
+                    and predictor.pipeline.processor.chat_template is not None  # type: ignore
+                )
+            ):
+                from hf_inference_sdk.openai.routers import chat_completions_router, models_router
+                from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
+
+                chat_completions = ChatCompletions(
+                    model=predictor.pipeline.model,  # type: ignore
+                    tokenizer=predictor.pipeline.tokenizer,  # type: ignore
+                    processor=predictor.pipeline.processor,  # type: ignore
+                )
+                app.include_router(router=chat_completions_router(predictor=chat_completions))
+                app.include_router(
+                    router=models_router(model_id=chat_completions.model_id, timestamp=int(time.time()))  # type: ignore
                 )
         # custom
         case "custom":
