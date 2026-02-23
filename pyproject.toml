@@ -90,7 +90,7 @@ conflicts = [
 ]
 
 [tool.uv.sources]
-transformers = { git = "https://github.com/huggingface/transformers", rev = "7fdab84f7185fa7fd88a716a95e76c88d2cd5a31" }
+transformers = { git = "https://github.com/huggingface/transformers", rev = "4c3441c2780c146592c9453d223ad315e24f7e6f" }
 # NOTE: This is the latest commit in https://github.com/huggingface/diffusers/pull/12976,
 # which already seems to be working fine
 diffusers = { git = "https://github.com/huggingface/diffusers", rev = "e89b1b8af9205471e4b1a4374b1548aa3b664628" }

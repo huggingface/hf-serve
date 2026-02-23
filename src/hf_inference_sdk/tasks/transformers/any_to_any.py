@@ -40,10 +40,10 @@ class AnyToAny(Predictor[AnyToAnyInput, AnyToAnyOutput]):
 
         import torch
         from transformers import pipeline
-        from transformers.pipelines.any_to_any import AnyToAnyPipeline
+        from transformers.pipelines.any_to_any import AnyToAnyPipeline  # type: ignore
 
-        self.pipeline: AnyToAnyPipeline = pipeline(
-            task="any-to-any",
+        self.pipeline: AnyToAnyPipeline = pipeline(  # type: ignore
+            task="any-to-any",  # type: ignore
             model=model_id,
             revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
@@ -66,11 +66,19 @@ class AnyToAny(Predictor[AnyToAnyInput, AnyToAnyOutput]):
 
             set_seed(seed)
 
-        output = self.pipeline(
-            text=payload.inputs.text,  # type: ignore
-            images=payload.inputs.images,  # type: ignore
-            videos=payload.inputs.videos,  # type: ignore
-            audio=payload.inputs.audio,  # type: ignore
-            **parameters,
-        )
-        return AnyToAnyOutput(generated_text=output[0]["generated_text"])
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": payload.inputs.text},
+                ],
+            }
+        ]
+        if isinstance(payload.inputs.audio, list):
+            for audio in payload.inputs.audio:
+                messages[-1]["content"].append({"type": "audio", "path": audio})
+        else:
+            messages[-1]["content"].append({"type": "audio", "path": payload.inputs.audio})
+
+        output = self.pipeline(messages, **parameters)
+        return AnyToAnyOutput(generated_text=output[0]["generated_text"][-1]["content"])
