@@ -132,7 +132,14 @@ def launch(
             f"You have set `trust_remote_code=True`, which is not recommended, meaning that you will run remote code (if applicable) for `{model_id or model_dir}`. Please make sure that you trust the model author or organization that has created the custom files before proceeding."
         )
 
-    logger.info(f"`hf-inference-sdk` starting for model `{model_id or model_dir}` with {task=} on {device=}")
+    if model_dir:
+        logger.info(
+            f"`hf-inference-sdk` initializing `model_dir={model_dir}` on `device={device}` for `task={task}`."
+        )
+    else:
+        logger.info(
+            f"`hf-inference-sdk` initializing `model_id={model_id}` w/ `revision={revision or 'main'}` on `device={device}` for `task={task}`."
+        )
 
     match task:
         # openai-compatible
@@ -189,7 +196,7 @@ def launch(
                 from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
-                    model=predictor.pipeline.model,
+                    model=predictor.pipeline.model,  # type: ignore
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
@@ -244,7 +251,7 @@ def launch(
                 from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
 
                 chat_completions = ChatCompletions(
-                    model=predictor.pipeline.model,
+                    model=predictor.pipeline.model,  # type: ignore
                     tokenizer=predictor.pipeline.tokenizer,  # type: ignore
                 )
                 app.include_router(router=chat_completions_router(predictor=chat_completions))
@@ -1242,6 +1249,65 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
+        # NOTE: Support for `any-to-any` is limited and still experimental
+        # TODO: Any to any usually also implies support for ASR when there's an audio processor
+        case "any-to-any":
+            from hf_inference_sdk.tasks.transformers.any_to_any import AnyToAny, AnyToAnyInput, AnyToAnyOutput
+
+            predictor = AnyToAny(
+                model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
+
+            if cloud is not None and cloud == "google":
+                from hf_inference_sdk.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
+                from hf_inference_sdk.compatibility.google.schemas.transformers.any_to_any import (
+                    AnyToAnyInputForGoogle,
+                    AnyToAnyOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=AnyToAnyInputForGoogle,
+                        output_schema=AnyToAnyOutputForGoogle,
+                        inner_input_schema=AnyToAnyInput,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=AnyToAnyInput,
+                        output_schema=AnyToAnyOutput,
+                    )
+                )
+            if predictor.pipeline.tokenizer is not None and (
+                predictor.pipeline.tokenizer.chat_template is not None
+                or (
+                    hasattr(predictor.pipeline, "processor")
+                    and predictor.pipeline.processor is not None
+                    and hasattr(predictor.pipeline.processor, "chat_template")
+                    and predictor.pipeline.processor.chat_template is not None  # type: ignore
+                )
+            ):
+                from hf_inference_sdk.openai.routers import chat_completions_router, models_router
+                from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
+
+                chat_completions = ChatCompletions(
+                    model=predictor.pipeline.model,  # type: ignore
+                    tokenizer=predictor.pipeline.tokenizer,  # type: ignore
+                    processor=predictor.pipeline.processor,  # type: ignore
+                )
+                app.include_router(router=chat_completions_router(predictor=chat_completions))
+                app.include_router(
+                    router=models_router(model_id=chat_completions.model_id, timestamp=int(time.time()))  # type: ignore
+                )
         # custom
         case "custom":
             if os.getenv("TRUST_REMOTE_CODE", None) is None or os.getenv("TRUST_REMOTE_CODE", None) in {
@@ -1277,7 +1343,13 @@ def launch(
 
         app.include_router(router=azure_router)
 
-    logger.info(f"Loaded `{model_id or model_dir}` ({revision=}) with {task=} on {device=}.")
+    if model_dir:
+        logger.info(f"Loaded `model_dir={model_dir}` on `device={device}` for `task={task}`.")
+    else:
+        logger.info(
+            f"Loaded `model_id={model_id}` w/ `revision={revision or 'main'}` on `device={device}` for `task={task}`."
+        )
+
     log_available_routes(app=app)
 
     uvicorn.run(

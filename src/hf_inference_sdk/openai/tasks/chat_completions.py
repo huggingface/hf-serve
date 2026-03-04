@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import torch
 from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
+from transformers.audio_utils import load_audio
 from transformers.generation.streamers import TextIteratorStreamer
 from transformers.image_utils import load_image
 
@@ -105,6 +106,7 @@ class ChatCompletions:
     ) -> Union[Iterator[ChatCompletionsOutputChunk], ChatCompletionsOutput]:
         messages = []
         images = []  # NOTE: only required when the model is a VLM and the `processor` is provided
+        audio = False
         for message in payload.messages:
             match message.role:
                 case "system" | "developer":
@@ -117,7 +119,9 @@ class ChatCompletions:
                 case "user":
                     # TODO: `Qwen/Qwen3-VL-8B-Instruct` is not working fine due to not entering the
                     # else condition on `self.processor`
-                    if not all(hasattr(self, attr) for attr in {"processor", "image_processor"}):
+                    # TODO: This likely requires a custom handling for each processor type to see if it supports
+                    # audio, images, videos, etc.
+                    if self.processor is None:
                         formatted_message = {"role": message.role}
                         if isinstance(message.content, str):
                             formatted_message["content"] = message.content
@@ -136,7 +140,8 @@ class ChatCompletions:
                                         f"Provided {payload.messages=} contains an input that's either an image, audio, or file, which is either not supported or not compatible yet."
                                     )
                         messages.append(formatted_message)
-                    # NOTE: when the `processor` is provided, it currently means that it's a VLM
+                    # NOTE: when the `processor` is provided, it currently means that it supports either image,
+                    # audio or both
                     else:
                         formatted_message = {"role": message.role}
                         if isinstance(message.content, str):
@@ -156,12 +161,17 @@ class ChatCompletions:
                                 elif isinstance(content, ContentPartImage):
                                     images.append(load_image(content.image_url.url))
                                     formatted_message["content"].append({"type": "image"})
+                                elif isinstance(content, ContentPartAudio):
+                                    audio = True
+                                    formatted_message["content"].append(
+                                        {"type": "audio", "path": content.input_audio.data}
+                                    )
                                 elif isinstance(
                                     content,
-                                    (ContentPartAudio, ContentPartFile),
+                                    ContentPartFile,
                                 ):
                                     raise ValueError(
-                                        f"Provided {payload.messages=} contains an input that's either audio or file, which is either not supported or not compatible yet."
+                                        f"Provided {payload.messages=} contains an input that's a file, which is either not supported or not compatible yet."
                                     )
                         messages.append(formatted_message)
                 case "assistant":
@@ -221,22 +231,39 @@ class ChatCompletions:
                 for tool in payload.tools
             ]
 
-        prompt = self.tokenizer.apply_chat_template(  # type: ignore
-            messages,
-            tools=tools,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
+        if self.processor is None and (audio or len(images) > 0):
+            raise RuntimeError(
+                "Either or both of `audio` and `image` have been provided but the model won't support those due to the lack of a `processor`."
+            )
 
-        if images and len(images) > 0:
-            inputs = self.processor(texts=prompt, images=images, return_tensors="pt")  # type: ignore
-            inputs["pixel_values"] = inputs["pixel_values"].unsqueeze(0)
-            inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
+        if audio:
+            inputs = self.processor.apply_chat_template(  # type: ignore
+                messages,
+                tools=tools,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_dict=True,
+            ).to(self.model.device, self.model.dtype)  # type: ignore
         else:
-            inputs = self.tokenizer(prompt, return_tensors="pt")  # type: ignore
+            prompt = self.tokenizer.apply_chat_template(  # type: ignore
+                messages,
+                tools=tools,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
 
-        # NOTE: no need to cast to `self.model.dtype` as per `Attempting to cast a BatchEncoding to type torch.float16. This is not supported.`
-        inputs = inputs.to(self.model.device)  # type: ignore
+            # TODO: Likely this can be simplified by just relying on the `self.processor`
+            if len(images) > 0:
+                inputs = self.processor(texts=prompt, images=images, return_tensors="pt")  # type: ignore
+                inputs["pixel_values"] = inputs["pixel_values"].unsqueeze(0)
+                inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
+            else:
+                inputs = self.tokenizer(prompt, return_tensors="pt")  # type: ignore
+
+            inputs = {
+                k: v.to(self.model.device) if isinstance(v, torch.Tensor) else v  # type: ignore
+                for k, v in inputs.items()
+            }
 
         generation_kwargs = dict(
             inputs,
@@ -244,6 +271,16 @@ class ChatCompletions:
             do_sample=True if (payload.temperature is not None and payload.temperature != 1.0) else False,
             temperature=payload.temperature if payload.temperature is not None else 1.0,
             top_p=payload.top_p if payload.top_p is not None else 1.0,
+            pad_token_id=getattr(self.processor, "pad_id")
+            if self.processor is not None and hasattr(self.processor, "pad_id")
+            else None,
+            eos_token_id=getattr(getattr(self.processor, "tokenizer"), "eos_token_id")
+            if self.processor is not None
+            and hasattr(self.processor, "tokenizer")
+            and hasattr(getattr(self.processor, "tokenizer"), "eos_token_id")
+            else getattr(self.tokenizer, "eos_token_id")
+            if hasattr(self.tokenizer, "eos_token_id")
+            else None,
         )
 
         if payload.seed:
@@ -268,7 +305,9 @@ class ChatCompletions:
                 completion_tokens += 1
                 accumulated_text += stream
 
-                # TODO: handle within_tool to capture whether it makes sense to capture the tool_call or not, i.e., ensure only when tool_call is done as per the last token (might not be super robust so think a bit carefully about it)
+                # TODO: handle within_tool to capture whether it makes sense to capture the tool_call or not,
+                # i.e., ensure only when tool_call is done as per the last token (might not be super robust so
+                # think a bit carefully about it)
                 tool_calls = extract_tool_calls(accumulated_text) if payload.tools else None
 
                 finish_reason = None
@@ -317,7 +356,13 @@ class ChatCompletions:
                 output = self.model.generate(**generation_kwargs)  # type: ignore
             output = output[:, inputs["input_ids"].shape[-1] :][0]
 
-            decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)  # type: ignore
+            if self.processor is not None:
+                if hasattr(self.processor, "extract_transcription"):
+                    decoded_output = self.processor.decode(output, return_format="transcription_only")  # type: ignore
+                else:
+                    decoded_output = self.processor.decode(output, skip_special_tokens=True)  # type: ignore
+            else:
+                decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)  # type: ignore
 
             tool_calls = extract_tool_calls(decoded_output) if payload.tools else None
 
