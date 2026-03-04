@@ -1250,6 +1250,7 @@ def launch(
                         )
                     )
         # NOTE: Support for `any-to-any` is limited and still experimental
+        # TODO: Any to any usually also implies support for ASR when there's an audio processor
         case "any-to-any":
             from hf_inference_sdk.tasks.transformers.any_to_any import AnyToAny, AnyToAnyInput, AnyToAnyOutput
 

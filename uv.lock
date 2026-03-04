@@ -490,7 +490,7 @@ requires-dist = [
     { name = "torchvision", marker = "extra == 'cpu'", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "hf-inference-sdk", extra = "cpu" } },
     { name = "torchvision", marker = "extra == 'cuda'", index = "https://download.pytorch.org/whl/cu126", conflict = { package = "hf-inference-sdk", extra = "cuda" } },
     { name = "torchvision", marker = "extra == 'cuda-130'", index = "https://download.pytorch.org/whl/cu130", conflict = { package = "hf-inference-sdk", extra = "cuda-130" } },
-    { name = "transformers", extras = ["accelerate", "audio", "chat-template", "kernels", "timm", "vision"], git = "https://github.com/huggingface/transformers?rev=4c3441c2780c146592c9453d223ad315e24f7e6f" },
+    { name = "transformers", extras = ["accelerate", "audio", "chat-template", "kernels", "timm", "vision"], git = "https://github.com/huggingface/transformers?rev=30c480166a95342fefdd9d727fc2a163bea7b2b1" },
     { name = "uvicorn", specifier = ">=0.34.0" },
 ]
 provides-extras = ["cpu", "cuda", "cuda-130", "flash-attn"]
@@ -2792,7 +2792,7 @@ wheels = [
 [[package]]
 name = "transformers"
 version = "5.3.0.dev0"
-source = { git = "https://github.com/huggingface/transformers?rev=4c3441c2780c146592c9453d223ad315e24f7e6f#4c3441c2780c146592c9453d223ad315e24f7e6f" }
+source = { git = "https://github.com/huggingface/transformers?rev=30c480166a95342fefdd9d727fc2a163bea7b2b1#30c480166a95342fefdd9d727fc2a163bea7b2b1" }
 dependencies = [
     { name = "huggingface-hub" },
     { name = "numpy" },

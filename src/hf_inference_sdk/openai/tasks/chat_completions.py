@@ -106,7 +106,7 @@ class ChatCompletions:
     ) -> Union[Iterator[ChatCompletionsOutputChunk], ChatCompletionsOutput]:
         messages = []
         images = []  # NOTE: only required when the model is a VLM and the `processor` is provided
-        audio = []  # NOTE: only required when the model supports audio as input
+        audio = False
         for message in payload.messages:
             match message.role:
                 case "system" | "developer":
@@ -121,7 +121,7 @@ class ChatCompletions:
                     # else condition on `self.processor`
                     # TODO: This likely requires a custom handling for each processor type to see if it supports
                     # audio, images, videos, etc.
-                    if not hasattr(self, "processor"):
+                    if self.processor is None:
                         formatted_message = {"role": message.role}
                         if isinstance(message.content, str):
                             formatted_message["content"] = message.content
@@ -162,8 +162,10 @@ class ChatCompletions:
                                     images.append(load_image(content.image_url.url))
                                     formatted_message["content"].append({"type": "image"})
                                 elif isinstance(content, ContentPartAudio):
-                                    audio.append(load_audio(content.input_audio.data))
-                                    formatted_message["content"].append({"type": "audio"})
+                                    audio = True
+                                    formatted_message["content"].append(
+                                        {"type": "audio", "path": content.input_audio.data}
+                                    )
                                 elif isinstance(
                                     content,
                                     ContentPartFile,
@@ -229,31 +231,39 @@ class ChatCompletions:
                 for tool in payload.tools
             ]
 
-        prompt = self.tokenizer.apply_chat_template(  # type: ignore
-            messages,
-            tools=tools,
-            tokenize=False,
-            add_generation_prompt=True,
-        )
+        if self.processor is None and (audio or len(images) > 0):
+            raise RuntimeError(
+                "Either or both of `audio` and `image` have been provided but the model won't support those due to the lack of a `processor`."
+            )
 
-        if audio and len(audio) > 0 and hasattr(self.processor, "apply_transcription_request"):
-            inputs = self.processor.apply_transcription_request(  # type: ignore
-                # audio=audio,
-                # prompt=prompt,
-                audio="https://huggingface.co/datasets/bezzam/vibevoice_samples/resolve/main/realtime_model/vibevoice_tts_german.wav",
-                prompt="About VibeVoice",
+        if audio:
+            inputs = self.processor.apply_chat_template(  # type: ignore
+                messages,
+                tools=tools,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_dict=True,
             ).to(self.model.device, self.model.dtype)  # type: ignore
-        elif images and len(images) > 0:
-            inputs = self.processor(texts=prompt, images=images, return_tensors="pt")  # type: ignore
-            inputs["pixel_values"] = inputs["pixel_values"].unsqueeze(0)
-            inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
         else:
-            inputs = self.tokenizer(prompt, return_tensors="pt")  # type: ignore
+            prompt = self.tokenizer.apply_chat_template(  # type: ignore
+                messages,
+                tools=tools,
+                tokenize=False,
+                add_generation_prompt=True,
+            )
 
-        inputs = {
-            k: v.to(self.model.device) if isinstance(v, torch.Tensor) else v  # type: ignore
-            for k, v in inputs.items()
-        }
+            # TODO: Likely this can be simplified by just relying on the `self.processor`
+            if len(images) > 0:
+                inputs = self.processor(texts=prompt, images=images, return_tensors="pt")  # type: ignore
+                inputs["pixel_values"] = inputs["pixel_values"].unsqueeze(0)
+                inputs["image_sizes"] = inputs["image_sizes"].unsqueeze(0)
+            else:
+                inputs = self.tokenizer(prompt, return_tensors="pt")  # type: ignore
+
+            inputs = {
+                k: v.to(self.model.device) if isinstance(v, torch.Tensor) else v  # type: ignore
+                for k, v in inputs.items()
+            }
 
         generation_kwargs = dict(
             inputs,
@@ -346,13 +356,11 @@ class ChatCompletions:
                 output = self.model.generate(**generation_kwargs)  # type: ignore
             output = output[:, inputs["input_ids"].shape[-1] :][0]
 
-            if hasattr(self.processor, "decode"):
-                try:
-                    decoded_output = self.processor.decode(  # type: ignore
-                        output, skip_special_tokens=True, return_format="transcription_only"
-                    )
-                except ValueError:
-                    decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)  # type: ignore
+            if self.processor is not None:
+                if hasattr(self.processor, "extract_transcription"):
+                    decoded_output = self.processor.decode(output, return_format="transcription_only")  # type: ignore
+                else:
+                    decoded_output = self.processor.decode(output, skip_special_tokens=True)  # type: ignore
             else:
                 decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)  # type: ignore
 
