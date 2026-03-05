@@ -10,7 +10,6 @@ from uuid import uuid4
 
 import torch
 from transformers import AutoModelForCausalLM, AutoProcessor, AutoTokenizer
-from transformers.audio_utils import load_audio
 from transformers.generation.streamers import TextIteratorStreamer
 from transformers.image_utils import load_image
 
@@ -357,10 +356,7 @@ class ChatCompletions:
             output = output[:, inputs["input_ids"].shape[-1] :][0]
 
             if self.processor is not None:
-                if hasattr(self.processor, "extract_transcription"):
-                    decoded_output = self.processor.decode(output, return_format="transcription_only")  # type: ignore
-                else:
-                    decoded_output = self.processor.decode(output, skip_special_tokens=True)  # type: ignore
+                decoded_output = self.processor.decode(output, skip_special_tokens=True)  # type: ignore
             else:
                 decoded_output = self.tokenizer.decode(output, skip_special_tokens=True)  # type: ignore
 
