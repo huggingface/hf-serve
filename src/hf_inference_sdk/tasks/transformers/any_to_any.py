@@ -80,5 +80,7 @@ class AnyToAny(Predictor[AnyToAnyInput, AnyToAnyOutput]):
         else:
             messages[-1]["content"].append({"type": "audio", "path": payload.inputs.audio})
 
-        output = self.pipeline(messages, **parameters)
+        # TODO: Add support for images and videos
+
+        output = self.pipeline(messages, **parameters)  # type: ignore
         return AnyToAnyOutput(generated_text=output[0]["generated_text"][-1]["content"])
