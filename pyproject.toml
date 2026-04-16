@@ -105,6 +105,8 @@ torchcodec = [
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
+transformers = { git = "https://github.com/huggingface/transformers", branch = "main" }
+diffusers = { git = "https://github.com/huggingface/diffusers", branch = "main" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
