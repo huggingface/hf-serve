@@ -29,7 +29,7 @@ dependencies = [
     # NOTE: `torch-speech` is now `audio` in Transformers 5.0+ and `phonemizer`
     # is included as a default dependency instead of an `audio` specific one.
     # Anyway, `audio` models might need some system dependencies e.g. `espeak-ng`
-    "transformers[accelerate,audio,chat_template,kernels,timm,vision]>=5.4.0",
+    "transformers[accelerate,audio,chat_template,kernels,timm,vision]>=5.9.0",
     "pydantic>=2.10.5",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
     # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
@@ -37,7 +37,7 @@ dependencies = [
     # "sentence-transformers[onnx]>=5.0.0",
     # NOTE: for GPU that'd be the following
     # "sentence-transformers[onnx-gpu]>=5.0.0",
-    "sentence-transformers>=5.3.0",
+    "sentence-transformers>=5.5.1",
     "sentencepiece>=0.2.0",
     "protobuf>=5.29.3",
     "peft>=0.14.0",
@@ -105,8 +105,6 @@ torchcodec = [
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
-transformers = { git = "https://github.com/huggingface/transformers", branch = "main" }
-diffusers = { git = "https://github.com/huggingface/diffusers", branch = "main" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
