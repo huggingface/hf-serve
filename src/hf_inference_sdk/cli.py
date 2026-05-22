@@ -111,6 +111,14 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--workers",
+    type=int,
+    default=int(os.getenv("WORKERS", "1")),
+    required=False,
+    help="Number of worker processes. Values >1 or UNLOAD_IDLE=1 automatically use gunicorn with preload_app. Defaults to 1. It can also be set via the environment variable `WORKERS`.",
+)
+
+parser.add_argument(
     "--cloud",
     type=str,
     default=os.getenv("CLOUD", None) or None,
@@ -137,5 +145,6 @@ def main() -> None:
         # without having to handle that here
         accepted_mimetypes=args.accepted_mimetypes.split(",") if args.accepted_mimetypes else None,
         max_file_size=args.max_file_size,
+        workers=args.workers,
         cloud=args.cloud,
     )

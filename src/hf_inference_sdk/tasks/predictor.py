@@ -1,6 +1,7 @@
+import threading
 import time
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Union, get_args, get_origin
+from typing import Callable, Generic, Optional, TypeVar, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
@@ -79,3 +80,25 @@ class Predictor(ABC, Generic[InputType, OutputType]):
         if warmup_successful:
             elapsed_time = time.perf_counter() - start_time
             logger.info(f"Model warmup completed successfully in {elapsed_time:.2f} seconds")
+
+
+class LazyPredictor(Predictor[InputType, OutputType]):
+    """Wraps a predictor factory and defers construction to the first call."""
+
+    def __init__(self, factory: Callable[[], "Predictor[InputType, OutputType]"]) -> None:
+        self._factory = factory
+        self._inner: Optional[Predictor[InputType, OutputType]] = None
+        self._lock = threading.Lock()
+
+    def _load(self) -> "Predictor[InputType, OutputType]":
+        if self._inner is None:
+            with self._lock:
+                if self._inner is None:
+                    self._inner = self._factory()
+        return self._inner
+
+    def __call__(self, payload: InputType) -> OutputType:
+        return self._load()(payload=payload)
+
+    def warmup(self) -> None:
+        pass
