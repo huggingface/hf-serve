@@ -554,86 +554,6 @@ def launch(
                         output_schema=FillMaskOutput,
                     )
                 )
-        case "question-answering":
-            from hf_inference_sdk.tasks.transformers.question_answering import (
-                QuestionAnswering,
-                QuestionAnsweringInput,
-                QuestionAnsweringOutput,
-            )
-
-            predictor = QuestionAnswering(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
-            )
-
-            if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import (
-                    router as google_predict_router,
-                )
-                from hf_inference_sdk.compatibility.google.schemas.transformers.question_answering import (
-                    QuestionAnsweringInputForGoogle,
-                    QuestionAnsweringOutputForGoogle,
-                )
-
-                app.include_router(
-                    router=google_predict_router(
-                        predictor=predictor,
-                        input_schema=QuestionAnsweringInputForGoogle,
-                        output_schema=QuestionAnsweringOutputForGoogle,
-                        inner_input_schema=QuestionAnsweringInput,
-                    )
-                )
-            else:
-                app.include_router(
-                    router=predict_router(
-                        predictor=predictor,
-                        input_schema=QuestionAnsweringInput,
-                        output_schema=QuestionAnsweringOutput,
-                    )
-                )
-        case "summarization":
-            from hf_inference_sdk.tasks.transformers.summarization import (
-                Summarization,
-                SummarizationInput,
-                SummarizationOutput,
-            )
-
-            predictor = Summarization(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
-            )
-
-            if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import (
-                    router as google_predict_router,
-                )
-                from hf_inference_sdk.compatibility.google.schemas.transformers.summarization import (
-                    SummarizationInputForGoogle,
-                    SummarizationOutputForGoogle,
-                )
-
-                app.include_router(
-                    router=google_predict_router(
-                        predictor=predictor,
-                        input_schema=SummarizationInputForGoogle,
-                        output_schema=SummarizationOutputForGoogle,
-                        inner_input_schema=SummarizationInput,
-                    )
-                )
-            else:
-                app.include_router(
-                    router=predict_router(
-                        predictor=predictor,
-                        input_schema=SummarizationInput,
-                        output_schema=SummarizationOutput,
-                    )
-                )
         case "zero-shot-classification":
             from hf_inference_sdk.tasks.transformers.zero_shot_classification import (
                 ZeroShotClassification,
@@ -752,46 +672,6 @@ def launch(
                         predictor=predictor,
                         input_schema=TableQuestionAnsweringInput,
                         output_schema=TableQuestionAnsweringOutput,
-                    )
-                )
-        case "translation" | "translation_xx_to_yy":
-            from hf_inference_sdk.tasks.transformers.translation import (
-                Translation,
-                TranslationInput,
-                TranslationOutput,
-            )
-
-            predictor = Translation(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
-            )
-
-            if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import (
-                    router as google_predict_router,
-                )
-                from hf_inference_sdk.compatibility.google.schemas.transformers.translation import (
-                    TranslationInputForGoogle,
-                    TranslationOutputForGoogle,
-                )
-
-                app.include_router(
-                    router=google_predict_router(
-                        predictor=predictor,
-                        input_schema=TranslationInputForGoogle,
-                        output_schema=TranslationOutputForGoogle,
-                        inner_input_schema=TranslationInput,
-                    )
-                )
-            else:
-                app.include_router(
-                    router=predict_router(
-                        predictor=predictor,
-                        input_schema=TranslationInput,
-                        output_schema=TranslationOutput,
                     )
                 )
         # transformers - audio
@@ -1115,46 +995,6 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
-        case "visual-question-answering" | "vqa":
-            from hf_inference_sdk.tasks.transformers.visual_question_answering import (
-                VisualQuestionAnswering,
-                VisualQuestionAnsweringInput,
-                VisualQuestionAnsweringOutput,
-            )
-
-            predictor = VisualQuestionAnswering(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
-            )
-
-            if cloud is not None and cloud == "google":
-                from hf_inference_sdk.compatibility.google.routers.predict import (
-                    router as google_predict_router,
-                )
-                from hf_inference_sdk.compatibility.google.schemas.transformers.visual_question_answering import (
-                    VisualQuestionAnsweringInputForGoogle,
-                    VisualQuestionAnsweringOutputForGoogle,
-                )
-
-                app.include_router(
-                    router=google_predict_router(
-                        predictor=predictor,
-                        input_schema=VisualQuestionAnsweringInputForGoogle,
-                        output_schema=VisualQuestionAnsweringOutputForGoogle,
-                        inner_input_schema=VisualQuestionAnsweringInput,
-                    )
-                )
-            else:
-                app.include_router(
-                    router=predict_router(
-                        predictor=predictor,
-                        input_schema=VisualQuestionAnsweringInput,
-                        output_schema=VisualQuestionAnsweringOutput,
-                    )
-                )
         case "zero-shot-image-classification":
             from hf_inference_sdk.tasks.transformers.zero_shot_image_classification import (
                 ZeroShotImageClassification,
