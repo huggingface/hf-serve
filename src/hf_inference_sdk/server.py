@@ -1272,9 +1272,19 @@ def launch(
 
     use_gunicorn = workers > 1 or idle.UNLOAD_IDLE
     if use_gunicorn:
+        import signal
         import sys
 
         import gunicorn.app.base
+        from uvicorn.workers import UvicornWorker
+
+        class _UvicornWorker(UvicornWorker):
+            def _install_sigquit_handler(self) -> None:
+                # Gunicorn sends SIGQUIT for fast shutdown, but uvicorn only handles
+                # SIGTERM/SIGINT. Convert SIGQUIT → SIGTERM so uvicorn shuts down
+                # cleanly (runs lifespan shutdown) instead of ignoring it.
+                loop = asyncio.get_running_loop()
+                loop.add_signal_handler(signal.SIGQUIT, os.kill, os.getpid(), signal.SIGTERM)
 
         class _GunicornApp(gunicorn.app.base.BaseApplication):
             def init(self, parser, opts, args):
@@ -1283,7 +1293,7 @@ def launch(
             def load_config(self):
                 self.cfg.set("bind", f"{host}:{port}")
                 self.cfg.set("workers", workers)
-                self.cfg.set("worker_class", "uvicorn.workers.UvicornWorker")
+                self.cfg.set("worker_class", _UvicornWorker)
                 # Load app in the master before forking so workers inherit the
                 # already-configured routes and LazyPredictor instances.
                 self.cfg.set("preload_app", True)
