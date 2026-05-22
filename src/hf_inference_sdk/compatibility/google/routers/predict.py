@@ -3,6 +3,7 @@ from typing import Type, Union
 
 from fastapi import APIRouter, Body, Request
 from fastapi.exceptions import HTTPException
+from fastapi.responses import Response
 from pydantic import BaseModel, ValidationError
 
 from hf_inference_sdk import idle
@@ -23,6 +24,9 @@ def router(
         request_id = getattr(request.state, "request_id", None)
 
         async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
             try:
                 logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
 

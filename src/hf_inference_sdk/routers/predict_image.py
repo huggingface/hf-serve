@@ -39,6 +39,9 @@ def router(
                 )
 
         async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(content=None, status_code=204)
             try:
                 logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
 

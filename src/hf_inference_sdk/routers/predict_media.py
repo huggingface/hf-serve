@@ -1,7 +1,7 @@
 from typing import Annotated, List, Optional, Type, Union
 
 from fastapi import APIRouter, Body, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, ValidationError
 
 from hf_inference_sdk import idle
@@ -27,6 +27,9 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
             try:
                 logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
                 return predictor(payload=payload)
@@ -42,6 +45,9 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
             try:
                 file_validator(form.file)
 
@@ -75,6 +81,9 @@ def media_router(
         request_id = getattr(request.state, "request_id", None)
 
         async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
             try:
                 file_validator(file)
 
