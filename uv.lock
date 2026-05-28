@@ -351,7 +351,7 @@ wheels = [
 
 [[package]]
 name = "fastapi"
-version = "0.129.0"
+version = "0.136.3"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "annotated-doc" },
@@ -360,9 +360,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "typing-inspection" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/47/75f6bea02e797abff1bca968d5997793898032d9923c1935ae2efdece642/fastapi-0.129.0.tar.gz", hash = "sha256:61315cebd2e65df5f97ec298c888f9de30430dd0612d59d6480beafbc10655af", size = 375450, upload-time = "2026-02-12T13:54:52.541Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/81/2d/ff8d91d7b564d464629a0fd50a4489c97fcb836ac230bf3a7269232a9b1f/fastapi-0.136.3.tar.gz", hash = "sha256:e487fae93ad408e6f47641ee4dfe389864fd7bec92e547ea8498fc13f43e83ab", size = 396410, upload-time = "2026-05-23T18:53:15.192Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9e/dd/d0ee25348ac58245ee9f90b6f3cbb666bf01f69be7e0911f9851bddbda16/fastapi-0.129.0-py3-none-any.whl", hash = "sha256:b4946880e48f462692b31c083be0432275cbfb6e2274566b1be91479cc1a84ec", size = 102950, upload-time = "2026-02-12T13:54:54.528Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/82/45359b62a067409bd929ae8a56b8ed13e5a8c8a61194b3c236920999ab83/fastapi-0.136.3-py3-none-any.whl", hash = "sha256:3d2a69bdf04b7e9f3afa292c3bc7a98816bbfafa10bc9b45f3f3700d2f761620", size = 117481, upload-time = "2026-05-23T18:53:16.924Z" },
 ]
 
 [[package]]
@@ -423,6 +423,7 @@ dependencies = [
     { name = "python-multipart" },
     { name = "sentence-transformers" },
     { name = "sentencepiece" },
+    { name = "starlette" },
     { name = "torch", version = "2.7.1", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-16-hf-inference-sdk-cpu') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "torch", version = "2.7.1", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "torch", version = "2.7.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-16-hf-inference-sdk-cpu') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
@@ -478,6 +479,7 @@ requires-dist = [
     { name = "python-multipart", specifier = ">=0.0.20" },
     { name = "sentence-transformers", specifier = ">=5.2.0" },
     { name = "sentencepiece", specifier = ">=0.2.0" },
+    { name = "starlette", specifier = ">=1.0.1" },
     { name = "torch" },
     { name = "torch", marker = "extra == 'cpu'", specifier = ">=2.5.1,<2.8.0", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "hf-inference-sdk", extra = "cpu" } },
     { name = "torch", marker = "extra == 'cuda'", specifier = ">=2.5.1,<2.8.0", index = "https://download.pytorch.org/whl/cu126", conflict = { package = "hf-inference-sdk", extra = "cuda" } },
@@ -1039,7 +1041,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.5.1.17"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cublas-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/99/93/a201a12d3ec1caa8c6ac34c1c2f9eeb696b886f0c36ff23c638b46603bd0/nvidia_cudnn_cu12-9.5.1.17-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:9fd4584468533c61873e5fda8ca41bac3a38bcb2d12350830c69b0a96a7e4def", size = 570523509, upload-time = "2024-10-25T19:53:03.148Z" },
@@ -1078,7 +1080,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.0.4"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/1f/37/c50d2b2f2c07e146776389e3080f4faf70bcc4fa6e19d65bb54ca174ebc3/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d16079550df460376455cba121db6564089176d9bac9e4f360493ca4741b22a6", size = 200164144, upload-time = "2024-11-20T17:40:58.288Z" },
@@ -1148,9 +1150,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.1.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
-    { name = "nvidia-cusparse-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
-    { name = "nvidia-nvjitlink-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cublas-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cusparse-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/93/17/dbe1aa865e4fdc7b6d4d0dd308fdd5aaab60f939abfc0ea1954eac4fb113/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_aarch64.whl", hash = "sha256:0ce237ef60acde1efc457335a2ddadfd7610b892d94efee7b776c64bb1cac9e0", size = 157833628, upload-time = "2024-10-01T17:05:05.591Z" },
@@ -1178,7 +1180,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.4.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/eb/eb/6681efd0aa7df96b4f8067b3ce7246833dd36830bb4cec8896182773db7d/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d25b62fb18751758fe3c93a4a08eff08effedfe4edf1c6bb5afd0890fe88f887", size = 216451147, upload-time = "2024-11-20T17:44:18.055Z" },
@@ -2190,15 +2192,15 @@ wheels = [
 
 [[package]]
 name = "starlette"
-version = "0.52.1"
+version = "1.1.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "anyio" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/68/79977123bb7be889ad680d79a40f339082c1978b5cfcf62c2d8d196873ac/starlette-0.52.1.tar.gz", hash = "sha256:834edd1b0a23167694292e94f597773bc3f89f362be6effee198165a35d62933", size = 2653702, upload-time = "2026-01-18T13:34:11.062Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/95/66/4d20cdf39a8d6a51e663b7038e3b828ff211d3891a43a713fe7e4643f3a8/starlette-1.1.0.tar.gz", hash = "sha256:e83c7fe0ddecd8719c5b840080325aec0260acec86e9832899e377b91d65e90f", size = 2660060, upload-time = "2026-05-23T16:55:41.376Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/0d/13d1d239a25cbfb19e740db83143e95c772a1fe10202dda4b76792b114dd/starlette-0.52.1-py3-none-any.whl", hash = "sha256:0029d43eb3d273bc4f83a08720b4912ea4b071087a3b48db01b7c839f7954d74", size = 74272, upload-time = "2026-01-18T13:34:09.188Z" },
+    { url = "https://files.pythonhosted.org/packages/93/79/920b8e0a8b20f793e8d64855095cb8febabf6175b8550b6f7a547d813891/starlette-1.1.0-py3-none-any.whl", hash = "sha256:7f0dfd38e428aad5cb6f9f667f0ca1d2d8ca3f3385dccac8305f79ec98458382", size = 72899, upload-time = "2026-05-23T16:55:39.201Z" },
 ]
 
 [[package]]
@@ -2332,9 +2334,9 @@ dependencies = [
     { name = "typing-extensions", marker = "(sys_platform == 'darwin' and extra == 'extra-16-hf-inference-sdk-cpu') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1-cp310-none-macosx_11_0_arm64.whl", hash = "sha256:f8c3bee261b0c8e090f6347490dc6ee2aebfd661eb0f3f6aeae06d992d8ed56f" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:68a352c7f435abb5cb47e2c032dcd1012772ae2bacb6fc8b83b0c1b11874ab3a" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1-cp312-none-macosx_11_0_arm64.whl", hash = "sha256:7b4f8b2b83bd08f7d399025a9a7b323bdbb53d20566f1e0d584689bb92d82f9a" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1-cp310-none-macosx_11_0_arm64.whl", hash = "sha256:f8c3bee261b0c8e090f6347490dc6ee2aebfd661eb0f3f6aeae06d992d8ed56f", upload-time = "2025-06-03T18:28:06Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:68a352c7f435abb5cb47e2c032dcd1012772ae2bacb6fc8b83b0c1b11874ab3a", upload-time = "2025-06-03T18:28:05Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1-cp312-none-macosx_11_0_arm64.whl", hash = "sha256:7b4f8b2b83bd08f7d399025a9a7b323bdbb53d20566f1e0d584689bb92d82f9a", upload-time = "2025-06-03T18:28:06Z" },
 ]
 
 [[package]]
@@ -2352,8 +2354,23 @@ dependencies = [
     { name = "jinja2", marker = "(extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "networkx", version = "3.4.2", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.11' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.11' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-nccl-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "setuptools", marker = "(python_full_version >= '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "sympy", marker = "(extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "triton", version = "3.3.1", source = { registry = "https://pypi.org/simple" }, marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
     { name = "typing-extensions", marker = "(extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
@@ -2395,16 +2412,16 @@ dependencies = [
     { name = "typing-extensions", marker = "(sys_platform != 'darwin' and extra == 'extra-16-hf-inference-sdk-cpu') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:c0df17cee97653d09a4e84488a33d21217f9b24208583c55cf28f0045aab0766" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:1f04a373a3f643821f721da9898ef77dce73b5b6bfc64486f0976f7fb5f90e83" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-win_amd64.whl", hash = "sha256:b4cc706973655151f198d027ed34c92ab31a3db55676b44251194e1280631426" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:5fe6045b8f426bf2d0426e4fe009f1667a954ec2aeb82f1bd0bf60c6d7a85445" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:a1684793e352f03fa14f78857e55d65de4ada8405ded1da2bf4f452179c4b779" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp311-cp311-win_amd64.whl", hash = "sha256:7b977eccbc85ae2bd19d6998de7b1f1f4bd3c04eaffd3015deb7934389783399" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:3bf2db5adf77b433844f080887ade049c4705ddf9fe1a32023ff84ff735aa5ad" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:8f8b3cfc53010a4b4a3c7ecb88c212e9decc4f5eeb6af75c3c803937d2d60947" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-win_amd64.whl", hash = "sha256:0bc887068772233f532b51a3e8c8cfc682ae62bef74bf4e0c53526c8b9e4138f" },
-    { url = "https://download.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-win_arm64.whl", hash = "sha256:a2618775f32eb4126c5b2050686da52001a08cffa331637d9cf51c8250931e00" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:c0df17cee97653d09a4e84488a33d21217f9b24208583c55cf28f0045aab0766", upload-time = "2025-06-03T18:27:52Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:1f04a373a3f643821f721da9898ef77dce73b5b6bfc64486f0976f7fb5f90e83", upload-time = "2025-06-03T18:27:55Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp310-cp310-win_amd64.whl", hash = "sha256:b4cc706973655151f198d027ed34c92ab31a3db55676b44251194e1280631426", upload-time = "2025-06-03T18:27:54Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:5fe6045b8f426bf2d0426e4fe009f1667a954ec2aeb82f1bd0bf60c6d7a85445", upload-time = "2025-06-03T18:27:52Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:a1684793e352f03fa14f78857e55d65de4ada8405ded1da2bf4f452179c4b779", upload-time = "2025-06-03T18:27:53Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp311-cp311-win_amd64.whl", hash = "sha256:7b977eccbc85ae2bd19d6998de7b1f1f4bd3c04eaffd3015deb7934389783399", upload-time = "2025-06-03T18:27:58Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:3bf2db5adf77b433844f080887ade049c4705ddf9fe1a32023ff84ff735aa5ad", upload-time = "2025-06-03T18:27:57Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:8f8b3cfc53010a4b4a3c7ecb88c212e9decc4f5eeb6af75c3c803937d2d60947", upload-time = "2025-06-03T18:27:57Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-win_amd64.whl", hash = "sha256:0bc887068772233f532b51a3e8c8cfc682ae62bef74bf4e0c53526c8b9e4138f", upload-time = "2025-06-03T18:27:56Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.7.1%2Bcpu-cp312-cp312-win_arm64.whl", hash = "sha256:a2618775f32eb4126c5b2050686da52001a08cffa331637d9cf51c8250931e00", upload-time = "2025-07-16T16:40:20Z" },
 ]
 
 [[package]]
@@ -2443,12 +2460,12 @@ dependencies = [
     { name = "typing-extensions", marker = "extra == 'extra-16-hf-inference-sdk-cuda' or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:03b83a0f2c1e90afafd7a5728b956e211bb3e6c56ea3d7d8c7638a659e448d5f" },
-    { url = "https://download.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp310-cp310-win_amd64.whl", hash = "sha256:30119a54e1b4ccefe20dfe5d4b13f6aef76c17ec605b40e26d39789db00906f2" },
-    { url = "https://download.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:e1a8465165708c2e2e90786ade8a3e1b1d01eca1f022792cd397caad9d8c21bc" },
-    { url = "https://download.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp311-cp311-win_amd64.whl", hash = "sha256:f3af23387ac106b5b01dbef0eb021883e0c00ff4073477b7ce1cbade5ef5038d" },
-    { url = "https://download.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:63bce0590bc540fc16139e2be0177847585182b8c5e68d7f9213789d1d96c978" },
-    { url = "https://download.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp312-cp312-win_amd64.whl", hash = "sha256:7d897b5ff67e778de4a2a05d4528377003105e29854fd73ecbe965287533f08b" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:03b83a0f2c1e90afafd7a5728b956e211bb3e6c56ea3d7d8c7638a659e448d5f", upload-time = "2025-06-03T18:29:12Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp310-cp310-win_amd64.whl", hash = "sha256:30119a54e1b4ccefe20dfe5d4b13f6aef76c17ec605b40e26d39789db00906f2", upload-time = "2025-06-03T18:29:13Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:e1a8465165708c2e2e90786ade8a3e1b1d01eca1f022792cd397caad9d8c21bc", upload-time = "2025-06-03T18:29:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp311-cp311-win_amd64.whl", hash = "sha256:f3af23387ac106b5b01dbef0eb021883e0c00ff4073477b7ce1cbade5ef5038d", upload-time = "2025-06-03T18:29:27Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:63bce0590bc540fc16139e2be0177847585182b8c5e68d7f9213789d1d96c978", upload-time = "2025-06-03T18:29:29Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torch-2.7.1%2Bcu126-cp312-cp312-win_amd64.whl", hash = "sha256:7d897b5ff67e778de4a2a05d4528377003105e29854fd73ecbe965287533f08b", upload-time = "2025-06-03T18:29:36Z" },
 ]
 
 [[package]]
@@ -2488,15 +2505,15 @@ dependencies = [
     { name = "typing-extensions", marker = "(extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra != 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:adfb2bca94f12a5baca6ccf9aa40d6c5b1259748ebb38938be670b07a24d4e15" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:0f8566d1b3d8353b7f18d5a15375a00dae89d886bb7d01143bb394f475832286" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp310-cp310-win_amd64.whl", hash = "sha256:0de43ec229a78a2e80ae8578252f9eb14f898457d1cf2be81c8c91a4108c6c79" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:ea3239d544b2e569a8f47db5c7fa4fd42a2fe96aefb84bb1eda45ce213020fd2" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:22cfa45e73f1e8c64f4012737987a727d01d152121b93d196b0ca22f39a3f8e3" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp311-cp311-win_amd64.whl", hash = "sha256:218ae0f323d5ebe8f2770e46cbfb7bbff9af2c8d192d5187878d0964d43c8b71" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:4fc8f67637f4c92b989a07d80ffe755e79a3510ca02ebf23ce66396fb277c88d" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:858f0cbcc78d726fea9499eb3464faa98392fa093845a3262209bd226b7844d6" },
-    { url = "https://download.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-win_amd64.whl", hash = "sha256:224649fa0ab181ec483cc368e3303dda1760e4ba31bea806b88979f855436aaa" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:adfb2bca94f12a5baca6ccf9aa40d6c5b1259748ebb38938be670b07a24d4e15", upload-time = "2026-01-21T19:02:02Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:0f8566d1b3d8353b7f18d5a15375a00dae89d886bb7d01143bb394f475832286", upload-time = "2026-01-21T19:02:47Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp310-cp310-win_amd64.whl", hash = "sha256:0de43ec229a78a2e80ae8578252f9eb14f898457d1cf2be81c8c91a4108c6c79", upload-time = "2026-01-21T19:00:26Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:ea3239d544b2e569a8f47db5c7fa4fd42a2fe96aefb84bb1eda45ce213020fd2", upload-time = "2026-01-21T19:01:56Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:22cfa45e73f1e8c64f4012737987a727d01d152121b93d196b0ca22f39a3f8e3", upload-time = "2026-01-21T19:02:52Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp311-cp311-win_amd64.whl", hash = "sha256:218ae0f323d5ebe8f2770e46cbfb7bbff9af2c8d192d5187878d0964d43c8b71", upload-time = "2026-01-21T19:00:26Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:4fc8f67637f4c92b989a07d80ffe755e79a3510ca02ebf23ce66396fb277c88d", upload-time = "2026-01-21T19:01:36Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:858f0cbcc78d726fea9499eb3464faa98392fa093845a3262209bd226b7844d6", upload-time = "2026-01-21T19:02:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torch-2.10.0%2Bcu130-cp312-cp312-win_amd64.whl", hash = "sha256:224649fa0ab181ec483cc368e3303dda1760e4ba31bea806b88979f855436aaa", upload-time = "2026-01-21T19:00:27Z" },
 ]
 
 [[package]]
@@ -2587,12 +2604,12 @@ resolution-markers = [
     "python_full_version < '3.11' and sys_platform == 'darwin'",
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:f71cb7918a56196dd04fb456e259c1db83516d52320387fed8b16df5e95bc36d" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:f760e49803d7767e10577d3d20d1a9dd0ad5adebd1ecbf7ce941176e8c388f54" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d582981f251979d4432a1606d2bfbc8d56b98a701957afbaf4cafe7569b19c68" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:00252c2a138c655851cc7aa6e7ad6455c6513c9b2f93cec74563cba83196be8a" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:221c1123eefe31d57a41fe85b020306f685b6823dc70c3f4648215038fbae52c" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:310dfbfd7c56e283e0a9bd7cb4b5815cf1251a7bdeb93991b14311a1d144137d" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:f71cb7918a56196dd04fb456e259c1db83516d52320387fed8b16df5e95bc36d", upload-time = "2026-01-26T17:10:35Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:f760e49803d7767e10577d3d20d1a9dd0ad5adebd1ecbf7ce941176e8c388f54", upload-time = "2026-01-26T17:10:36Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d582981f251979d4432a1606d2bfbc8d56b98a701957afbaf4cafe7569b19c68", upload-time = "2026-01-26T17:10:36Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:00252c2a138c655851cc7aa6e7ad6455c6513c9b2f93cec74563cba83196be8a", upload-time = "2026-01-26T17:10:37Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:221c1123eefe31d57a41fe85b020306f685b6823dc70c3f4648215038fbae52c", upload-time = "2026-01-26T17:10:37Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:310dfbfd7c56e283e0a9bd7cb4b5815cf1251a7bdeb93991b14311a1d144137d", upload-time = "2026-01-26T17:10:38Z" },
 ]
 
 [[package]]
@@ -2624,9 +2641,9 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:e9bd41d10ef56a91b96c4af3075ef5e57cd68e2714a414053febe3f24d54f273" },
-    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1b5d5bb1ba2f054fb830077b64b875592566772f9a13e619d1f0b585f92216d1" },
-    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:01af74c9b5d0f465bbc025287324417771cf9d1d7934cf0266d8762d45868585" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:e9bd41d10ef56a91b96c4af3075ef5e57cd68e2714a414053febe3f24d54f273", upload-time = "2026-01-26T17:21:19Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1b5d5bb1ba2f054fb830077b64b875592566772f9a13e619d1f0b585f92216d1", upload-time = "2026-01-26T17:21:20Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:01af74c9b5d0f465bbc025287324417771cf9d1d7934cf0266d8762d45868585", upload-time = "2026-01-26T17:21:20Z" },
 ]
 
 [[package]]
@@ -2639,12 +2656,12 @@ resolution-markers = [
     "python_full_version < '3.11'",
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp310-cp310-manylinux_2_28_aarch64.whl" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp310-cp310-manylinux_2_28_x86_64.whl" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:afa37028fb9a29bac6ea278c709e734715d7a5afc2adb6276a969ac404d16918", upload-time = "2026-04-27T20:18:44Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:dd91a7ca48cdede22dd56cbb4e2d1488bfe9fd56edfffbab1ee6fd19c1ce0ecb", upload-time = "2026-04-27T20:18:45Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:6cebb48c5b151968317b804a9ed4e3df0957365c78b3d9223aa464d9dd01a3fb", upload-time = "2026-04-27T20:18:45Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:cf5b465a7731202c5daab9d19c576eb17da0ef4eed2092eeb7d8e6900b4dd1f5", upload-time = "2026-04-27T20:18:46Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:46ac44201fbcd6006574d1efd7071986b062e546e0a866e0f8d8040c6583c1ae", upload-time = "2026-04-27T20:18:46Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.10.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:49512fa4b4ed8325821595a4298423faa809f1a7f695701bcc747001d6e84b40", upload-time = "2026-04-27T20:18:46Z" },
 ]
 
 [[package]]
@@ -2666,12 +2683,12 @@ dependencies = [
     { name = "torch", version = "2.7.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-16-hf-inference-sdk-cpu') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3b47d8369ee568c067795c0da0b4078f39a9dfea6f3bc1f3ac87530dfda1dd56" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:990de4d657a41ed71680cd8be2e98ebcab55371f30993dc9bd2e676441f7180e" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4addf626e2b57fc22fd6d329cf1346d474497672e6af8383b7b5b636fba94a53" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:8b4a53a6067d63adba0c52f2b8dd2290db649d642021674ee43c0c922f0c6a69" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:153f1790e505bd6da123e21eee6e83e2e155df05c0fe7d56347303067d8543c5" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:964414eef19459d55a10e886e2fca50677550e243586d1678f65e3f6f6bac47a" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:3b47d8369ee568c067795c0da0b4078f39a9dfea6f3bc1f3ac87530dfda1dd56", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:990de4d657a41ed71680cd8be2e98ebcab55371f30993dc9bd2e676441f7180e", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:4addf626e2b57fc22fd6d329cf1346d474497672e6af8383b7b5b636fba94a53", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:8b4a53a6067d63adba0c52f2b8dd2290db649d642021674ee43c0c922f0c6a69", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:153f1790e505bd6da123e21eee6e83e2e155df05c0fe7d56347303067d8543c5", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:964414eef19459d55a10e886e2fca50677550e243586d1678f65e3f6f6bac47a", upload-time = "2025-06-03T18:37:23Z" },
 ]
 
 [[package]]
@@ -2719,12 +2736,12 @@ dependencies = [
     { name = "torch", version = "2.7.1+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-16-hf-inference-sdk-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-16-hf-inference-sdk-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cpu') or (sys_platform == 'darwin' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform == 'darwin' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform == 'darwin' and extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform == 'linux' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform == 'linux' and extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:e31f1273a8dd9760906288036ac3c8f5fef25eed393da0491db150d7be78910d" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp310-cp310-win_amd64.whl", hash = "sha256:445e442b94c365f7fd96596347c8a5a7fcfcbfca17a23baa8c9dcc8cb00fceee" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:4e0cbc165a472605d0c13da68ae22e84b17a6b815d5e600834777823e1bcb658" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp311-cp311-win_amd64.whl", hash = "sha256:9482adee074f60a45fd69892f7488281aadfda7836948c94b0a9b0caf55d1d67" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:b5fa7044bd82c6358e8229351c98070cf3a7bf4a6e89ea46352ae6c65745ef94" },
-    { url = "https://download.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp312-cp312-win_amd64.whl", hash = "sha256:433cb4dbced7291f17064cea08ac1e5aebd02ec190e1c207d117ad62a8961f2b" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:e31f1273a8dd9760906288036ac3c8f5fef25eed393da0491db150d7be78910d", upload-time = "2025-06-03T18:37:21Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp310-cp310-win_amd64.whl", hash = "sha256:445e442b94c365f7fd96596347c8a5a7fcfcbfca17a23baa8c9dcc8cb00fceee", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:4e0cbc165a472605d0c13da68ae22e84b17a6b815d5e600834777823e1bcb658", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp311-cp311-win_amd64.whl", hash = "sha256:9482adee074f60a45fd69892f7488281aadfda7836948c94b0a9b0caf55d1d67", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:b5fa7044bd82c6358e8229351c98070cf3a7bf4a6e89ea46352ae6c65745ef94", upload-time = "2025-06-03T18:37:22Z" },
+    { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.22.1%2Bcpu-cp312-cp312-win_amd64.whl", hash = "sha256:433cb4dbced7291f17064cea08ac1e5aebd02ec190e1c207d117ad62a8961f2b", upload-time = "2025-06-03T18:37:22Z" },
 ]
 
 [[package]]
@@ -2743,12 +2760,12 @@ dependencies = [
     { name = "torch", version = "2.7.1+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-16-hf-inference-sdk-cuda' or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:d697c146e2d83e2ff283d355ac7b39abe407da433b18060c4c78f2b84f14d252" },
-    { url = "https://download.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp310-cp310-win_amd64.whl", hash = "sha256:9f571c9afbe6431a1eaf163885cdb7bf46eb482ed36e050bb0e40cc41e16de01" },
-    { url = "https://download.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:b49a0e0c10680e8ee8cb703227640a4b6376d5a285fe73b3254f304707cd8d2f" },
-    { url = "https://download.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp311-cp311-win_amd64.whl", hash = "sha256:a2f2dec920c2f023e406caf342fae0d9071eeaca54fc0367ef66136765e6de5b" },
-    { url = "https://download.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:d6f17966552bb117d931db49bf49f19d2488631ff4c0b68a5215dd8739507b2e" },
-    { url = "https://download.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp312-cp312-win_amd64.whl", hash = "sha256:8a46582304fdff54a953522851c91b4d6f35b1d5c48a7d81f7d893edf015ce91" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:d697c146e2d83e2ff283d355ac7b39abe407da433b18060c4c78f2b84f14d252", upload-time = "2025-06-03T18:37:27Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp310-cp310-win_amd64.whl", hash = "sha256:9f571c9afbe6431a1eaf163885cdb7bf46eb482ed36e050bb0e40cc41e16de01", upload-time = "2025-06-03T18:37:27Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:b49a0e0c10680e8ee8cb703227640a4b6376d5a285fe73b3254f304707cd8d2f", upload-time = "2025-06-03T18:37:27Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp311-cp311-win_amd64.whl", hash = "sha256:a2f2dec920c2f023e406caf342fae0d9071eeaca54fc0367ef66136765e6de5b", upload-time = "2025-06-03T18:37:27Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:d6f17966552bb117d931db49bf49f19d2488631ff4c0b68a5215dd8739507b2e", upload-time = "2025-06-03T18:37:27Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu126/torchvision-0.22.1%2Bcu126-cp312-cp312-win_amd64.whl", hash = "sha256:8a46582304fdff54a953522851c91b4d6f35b1d5c48a7d81f7d893edf015ce91", upload-time = "2025-06-03T18:37:27Z" },
 ]
 
 [[package]]
@@ -2766,15 +2783,15 @@ dependencies = [
     { name = "torch", version = "2.10.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" }, marker = "(extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra != 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:a82d06af6e538c2a860ed9bfdce696cfe0a130a27dc495d32cda099d8d68c85a" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:9391dc5b2e038a5e365d07b425e4046fb8f605eeb6095fcb90f38a7b6c0aba7c" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp310-cp310-win_amd64.whl", hash = "sha256:f73a8c772e00dc764bcfce1bd39acb014a867105a71842ca2dbb3faa948434a5" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:6e2da988706ac6557c8e07f24503320187412e6e564e26a6c9e7e58e3e494d82" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:67ff8c6d59d609d5310fcb477f65517d6c4b40d716257994005ceefbd3e804f2" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp311-cp311-win_amd64.whl", hash = "sha256:ce5c80ade0b6cdf398e86978ab72d41737da64599d22d36f67eebe536c039552" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:3646e6c8fa5066da392d0ff13002cc683301386fe1933f8f1432fc5292e5d288" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:c2f5e38f0cd57a2796e4503c0f13365deba01dbc167ef820f0beec7ca96f5f2e" },
-    { url = "https://download.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-win_amd64.whl", hash = "sha256:7dd245ee7df0ceb00125e57615de31ca7232bf046143c2c3fe7a3b321bb50958" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp310-cp310-manylinux_2_28_aarch64.whl", hash = "sha256:a82d06af6e538c2a860ed9bfdce696cfe0a130a27dc495d32cda099d8d68c85a", upload-time = "2026-01-21T22:34:39Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:9391dc5b2e038a5e365d07b425e4046fb8f605eeb6095fcb90f38a7b6c0aba7c", upload-time = "2026-01-21T22:34:39Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp310-cp310-win_amd64.whl", hash = "sha256:f73a8c772e00dc764bcfce1bd39acb014a867105a71842ca2dbb3faa948434a5", upload-time = "2026-01-21T22:34:39Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:6e2da988706ac6557c8e07f24503320187412e6e564e26a6c9e7e58e3e494d82", upload-time = "2026-01-21T22:34:41Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:67ff8c6d59d609d5310fcb477f65517d6c4b40d716257994005ceefbd3e804f2", upload-time = "2026-01-21T22:34:41Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp311-cp311-win_amd64.whl", hash = "sha256:ce5c80ade0b6cdf398e86978ab72d41737da64599d22d36f67eebe536c039552", upload-time = "2026-01-21T22:34:43Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:3646e6c8fa5066da392d0ff13002cc683301386fe1933f8f1432fc5292e5d288", upload-time = "2026-01-21T22:34:43Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:c2f5e38f0cd57a2796e4503c0f13365deba01dbc167ef820f0beec7ca96f5f2e", upload-time = "2026-01-21T22:34:44Z" },
+    { url = "https://download-r2.pytorch.org/whl/cu130/torchvision-0.25.0%2Bcu130-cp312-cp312-win_amd64.whl", hash = "sha256:7dd245ee7df0ceb00125e57615de31ca7232bf046143c2c3fe7a3b321bb50958", upload-time = "2026-01-21T22:34:45Z" },
 ]
 
 [[package]]
@@ -2841,12 +2858,15 @@ name = "triton"
 version = "3.3.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(python_full_version >= '3.12' and platform_machine != 'aarch64') or (python_full_version >= '3.12' and platform_python_implementation != 'CPython') or (python_full_version >= '3.12' and sys_platform != 'linux')",
-    "python_full_version == '3.11.*'",
-    "python_full_version < '3.11'",
+    "(python_full_version >= '3.12' and platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (python_full_version >= '3.12' and platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (python_full_version >= '3.12' and sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')",
+    "python_full_version == '3.11.*' and extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130'",
+    "python_full_version < '3.11' and extra != 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130'",
+    "python_full_version >= '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130'",
+    "python_full_version == '3.11.*' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130'",
+    "python_full_version < '3.11' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130'",
 ]
 dependencies = [
-    { name = "setuptools", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130')" },
+    { name = "setuptools", marker = "(python_full_version < '3.12' and extra == 'extra-16-hf-inference-sdk-cuda') or (python_full_version < '3.12' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_machine != 'aarch64' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_machine != 'aarch64' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (platform_python_implementation != 'CPython' and extra == 'extra-16-hf-inference-sdk-cuda') or (platform_python_implementation != 'CPython' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (sys_platform != 'linux' and extra == 'extra-16-hf-inference-sdk-cuda') or (sys_platform != 'linux' and extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda') or (extra == 'extra-16-hf-inference-sdk-cpu' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra == 'extra-16-hf-inference-sdk-cuda' and extra == 'extra-16-hf-inference-sdk-cuda-130') or (extra != 'extra-16-hf-inference-sdk-cpu' and extra != 'extra-16-hf-inference-sdk-cuda' and extra != 'extra-16-hf-inference-sdk-cuda-130')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8d/a9/549e51e9b1b2c9b854fd761a1d23df0ba2fbc60bd0c13b489ffa518cfcb7/triton-3.3.1-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:b74db445b1c562844d3cfad6e9679c72e93fdfb1a90a24052b03bb5c49d1242e", size = 155600257, upload-time = "2025-05-29T23:39:36.085Z" },
