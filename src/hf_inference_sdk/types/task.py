@@ -16,15 +16,9 @@ TaskTypes = Literal[
     "sentence-ranking",  # NOTE: former Inference API task name for `text-ranking`
     "text-classification",
     "fill-mask",
-    "question-answering",
-    "summarization",
     "zero-shot-classification",
     "token-classification",
     "table-question-answering",
-    "visual-question-answering",
-    "vqa",  # NOTE: shortened name for `visual-question-answering` given that the `pipeline` supports both
-    "translation",
-    "translation_xx_to_yy",  # NOTE: placeholder task name where `xx` and `yy` are the source and target languages, respectively
     "zero-shot-audio-classification",
     "audio-classification",
     "asr",  # NOTE: shortened name for `automatic-speech-recognition`

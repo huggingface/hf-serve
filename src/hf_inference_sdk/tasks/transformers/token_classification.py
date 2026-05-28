@@ -73,6 +73,7 @@ class TokenClassification(Predictor[TokenClassificationInput, TokenClassificatio
         self.pipeline: TokenClassificationPipeline = pipeline(
             task="token-classification",
             model=model_id,
+            revision=revision,
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device,
             trust_remote_code=trust_remote_code,
