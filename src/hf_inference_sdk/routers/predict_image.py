@@ -5,6 +5,7 @@ from fastapi import APIRouter, Body, Request, Response
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel, ValidationError
 
+from hf_inference_sdk import idle
 from hf_inference_sdk.logging import logger
 from hf_inference_sdk.tasks.diffusers.text_to_image import TextToImage
 
@@ -37,23 +38,24 @@ def router(
                     detail="Accept header must specify image/png, image/jpeg, or image/webp",
                 )
 
-        try:
-            logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
+        async with idle.request_tracker():
+            try:
+                logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
 
-            output = predictor(payload=payload)
+                output = predictor(payload=payload)
 
-            # NOTE: We don't use the `Image.serialize` as we don't need to serialize it
-            # as base64 but rather provide the file bytes instead
-            buffer = BytesIO()
-            output.root.save(buffer, **{"format": image_format})
-            content = buffer.getvalue()
+                # NOTE: We don't use the `Image.serialize` as we don't need to serialize it
+                # as base64 but rather provide the file bytes instead
+                buffer = BytesIO()
+                output.root.save(buffer, **{"format": image_format})
+                content = buffer.getvalue()
 
-            return Response(content=content, media_type=media_type)
-        except (ValueError, ValidationError) as e:
-            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+                return Response(content=content, media_type=media_type)
+            except (ValueError, ValidationError) as e:
+                logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+                raise HTTPException(status_code=400, detail=str(e))
+            except Exception as e:
+                logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
 
     return router
