@@ -168,25 +168,3 @@ DYLD_FALLBACK_LIBRARY_PATH=/opt/homebrew/opt/ffmpeg@7/lib uv run hf-inference-sd
 ```
 
 The main difference relies on the path used for `DYLD_FALLBACK_LIBRARY_PATH` which is now pointing to the exact `brew`-installed version of `ffmpeg` instead. More information on the compatibility issues with `ffmpeg`, `torchcodec` and `torch` at https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec.
-
-## 🔮 Upcoming
-
-- [ ] Rewrite the CLI to support task-specific arguments e.g. `hf-inference-sdk sentence-similarity --model-id sentence-transformers/all-MiniLM-L6-v2 --similarity-fn-name cosine ...`
-
-- [ ] Add support for OpenAI Responses API for `text-generation`
-
-- [ ] Add support for OpenAI Audio Transcriptions API for `automatic-speech-recognition`
-
-- [ ] Add a memory estimation tool prior loading the model to identify whether the model will fit or not and provide the user with meaningful feedback on the requirements for the given model
-
-- [ ] Improve error messages when input data validation fails, to make those more readable as default Pydantic errors are not so easy to read and there's not a clear action for the user
-
-- [ ] Validate that the given model can be loaded with the provided `--task` otherwise fail and suggest the `--task` value
-
-- [ ] Contextualize each `__call__` within its request, so as to make sure that the logging within a task is using the same identifier as the request
-    - We could simply provide the `request_id` as an optional argument to the `__call__` method of each `Predictor` i.e., task, but there's most likely a better way to ensure that the logging messages within a given method include the `request_id` e.g. with a context manager maybe
-
-- [ ] Eventually remove the generic types from `Predictor` given that those don't provide any real benefit since we're leveraging those via FastAPI already, and those are preventing inheritance + method override due to mismatching types; and at the current stage it seems that there's no real benefit, hence dropping those makes sense
-
-- [ ] Detach Google Cloud and Microsoft Azure packages from `hf-inference-sdk` so that the core logic is targeting Inference Endpoints and local usage, whilst `hf-inference-sdk-gcp` and `hf-inference-sdk-az` packages are independent and built on top of `hf-inference-sdk` so that those are somehow independent, particularly given the need for custom stuff on `hf-inference-sdk-gcp` and `hf-inference-sdk-az`, so that `hf-inference-sdk` is the lib and the main CLI
-    - Not sure about this, but just throwing the idea https://docs.astral.sh/uv/concepts/projects/workspaces/#getting-started
