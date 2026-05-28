@@ -1,9 +1,10 @@
 from typing import Annotated, List, Optional, Type, Union
 
 from fastapi import APIRouter, Body, Form, HTTPException, Request
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel, ValidationError
 
+from hf_inference_sdk import idle
 from hf_inference_sdk.file_validator import FileValidator
 from hf_inference_sdk.logging import logger
 from hf_inference_sdk.tasks.predictor import Predictor
@@ -25,64 +26,76 @@ def media_router(
     async def predict_json(request: Request, payload: input_schema = Body(...)) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
 
-        try:
-            logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
-            return predictor(payload=payload)
-        except (ValueError, ValidationError) as e:
-            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+        async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
+            try:
+                logger.info(f"[{request_id}] Received request with: {payload.model_dump()}")
+                return predictor(payload=payload)
+            except (ValueError, ValidationError) as e:
+                logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+                raise HTTPException(status_code=400, detail=str(e))
+            except Exception as e:
+                logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
 
     @router.post("/predict-form", response_model=output_schema)
     async def predict_form(request: Request, form: Annotated[input_form_schema, Form()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
 
-        try:
-            file_validator(form.file)
+        async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
+            try:
+                file_validator(form.file)
 
-            # dump form into input schema
-            form = form.model_dump()
-            payload = {
-                "inputs": form.pop("file"),
-                "parameters": {},
-            }
+                # dump form into input schema
+                form = form.model_dump()
+                payload = {
+                    "inputs": form.pop("file"),
+                    "parameters": {},
+                }
 
-            # NOTE: Identify 'parameters' add non-'parameters' args in the schema (e.g. 'candidate_labels' in ZeroShotAudioClassification)
-            # and manage each case accordingly.
-            for field in input_schema.model_fields.keys():
-                if field not in ("inputs", "parameters") and field in form:
-                    payload[field] = form.pop(field)
-            if form:
-                payload["parameters"] = form
+                # NOTE: Identify 'parameters' add non-'parameters' args in the schema (e.g. 'candidate_labels' in ZeroShotAudioClassification)
+                # and manage each case accordingly.
+                for field in input_schema.model_fields.keys():
+                    if field not in ("inputs", "parameters") and field in form:
+                        payload[field] = form.pop(field)
+                if form:
+                    payload["parameters"] = form
 
-            payload = input_schema(**payload)  # type: ignore
+                payload = input_schema(**payload)  # type: ignore
 
-            return predictor(payload=payload)
-        except (ValueError, ValidationError) as e:
-            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+                return predictor(payload=payload)
+            except (ValueError, ValidationError) as e:
+                logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+                raise HTTPException(status_code=400, detail=str(e))
+            except Exception as e:
+                logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
 
     @router.post("/predict-file", response_model=output_schema)
     async def predict_file(request: Request, file: Annotated[bytes, Body()]) -> output_schema:  # type: ignore
         request_id = getattr(request.state, "request_id", None)
 
-        try:
-            file_validator(file)
+        async with idle.request_tracker():
+            if idle.caller_left(request):
+                logger.info(f"[{request_id}] Caller already disconnected, skipping inference")
+                return Response(status_code=204)
+            try:
+                file_validator(file)
 
-            payload = input_schema(inputs=file, parameters=None)
+                payload = input_schema(inputs=file, parameters=None)
 
-            return predictor(payload=payload)
-        except (ValueError, ValidationError) as e:
-            logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
-            raise HTTPException(status_code=400, detail=str(e))
-        except Exception as e:
-            logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
-            raise HTTPException(status_code=500, detail=str(e))
+                return predictor(payload=payload)
+            except (ValueError, ValidationError) as e:
+                logger.error(f"[{request_id}] Failed validating I/O with: {str(e)}")
+                raise HTTPException(status_code=400, detail=str(e))
+            except Exception as e:
+                logger.error(f"[{request_id}] Failed running inference with: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
 
     # NOTE: This endpoint schema is not a good practice. Endpoints should be independent per input type.
     @router.post("/", response_model=output_schema)

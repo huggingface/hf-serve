@@ -1,6 +1,8 @@
+import asyncio
 import os
 import time
-from typing import List, Literal, Optional, Union
+from contextlib import asynccontextmanager
+from typing import Callable, List, Literal, Optional, Union
 
 import uvicorn
 from fastapi import FastAPI
@@ -9,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from hf_inference_sdk import idle
 from hf_inference_sdk.logging import logger
 from hf_inference_sdk.middleware import (
     LoggingMiddleware,
@@ -23,9 +26,31 @@ from hf_inference_sdk.routers import (
     predict_router,
 )
 from hf_inference_sdk.server_utils import log_available_routes
+from hf_inference_sdk.tasks.predictor import LazyPredictor, Predictor
 from hf_inference_sdk.types.task import TaskTypes
 
-app = FastAPI(title="Hugging Face Serve API")
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    task = None
+    if idle.UNLOAD_IDLE:
+        task = asyncio.create_task(idle.live_check_loop())
+    yield
+    if task is not None:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(title="Hugging Face Serve API", lifespan=_lifespan)
+
+
+def _lazy(factory: Callable[[], Predictor]) -> Predictor:
+    if idle.UNLOAD_IDLE:
+        return LazyPredictor(factory)
+    return factory()
 
 
 # NOTE: If not defined, then the FastAPI responses when validation via e.g. `payload: Payload = Body(...)`
@@ -59,6 +84,7 @@ def launch(
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
+    workers: int = 1,
     cloud: Optional[Literal["azure", "google"]] = None,
 ) -> None:
     if model_id and model_dir:
@@ -150,12 +176,14 @@ def launch(
                 ImageTextToTextOutput,
             )
 
-            predictor = ImageTextToText(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ImageTextToText(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -183,14 +211,18 @@ def launch(
                         output_schema=ImageTextToTextOutput,
                     )
                 )
-            if predictor.pipeline.tokenizer is not None and (
-                predictor.pipeline.tokenizer.chat_template is not None
-                # or (
-                #     hasattr(predictor.pipeline, "processor")
-                #     and predictor.pipeline.processor is not None
-                #     and hasattr(predictor.pipeline.processor, "chat_template")
-                #     and predictor.pipeline.processor.chat_template is not None
-                # )
+            if (
+                not idle.UNLOAD_IDLE
+                and predictor.pipeline.tokenizer is not None
+                and (
+                    predictor.pipeline.tokenizer.chat_template is not None
+                    # or (
+                    #     hasattr(predictor.pipeline, "processor")
+                    #     and predictor.pipeline.processor is not None
+                    #     and hasattr(predictor.pipeline.processor, "chat_template")
+                    #     and predictor.pipeline.processor.chat_template is not None
+                    # )
+                )
             ):
                 from hf_inference_sdk.openai.routers import chat_completions_router, models_router
                 from hf_inference_sdk.openai.tasks.chat_completions import ChatCompletions
@@ -210,12 +242,14 @@ def launch(
                 TextGenerationOutput,
             )
 
-            predictor = TextGeneration(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: TextGeneration(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -244,7 +278,8 @@ def launch(
                     )
                 )
             if (
-                predictor.pipeline.tokenizer is not None
+                not idle.UNLOAD_IDLE
+                and predictor.pipeline.tokenizer is not None
                 and predictor.pipeline.tokenizer.chat_template is not None
             ):
                 from hf_inference_sdk.openai.routers import chat_completions_router, models_router
@@ -272,12 +307,14 @@ def launch(
             from hf_inference_sdk.routers import predict_image_router
             from hf_inference_sdk.tasks.diffusers.text_to_image import TextToImage, TextToImageInput
 
-            predictor = TextToImage(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: TextToImage(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -305,14 +342,15 @@ def launch(
                     )
                 )
 
-            from hf_inference_sdk.openai.routers import images_generations_router, models_router
-            from hf_inference_sdk.openai.tasks.images_generations import ImagesGenerations
+            if not idle.UNLOAD_IDLE:
+                from hf_inference_sdk.openai.routers import images_generations_router, models_router
+                from hf_inference_sdk.openai.tasks.images_generations import ImagesGenerations
 
-            images_generations = ImagesGenerations(pipeline=predictor.pipeline)
-            app.include_router(router=images_generations_router(predictor=images_generations))
-            app.include_router(
-                router=models_router(model_id=images_generations.model_id, timestamp=int(time.time()))  # type: ignore
-            )
+                images_generations = ImagesGenerations(pipeline=predictor.pipeline)
+                app.include_router(router=images_generations_router(predictor=images_generations))
+                app.include_router(
+                    router=models_router(model_id=images_generations.model_id, timestamp=int(time.time()))  # type: ignore
+                )
         # sentence-transformers
         case "sentence-similarity":
             from hf_inference_sdk.tasks.sentence_transformers.sentence_similarity import (
@@ -321,12 +359,14 @@ def launch(
                 SentenceSimilarityOutput,
             )
 
-            predictor = SentenceSimilarity(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,  # type: ignore
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: SentenceSimilarity(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,  # type: ignore
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -355,14 +395,15 @@ def launch(
                     )
                 )
 
-            from hf_inference_sdk.openai.routers import embeddings_router, models_router
-            from hf_inference_sdk.openai.tasks.embeddings import Embeddings
+            if not idle.UNLOAD_IDLE:
+                from hf_inference_sdk.openai.routers import embeddings_router, models_router
+                from hf_inference_sdk.openai.tasks.embeddings import Embeddings
 
-            embeddings = Embeddings(pipeline=predictor.pipeline)
-            app.include_router(router=embeddings_router(predictor=embeddings))
-            app.include_router(
-                router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
-            )
+                embeddings = Embeddings(pipeline=predictor.pipeline)
+                app.include_router(router=embeddings_router(predictor=embeddings))
+                app.include_router(
+                    router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
+                )
 
             from hf_inference_sdk.compatibility.text_embeddings_inference import (
                 router as text_embeddings_inference_router,
@@ -376,12 +417,14 @@ def launch(
                 FeatureExtractionOutput,
             )
 
-            predictor = FeatureExtraction(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,  # type: ignore
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: FeatureExtraction(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,  # type: ignore
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -410,14 +453,15 @@ def launch(
                     )
                 )
 
-            from hf_inference_sdk.openai.routers import embeddings_router, models_router
-            from hf_inference_sdk.openai.tasks.embeddings import Embeddings
+            if not idle.UNLOAD_IDLE:
+                from hf_inference_sdk.openai.routers import embeddings_router, models_router
+                from hf_inference_sdk.openai.tasks.embeddings import Embeddings
 
-            embeddings = Embeddings(pipeline=predictor.pipeline)
-            app.include_router(router=embeddings_router(predictor=embeddings))
-            app.include_router(
-                router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
-            )
+                embeddings = Embeddings(pipeline=predictor.pipeline)
+                app.include_router(router=embeddings_router(predictor=embeddings))
+                app.include_router(
+                    router=models_router(model_id=embeddings.model_id, timestamp=int(time.time()))  # type: ignore
+                )
 
             from hf_inference_sdk.compatibility.text_embeddings_inference import (
                 router as text_embeddings_inference_router,
@@ -431,12 +475,14 @@ def launch(
                 TextRankingOutput,
             )
 
-            predictor = TextRanking(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,  # type: ignore
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: TextRanking(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,  # type: ignore
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -481,12 +527,14 @@ def launch(
                 TextClassificationOutput,
             )
 
-            predictor = TextClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: TextClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -521,12 +569,14 @@ def launch(
                 FillMaskOutput,
             )
 
-            predictor = FillMask(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: FillMask(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -561,12 +611,14 @@ def launch(
                 ZeroShotClassificationOutput,
             )
 
-            predictor = ZeroShotClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ZeroShotClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -601,12 +653,14 @@ def launch(
                 TokenClassificationOutput,
             )
 
-            predictor = TokenClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: TokenClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -641,12 +695,14 @@ def launch(
                 TableQuestionAnsweringOutput,
             )
 
-            predictor = TableQuestionAnswering(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: TableQuestionAnswering(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -683,12 +739,14 @@ def launch(
                 ZeroShotAudioClassificationOutput,
             )
 
-            predictor = ZeroShotAudioClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ZeroShotAudioClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -723,12 +781,14 @@ def launch(
                 AudioClassificationOutput,
             )
 
-            predictor = AudioClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: AudioClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -776,12 +836,14 @@ def launch(
                 AutomaticSpeechRecognitionOutput,
             )
 
-            predictor = AutomaticSpeechRecognition(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: AutomaticSpeechRecognition(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -834,12 +896,14 @@ def launch(
                 ImageClassificationOutput,
             )
 
-            predictor = ImageClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ImageClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -891,12 +955,14 @@ def launch(
                 ImageSegmentationOutput,
             )
 
-            predictor = ImageSegmentation(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ImageSegmentation(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -948,12 +1014,14 @@ def launch(
                 ObjectDetectionOutput,
             )
 
-            predictor = ObjectDetection(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ObjectDetection(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -1002,12 +1070,14 @@ def launch(
                 ZeroShotImageClassificationOutput,
             )
 
-            predictor = ZeroShotImageClassification(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: ZeroShotImageClassification(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -1042,12 +1112,14 @@ def launch(
                 MaskGenerationOutput,
             )
 
-            predictor = MaskGeneration(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: MaskGeneration(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             match cloud:
@@ -1094,12 +1166,14 @@ def launch(
         case "any-to-any":
             from hf_inference_sdk.tasks.transformers.any_to_any import AnyToAny, AnyToAnyInput, AnyToAnyOutput
 
-            predictor = AnyToAny(
-                model_id=model_id or model_dir,  # type: ignore
-                revision=revision,
-                dtype=dtype,
-                device=device,  # type: ignore
-                trust_remote_code=trust_remote_code,
+            predictor = _lazy(
+                lambda: AnyToAny(
+                    model_id=model_id or model_dir,  # type: ignore
+                    revision=revision,
+                    dtype=dtype,
+                    device=device,  # type: ignore
+                    trust_remote_code=trust_remote_code,
+                )
             )
 
             if cloud is not None and cloud == "google":
@@ -1127,13 +1201,17 @@ def launch(
                         output_schema=AnyToAnyOutput,
                     )
                 )
-            if predictor.pipeline.tokenizer is not None and (
-                predictor.pipeline.tokenizer.chat_template is not None
-                or (
-                    hasattr(predictor.pipeline, "processor")
-                    and predictor.pipeline.processor is not None
-                    and hasattr(predictor.pipeline.processor, "chat_template")
-                    and predictor.pipeline.processor.chat_template is not None  # type: ignore
+            if (
+                not idle.UNLOAD_IDLE
+                and predictor.pipeline.tokenizer is not None
+                and (
+                    predictor.pipeline.tokenizer.chat_template is not None
+                    or (
+                        hasattr(predictor.pipeline, "processor")
+                        and predictor.pipeline.processor is not None
+                        and hasattr(predictor.pipeline.processor, "chat_template")
+                        and predictor.pipeline.processor.chat_template is not None  # type: ignore
+                    )
                 )
             ):
                 from hf_inference_sdk.openai.routers import chat_completions_router, models_router
@@ -1192,12 +1270,46 @@ def launch(
 
     log_available_routes(app=app)
 
-    uvicorn.run(
-        "hf_inference_sdk.server:app",
-        host=host,  # type: ignore
-        port=port,  # type: ignore
-        log_level=0,
-        access_log=False,
-        use_colors=True,
-        workers=1,
-    )
+    use_gunicorn = workers > 1 or idle.UNLOAD_IDLE
+    if use_gunicorn:
+        import signal
+        import sys
+
+        import gunicorn.app.base
+        from uvicorn.workers import UvicornWorker
+
+        class _UvicornWorker(UvicornWorker):
+            def _install_sigquit_handler(self) -> None:
+                # Gunicorn sends SIGQUIT for fast shutdown, but uvicorn only handles
+                # SIGTERM/SIGINT. Convert SIGQUIT → SIGTERM so uvicorn shuts down
+                # cleanly (runs lifespan shutdown) instead of ignoring it.
+                loop = asyncio.get_running_loop()
+                loop.add_signal_handler(signal.SIGQUIT, os.kill, os.getpid(), signal.SIGTERM)
+
+        class _GunicornApp(gunicorn.app.base.BaseApplication):
+            def init(self, parser, opts, args):
+                pass
+
+            def load_config(self):
+                self.cfg.set("bind", f"{host}:{port}")
+                self.cfg.set("workers", workers)
+                self.cfg.set("worker_class", _UvicornWorker)
+                # Load app in the master before forking so workers inherit the
+                # already-configured routes and LazyPredictor instances.
+                self.cfg.set("preload_app", True)
+                self.cfg.set("accesslog", None)
+                self.cfg.set("errorlog", "-")
+
+            def load(self):
+                return app
+
+        _GunicornApp(sys.argv[:1]).run()
+    else:
+        uvicorn.run(
+            "hf_inference_sdk.server:app",
+            host=host,  # type: ignore
+            port=port,  # type: ignore
+            log_level=0,
+            access_log=False,
+            use_colors=True,
+        )
