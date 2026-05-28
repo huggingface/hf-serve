@@ -16,6 +16,10 @@ requires-python = ">=3.10,<3.13"
 dependencies = [
     "uvicorn>=0.34.0",
     "fastapi>=0.115.6",
+    # Floor pinned to the version that fixes CVE-2026-48710 (GHSA-86qp-5c8j-p5mr),
+    # Host header poisons request.url.path. The Starlette range FastAPI allows
+    # would otherwise let a fresh resolve drop back to vulnerable 0.x or 1.0.0.
+    "starlette>=1.0.1",
     "prometheus-client>=0.21.1",
     "torch",
     "torchvision",
