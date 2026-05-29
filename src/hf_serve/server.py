@@ -133,12 +133,10 @@ def launch(
         )
 
     if model_dir:
-        logger.info(
-            f"`hf-serve` initializing `model_dir={model_dir}` on `device={device}` for `task={task}`."
-        )
+        logger.info(f"`hf-serve` initializing `model_dir={model_dir}` on `device={device}` for `task={task}`.")
     else:
         logger.info(
-            f"`hf-serve` initializing `model_id={model_id}` w/ `revision={revision or main}` on `device={device}` for `task={task}`."
+            f"`hf-serve` initializing `model_id={model_id}` w/ `revision={revision or 'main'}` on `device={device}` for `task={task}`."
         )
 
     match task:
