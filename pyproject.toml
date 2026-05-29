@@ -1,7 +1,7 @@
 [project]
-name = "hf-inference-sdk"
+name = "hf-serve"
 version = "0.1.0"
-description = "Hugging Face Inference API for Transformers, Diffusers and Sentence Transformers, written in Python."
+description = "Experimental Hugging Face API for Transformers, Diffusers and Sentence Transformers, written in Python."
 readme = "README.md"
 license = "Apache-2.0"
 authors = [
@@ -74,7 +74,7 @@ requires = ["uv_build>=0.9.26,<0.10.0"]
 build-backend = "uv_build"
 
 [project.scripts]
-hf-inference-sdk = "hf_inference_sdk.cli:main"
+hf-serve = "hf_serve.cli:main"
 
 [tool.ruff]
 line-length = 112
