@@ -1,6 +1,6 @@
 [project]
 name = "hf-serve"
-version = "0.1.0"
+version = "0.1.1"
 description = "Experimental Hugging Face API for Transformers, Diffusers and Sentence Transformers, written in Python."
 readme = "README.md"
 license = "Apache-2.0"
@@ -10,9 +10,8 @@ authors = [
 maintainers = [
   { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
   { name = "Juan Julian Cea", email = "juan.moran@huggingface.co" },
-  { name = "Erik Kaunismäki", email = "erik.kaunismaki@huggingface.co" },
 ]
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.11,<3.13"
 dependencies = [
     "uvicorn>=0.34.0",
     "fastapi>=0.115.6",
@@ -33,7 +32,7 @@ dependencies = [
     # NOTE: `torch-speech` is now `audio` in Transformers 5.0+ and `phonemizer`
     # is included as a default dependency instead of an `audio` specific one.
     # Anyway, `audio` models might need some system dependencies e.g. `espeak-ng`
-    "transformers[accelerate,audio,chat_template,kernels,timm,vision]>=5.9.0",
+    "transformers[accelerate,audio,chat_template,kernels,video,vision]>=5.9.0",
     "pydantic>=2.10.5",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
     # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
@@ -55,10 +54,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
-cuda = ["torch>=2.5.1,<2.8.0", "torchvision", "torchcodec<0.6"]
+cpu = ["torch>2.8.0", "torchvision", "torchcodec<0.6"]
+cuda = ["torch>2.8.0", "torchvision", "torchcodec<0.6"]
+cuda-128 = ["torch>2.8.0", "torchvision", "torchcodec<0.6"]
 cuda-130 = ["torch>2.8.0", "torchvision", "torchcodec"]
-flash-attn = ["flash-attn==2.8.3"]
+flash-attn = ["flash-attn==2.8.3.post1"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]
 # NOTE: `flash-linear-attention` has a lock on `transformers`<4.5.6.0
@@ -90,6 +90,7 @@ conflicts = [
     [
       { extra = "cpu" },
       { extra = "cuda" },
+      { extra = "cuda-128" },
       { extra = "cuda-130" },
     ],
 ]
@@ -98,16 +99,19 @@ conflicts = [
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
+  { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchvision = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
+  { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchcodec = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
+  { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 
@@ -119,6 +123,11 @@ explicit = true
 [[tool.uv.index]]
 name = "pytorch-cu126"
 url = "https://download.pytorch.org/whl/cu126"
+explicit = true
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
 [[tool.uv.index]]
