@@ -1,6 +1,6 @@
 [project]
 name = "hf-serve"
-version = "0.1.1"
+version = "0.1.2"
 description = "Experimental Hugging Face API for Transformers, Diffusers and Sentence Transformers, written in Python."
 readme = "README.md"
 license = "Apache-2.0"
@@ -54,10 +54,14 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cpu = ["torch>=2.9.0,<2.10", "torchvision", "torchcodec<0.6"]
-cuda = ["torch>=2.9.0,<2.10", "torchvision", "torchcodec<0.6"]
-cuda-128 = ["torch>=2.9.0,<2.10", "torchvision", "torchcodec<0.6"]
-flash-attn = ["flash-attn==2.8.3"]
+# NOTE: `torchaudio` is pinned to `2.11.0` (rather than following the `torch` range below) as that's
+# the only version currently published with CUDA-specific wheels on the PyTorch registries; other
+# versions only ship a single generic PyPI wheel that hardcodes one CUDA build (currently 13.0), which
+# then hard-errors on import against a `torch` built for a different CUDA version.
+cpu = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
+cuda = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
+cuda-128 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
+cuda-130 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]
 # NOTE: `flash-linear-attention` has a lock on `transformers`<4.5.6.0
@@ -90,6 +94,7 @@ conflicts = [
       { extra = "cpu" },
       { extra = "cuda" },
       { extra = "cuda-128" },
+      { extra = "cuda-130" },
     ],
 ]
 required-environments = [
@@ -101,16 +106,25 @@ torch = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu128", extra = "cuda-128" },
+  { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchvision = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu128", extra = "cuda-128" },
+  { index = "pytorch-cu130", extra = "cuda-130" },
+]
+torchaudio = [
+  { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cu126", extra = "cuda" },
+  { index = "pytorch-cu128", extra = "cuda-128" },
+  { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchcodec = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu128", extra = "cuda-128" },
+  { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 
 [[tool.uv.index]]
@@ -128,11 +142,15 @@ name = "pytorch-cu128"
 url = "https://download.pytorch.org/whl/cu128"
 explicit = true
 
-[tool.uv.extra-build-dependencies]
-flash-attn = [{ requirement = "torch", match-runtime = true }]
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+# NOTE: `flash-attn` is no longer a direct dependency, as `kernels-community/flash-attn2`
+# (loaded dynamically via `transformers[kernels]` at `attn_implementation="kernels-community/flash-attn2@v2"`)
+# covers CUDA 12.6, 12.8, and 13.0 on torch 2.11+ without needing a source build.
+# [tool.uv.extra-build-dependencies]
 # causal-1dconv = [{ requirement = "torch", match-runtime = true }]
 # flash-linear-attention = [{ requirement = "torch", match-runtime = true }]
 # gptqmodel = [{ requirement = "torch", match-runtime = true }]
-
-[tool.uv.extra-build-variables]
-flash-attn = { FLASH_ATTENTION_SKIP_CUDA_BUILD = "TRUE" }

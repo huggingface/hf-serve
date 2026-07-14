@@ -94,7 +94,7 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
         device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
         backend: Literal["torch", "onnx", "openvino"] = "torch",
-        attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
+        attn_implementation: Optional[str] = None,
         trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
@@ -114,7 +114,6 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
             # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
             # and Sentence Transformers raises a warning starting on 5.1.0
             "dtype": dtype or "auto",
-            # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
             # NOTE: Default to `eager` instead of `sdpa`, even if `sdpa` tends to be supported and more
             # performant, there are still some models that won't support it e.g. `sentence-transformers/all-mpnet-base-v2`
             "attn_implementation": attn_implementation or "eager",
@@ -138,7 +137,7 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
     def __call__(self, payload: TextRankingInput) -> TextRankingOutput:
         match payload:
             case PredictInput():
-                scores = self.pipeline.predict(sentences=payload.sentences, convert_to_tensor=True)
+                scores = self.pipeline.predict(inputs=payload.sentences, convert_to_tensor=True)
                 if scores.ndim < 2:
                     scores = scores.unsqueeze(dim=0)
                 return PredictOutput(scores=scores.tolist())
