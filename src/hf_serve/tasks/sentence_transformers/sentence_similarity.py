@@ -69,7 +69,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
         device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
         backend: Literal["torch", "onnx", "openvino"] = "torch",
-        attn_implementation: Optional[Literal["eager", "sdpa", "flash_attention_2"]] = None,
+        attn_implementation: Optional[str] = None,
         # NOTE: specific for sentence similarity
         # TODO: given that some tasks come with specific arguments, eventually rewrite `hf-serve` so that the
         # CLI interface is `hf-serve <TASK> --model-id ...` rather than `hf-serve --model-id ... --task ...`
@@ -93,7 +93,6 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
             # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
             # and Sentence Transformers raises a warning starting on 5.1.0
             "dtype": dtype or "auto",
-            # TODO: use `flash_attention_2` depending on compute capability and whether it's installed or not
             # NOTE: Default to `eager` instead of `sdpa`, even if `sdpa` tends to be supported and more
             # performant, there are still some models that won't support it e.g. `sentence-transformers/all-mpnet-base-v2`
             "attn_implementation": attn_implementation or "eager",

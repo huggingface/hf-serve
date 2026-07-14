@@ -70,6 +70,7 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device != "auto" else None,
             device_map=device if device == "auto" else None,
+            attn_implementation="kernels-community/flash-attn2@v2" if not torch.mps.is_available() else "eager",
             trust_remote_code=trust_remote_code,
         )
 

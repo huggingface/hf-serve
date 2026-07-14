@@ -34,14 +34,19 @@ uv sync --active --frozen --extra cpu
 Alternatively, install it on NVIDIA CUDA 12.6 as follows:
 
 ```bash
-uv sync --active --frozen --extra cuda-126 --extra flash-attn --preview-features extra-build-dependencies
+uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 ```
 
-Or if you have CUDA +13.0 then:
+Or if you're on CUDA 12.8 then:
 
 ```bash
-uv sync --active --frozen --extra cuda-130 --extra flash-attn --preview-features extra-build-dependencies
+uv sync --active --frozen --extra cuda-128 --extra flash-attn --preview-features extra-build-dependencies
 ```
+
+> [!NOTE]
+> There's no `cuda-130` (CUDA 13.0) extra for now, as `flash-attn==2.8.3`'s
+> wheel-detection logic predates CUDA 13 and would silently install a mismatched
+> `cu12` wheel that fails at import time. It'll be added back once upstream fixes this.
 
 > [!WARNING]
 > The default registry for the NVIDIA CUDA wheels for PyTorch is set to CUDA 12.6. If
