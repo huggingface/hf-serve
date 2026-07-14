@@ -58,7 +58,7 @@ ENV VIRTUAL_ENV=/home/huggingface/venv \
 WORKDIR /home/huggingface/app
 COPY --chown=huggingface:huggingface . .
 
-RUN uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
+RUN uv sync --active --frozen --extra cuda
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
