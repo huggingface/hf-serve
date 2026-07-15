@@ -58,9 +58,9 @@ dependencies = [
 # the only version currently published with CUDA-specific wheels on the PyTorch registries; other
 # versions only ship a single generic PyPI wheel that hardcodes one CUDA build (currently 13.0), which
 # then hard-errors on import against a `torch` built for a different CUDA version.
-cpu = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
-cuda = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
-cuda-128 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
+cpu = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec>=0.11,<0.16"]
+cuda = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec>=0.11,<0.16"]
+cuda-128 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec==0.11.1"]
 cuda-130 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]

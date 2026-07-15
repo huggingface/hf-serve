@@ -2,22 +2,19 @@ version = 1
 revision = 3
 requires-python = ">=3.11, <3.13"
 resolution-markers = [
-    "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
     "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (platform_machine == 'aarch64' and platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')",
-    "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
@@ -76,15 +73,15 @@ wheels = [
 
 [[package]]
 name = "anyio"
-version = "4.14.1"
+version = "4.14.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "idna" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/3b/72/5562aabb8dd7181e8e860622a38bea08d17842b99ecd4c91f84ac95251b0/anyio-4.14.1.tar.gz", hash = "sha256:8d648a3544c1a700e3ff78615cd679e4c5c3f149904287e73687b2596963629e", size = 254831, upload-time = "2026-06-24T20:56:06.017Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/61/cc/a381afa6efea9f496eff839d4a6a1aed3bfafc7b3ab4b0d1b243a12573dd/anyio-4.14.2.tar.gz", hash = "sha256:cfa139f3ed1a23ee8f88a145ddb5ac7605b8bbfd8592baacd7ce3d8bb4313c7f", size = 260176, upload-time = "2026-07-12T20:29:07.082Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/b0/7b/90df4a0a816d98d6ea26f559d87836d494a2cf1fcf063be67df50a7bcc30/anyio-4.14.1-py3-none-any.whl", hash = "sha256:4e5533c5b8ff0a24f5d7a176cbe6877129cd183893f66b537f8f227d10527d72", size = 124875, upload-time = "2026-06-24T20:56:04.413Z" },
+    { url = "https://files.pythonhosted.org/packages/da/35/f2287558c17e29fafc8ef3daf819bb9834061cfa43bff8014f7df7f63bdc/anyio-4.14.2-py3-none-any.whl", hash = "sha256:9f505dda5ac9f0c8309b5e8bd445a8c2bf7246f3ce950121e45ea15bc41d1494", size = 125813, upload-time = "2026-07-12T20:29:05.763Z" },
 ]
 
 [[package]]
@@ -257,8 +254,7 @@ name = "cuda-bindings"
 version = "12.9.7"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "cuda-pathfinder", marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda') or (sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -304,8 +300,7 @@ name = "cuda-toolkit"
 version = "12.6.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ad/88/2dbc37975fffb874418b14380418a1b99cb36f2101fd1d08c54e06ee8c95/cuda_toolkit-12.6.3-py2.py3-none-any.whl", hash = "sha256:79d8605baeb6c2f695761e0efb54bc62dbc3c9e32eb0742df7669c07befaa8f7", size = 2288, upload-time = "2025-08-13T02:03:05.283Z" },
@@ -351,8 +346,7 @@ name = "cuda-toolkit"
 version = "12.8.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d4/c8/7dce3a0b15b42a3b58e7d96eb22a687d3bf2c44e01d149a6874629cd9938/cuda_toolkit-12.8.1-py2.py3-none-any.whl", hash = "sha256:adc7906af4ecbf9a352f9dca5734eceb21daec281ccfcf5675e1d2f724fc2cba", size = 2283, upload-time = "2025-08-13T02:03:07.842Z" },
@@ -551,11 +545,12 @@ dependencies = [
     { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torch", version = "2.13.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torch", version = "2.13.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
-    { name = "torchcodec", version = "0.5", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "extra == 'extra-8-hf-serve-cpu' or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
-    { name = "torchcodec", version = "0.5", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')" },
-    { name = "torchcodec", version = "0.5+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
-    { name = "torchcodec", version = "0.5+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-8-hf-serve-cuda-128' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
-    { name = "torchcodec", version = "0.14.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.11.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-8-hf-serve-cuda-128' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.15.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.15.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" }, marker = "extra == 'extra-8-hf-serve-cuda' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.15.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchvision", version = "0.26.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-8-hf-serve-cuda-128' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchvision", version = "0.28.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchvision", version = "0.28.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')" },
@@ -572,26 +567,27 @@ cpu = [
     { name = "torch", version = "2.13.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchaudio", version = "2.11.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchaudio", version = "2.11.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
-    { name = "torchcodec", version = "0.5", source = { registry = "https://download.pytorch.org/whl/cpu" } },
+    { name = "torchcodec", version = "0.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
+    { name = "torchcodec", version = "0.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchvision", version = "0.28.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
     { name = "torchvision", version = "0.28.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
 ]
 cuda = [
     { name = "torch", version = "2.13.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
     { name = "torchaudio", version = "2.11.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
-    { name = "torchcodec", version = "0.5+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
+    { name = "torchcodec", version = "0.15.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
     { name = "torchvision", version = "0.28.0+cu126", source = { registry = "https://download.pytorch.org/whl/cu126" } },
 ]
 cuda-128 = [
     { name = "torch", version = "2.11.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
     { name = "torchaudio", version = "2.11.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
-    { name = "torchcodec", version = "0.5+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
+    { name = "torchcodec", version = "0.11.1+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
     { name = "torchvision", version = "0.26.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" } },
 ]
 cuda-130 = [
     { name = "torch", version = "2.13.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" } },
     { name = "torchaudio", version = "2.11.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" } },
-    { name = "torchcodec", version = "0.14.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" } },
+    { name = "torchcodec", version = "0.15.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" } },
     { name = "torchvision", version = "0.28.0+cu130", source = { registry = "https://download.pytorch.org/whl/cu130" } },
 ]
 
@@ -621,9 +617,9 @@ requires-dist = [
     { name = "torchaudio", marker = "extra == 'cuda-128'", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "hf-serve", extra = "cuda-128" } },
     { name = "torchaudio", marker = "extra == 'cuda-130'", specifier = "==2.11.0", index = "https://download.pytorch.org/whl/cu130", conflict = { package = "hf-serve", extra = "cuda-130" } },
     { name = "torchcodec" },
-    { name = "torchcodec", marker = "extra == 'cpu'", specifier = "<0.6", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "hf-serve", extra = "cpu" } },
-    { name = "torchcodec", marker = "extra == 'cuda'", specifier = "<0.6", index = "https://download.pytorch.org/whl/cu126", conflict = { package = "hf-serve", extra = "cuda" } },
-    { name = "torchcodec", marker = "extra == 'cuda-128'", specifier = "<0.6", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "hf-serve", extra = "cuda-128" } },
+    { name = "torchcodec", marker = "extra == 'cpu'", specifier = ">=0.11,<0.16", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "hf-serve", extra = "cpu" } },
+    { name = "torchcodec", marker = "extra == 'cuda'", specifier = ">=0.11,<0.16", index = "https://download.pytorch.org/whl/cu126", conflict = { package = "hf-serve", extra = "cuda" } },
+    { name = "torchcodec", marker = "extra == 'cuda-128'", specifier = "==0.11.1", index = "https://download.pytorch.org/whl/cu128", conflict = { package = "hf-serve", extra = "cuda-128" } },
     { name = "torchcodec", marker = "extra == 'cuda-130'", index = "https://download.pytorch.org/whl/cu130", conflict = { package = "hf-serve", extra = "cuda-130" } },
     { name = "torchvision" },
     { name = "torchvision", marker = "extra == 'cpu'", index = "https://download.pytorch.org/whl/cpu", conflict = { package = "hf-serve", extra = "cpu" } },
@@ -1008,11 +1004,11 @@ wheels = [
 
 [[package]]
 name = "narwhals"
-version = "2.23.0"
+version = "2.24.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e8/ac/66ed1fc6e38a0c0f330627ec5c5d597990d6159b6712b82af0ad2c65f06c/narwhals-2.23.0.tar.gz", hash = "sha256:13e7ff5b4bb4a2f77b907c2e4d8a76e273dfc1323a3c997440a2f9fd26aed408", size = 656209, upload-time = "2026-07-01T11:21:53.278Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/2b/1d/58946e5aab18393e793bd4add6985b95d0e01c3a2d832f38f54468b10dcd/narwhals-2.24.0.tar.gz", hash = "sha256:b5c0f684ccd9d7475b564111e319a4964abcf2baf79d3cf6b1003d06ac9b828d", size = 661143, upload-time = "2026-07-13T10:49:19.086Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/4e/afc8c31605cb8be1d3bb4438c4d979daa104dab6306cd2b87abe9c3a7299/narwhals-2.23.0-py3-none-any.whl", hash = "sha256:769e7b9ab102c93d8fa019f6b4cd1a657909b04a20bf6210e5a35aae06814ae9", size = 458938, upload-time = "2026-07-01T11:21:51.677Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/85/a5bfaebfd305ac18b57b0854d74e37e586809061a91fda62f0bd50c8518e/narwhals-2.24.0-py3-none-any.whl", hash = "sha256:42fdedf44e5b2ca7505630d45b4ac3058f38d8485cba9fe1652ca23152df7489", size = 461030, upload-time = "2026-07-13T10:49:17.571Z" },
 ]
 
 [[package]]
@@ -1086,8 +1082,7 @@ name = "nvidia-cublas-cu12"
 version = "12.6.4.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/af/eb/ff4b8c503fa1f1796679dce648854d58751982426e4e4b37d6fce49d259c/nvidia_cublas_cu12-12.6.4.1-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:08ed2686e9875d01b58e3cb379c6896df8e76c75e0d4a7f7dace3d7b6d9ef8eb", size = 393138322, upload-time = "2024-11-20T17:40:25.65Z" },
@@ -1100,8 +1095,7 @@ name = "nvidia-cublas-cu12"
 version = "12.8.4.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/29/99/db44d685f0e257ff0e213ade1964fc459b4a690a73293220e98feb3307cf/nvidia_cublas_cu12-12.8.4.1-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:b86f6dd8935884615a0683b663891d43781b819ac4f2ba2b0c9604676af346d0", size = 590537124, upload-time = "2025-03-07T01:43:53.556Z" },
@@ -1124,8 +1118,7 @@ name = "nvidia-cuda-cupti-cu12"
 version = "12.6.80"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e6/8b/2f6230cb715646c3a9425636e513227ce5c93c4d65823a734f4bb86d43c3/nvidia_cuda_cupti_cu12-12.6.80-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:166ee35a3ff1587f2490364f90eeeb8da06cd867bd5b701bf7f9a02b78bc63fc", size = 8236764, upload-time = "2024-11-20T17:35:41.03Z" },
@@ -1140,8 +1133,7 @@ name = "nvidia-cuda-cupti-cu12"
 version = "12.8.90"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/d5/1f/b3bd73445e5cb342727fd24fe1f7b748f690b460acadc27ea22f904502c8/nvidia_cuda_cupti_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:4412396548808ddfed3f17a467b104ba7751e6b58678a4b840675c56d21cf7ed", size = 9533318, upload-time = "2025-03-07T01:40:10.421Z" },
@@ -1164,8 +1156,7 @@ name = "nvidia-cuda-nvrtc-cu12"
 version = "12.6.85"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f5/31/ffb400c5ae99daf09687aa6c42831c5d824f71c4851363ed2a4a1ac52bab/nvidia_cuda_nvrtc_cu12-12.6.85-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:800927308ccc5dd6246d3f61f7fcef2ed7ec4e59e199090d360d3293f78bd5a2", size = 23649944, upload-time = "2024-11-20T17:38:06.511Z" },
@@ -1178,8 +1169,7 @@ name = "nvidia-cuda-nvrtc-cu12"
 version = "12.8.93"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/05/6b/32f747947df2da6994e999492ab306a903659555dddc0fbdeb9d71f75e52/nvidia_cuda_nvrtc_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:a7756528852ef889772a84c6cd89d41dfa74667e24cca16bb31f8f061e3e9994", size = 88040029, upload-time = "2025-03-07T01:42:13.562Z" },
@@ -1202,8 +1192,7 @@ name = "nvidia-cuda-runtime-cu12"
 version = "12.6.77"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/ea/590b2ac00d772a8abd1c387a92b46486d2679ca6622fd25c18ff76265663/nvidia_cuda_runtime_cu12-12.6.77-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:6116fad3e049e04791c0256a9778c16237837c08b27ed8c8401e2e45de8d60cd", size = 908052, upload-time = "2024-11-20T17:35:19.905Z" },
@@ -1218,8 +1207,7 @@ name = "nvidia-cuda-runtime-cu12"
 version = "12.8.90"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7c/75/f865a3b236e4647605ea34cc450900854ba123834a5f1598e160b9530c3a/nvidia_cuda_runtime_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:52bf7bbee900262ffefe5e9d5a2a69a30d97e2bc5bb6cc866688caa976966e3d", size = 965265, upload-time = "2025-03-07T01:39:43.533Z" },
@@ -1232,8 +1220,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.10.2.21"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1249,8 +1236,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.19.0.56"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1292,8 +1278,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.0.4"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1311,8 +1296,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.3.83"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1337,8 +1321,7 @@ name = "nvidia-cufile-cu12"
 version = "1.11.1.6"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b2/66/cc9876340ac68ae71b15c743ddb13f8b30d5244af344ec8322b449e35426/nvidia_cufile_cu12-1.11.1.6-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:cc23469d1c7e52ce6c1d55253273d32c565dd22068647f3aa59b3c6b005bf159", size = 1142103, upload-time = "2024-11-20T17:42:11.83Z" },
@@ -1350,8 +1333,7 @@ name = "nvidia-cufile-cu12"
 version = "1.13.1.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bb/fe/1bcba1dfbfb8d01be8d93f07bfc502c93fa23afa6fd5ab3fc7c1df71038a/nvidia_cufile_cu12-1.13.1.3-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:1d069003be650e131b21c932ec3d8969c1715379251f8d23a1860554b1cb24fc", size = 1197834, upload-time = "2025-03-07T01:45:50.723Z" },
@@ -1373,8 +1355,7 @@ name = "nvidia-curand-cu12"
 version = "10.3.7.77"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/42/ac/36543605358a355632f1a6faa3e2d5dfb91eab1e4bc7d552040e0383c335/nvidia_curand_cu12-10.3.7.77-py3-none-manylinux2014_aarch64.whl", hash = "sha256:6e82df077060ea28e37f48a3ec442a8f47690c7499bff392a5938614b56c98d8", size = 56289881, upload-time = "2024-10-01T17:04:18.981Z" },
@@ -1389,8 +1370,7 @@ name = "nvidia-curand-cu12"
 version = "10.3.9.90"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/45/5e/92aa15eca622a388b80fbf8375d4760738df6285b1e92c43d37390a33a9a/nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:dfab99248034673b779bc6decafdc3404a8a6f502462201f2f31f11354204acd", size = 63625754, upload-time = "2025-03-07T01:46:10.735Z" },
@@ -1418,8 +1398,7 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.1.2"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-cublas-cu12", version = "12.6.4.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1439,8 +1418,7 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.3.90"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-cublas-cu12", version = "12.8.4.1", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1471,8 +1449,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.4.2"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-nvjitlink-cu12", version = "12.6.85", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra != 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1490,8 +1467,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.8.93"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "nvidia-nvjitlink-cu12", version = "12.8.93", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cuda-128') or (sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (sys_platform == 'win32' and extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -1527,8 +1503,7 @@ name = "nvidia-nccl-cu12"
 version = "2.28.9"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/08/c4/120d2dfd92dff2c776d68f361ff8705fdea2ca64e20b612fab0fd3f581ac/nvidia_nccl_cu12-2.28.9-py3-none-manylinux_2_18_aarch64.whl", hash = "sha256:50a36e01c4a090b9f9c47d92cec54964de6b9fcb3362d0e19b8ffc6323c21b60", size = 296766525, upload-time = "2025-11-18T05:49:16.094Z" },
@@ -1540,8 +1515,7 @@ name = "nvidia-nccl-cu12"
 version = "2.29.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/28/cf/bcf8bb0c0030b1b9a345331f6281c37d2a8669758521eb93c382f6f87c8f/nvidia_nccl_cu12-2.29.3-py3-none-manylinux_2_18_aarch64.whl", hash = "sha256:6351b79dc7d2cc3d654ea1523616b9eeded71fe9c8da66b71eef9a5d1b2adad4", size = 289708535, upload-time = "2026-02-03T21:10:58.804Z" },
@@ -1572,8 +1546,7 @@ name = "nvidia-nvjitlink-cu12"
 version = "12.6.85"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9d/d7/c5383e47c7e9bf1c99d5bd2a8c935af2b6d705ad831a7ec5c97db4d82f4f/nvidia_nvjitlink_cu12-12.6.85-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:eedc36df9e88b682efe4309aa16b5b4e78c2407eac59e8c10a6a47535164369a", size = 19744971, upload-time = "2024-11-20T17:46:53.366Z" },
@@ -1586,8 +1559,7 @@ name = "nvidia-nvjitlink-cu12"
 version = "12.8.93"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f6/74/86a07f1d0f42998ca31312f998bd3b9a7eff7f52378f4f270c8679c77fb9/nvidia_nvjitlink_cu12-12.8.93-py3-none-manylinux2010_x86_64.manylinux_2_12_x86_64.whl", hash = "sha256:81ff63371a7ebd6e6451970684f916be2eab07321b73c9d244dc2b4da7f73b88", size = 39254836, upload-time = "2025-03-07T01:49:55.661Z" },
@@ -1628,8 +1600,7 @@ name = "nvidia-nvtx-cu12"
 version = "12.6.77"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b9/93/80f8a520375af9d7ee44571a6544653a176e53c2b8ccce85b97b83c2491b/nvidia_nvtx_cu12-12.6.77-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:f44f8d86bb7d5629988d61c8d3ae61dddb2015dee142740536bc7481b022fe4b", size = 90549, upload-time = "2024-11-20T17:38:17.387Z" },
@@ -1644,8 +1615,7 @@ name = "nvidia-nvtx-cu12"
 version = "12.8.90"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/10/c0/1b303feea90d296f6176f32a2a70b5ef230f9bdeb3a72bddb0dc922dc137/nvidia_nvtx_cu12-12.8.90-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:d7ad891da111ebafbf7e015d34879f7112832fc239ff0d7d776b6cb685274615", size = 91161, upload-time = "2025-03-07T01:42:23.922Z" },
@@ -2289,26 +2259,24 @@ wheels = [
 
 [[package]]
 name = "sentencepiece"
-version = "0.2.1"
+version = "0.2.2"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/15/15/2e7a025fc62d764b151ae6d0f2a92f8081755ebe8d4a64099accc6f77ba6/sentencepiece-0.2.1.tar.gz", hash = "sha256:8138cec27c2f2282f4a34d9a016e3374cd40e5c6e9cb335063db66a0a3b71fad", size = 3228515, upload-time = "2025-08-12T07:00:51.718Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/33/ea3cb3839607eb175da835244a798f797f478c5ddf0e8ecdf57ea85a4c70/sentencepiece-0.2.2.tar.gz", hash = "sha256:3d2b5e824b5622038dc7b490897efe05ebbbb9e7350fc142f3ecc8789ef9bdf6", size = 8218435, upload-time = "2026-07-12T08:39:34.701Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/15/46afbab00733d81788b64be430ca1b93011bb9388527958e26cc31832de5/sentencepiece-0.2.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:6356d0986b8b8dc351b943150fcd81a1c6e6e4d439772e8584c64230e58ca987", size = 1942560, upload-time = "2025-08-12T06:59:25.82Z" },
-    { url = "https://files.pythonhosted.org/packages/fa/79/7c01b8ef98a0567e9d84a4e7a910f8e7074fcbf398a5cd76f93f4b9316f9/sentencepiece-0.2.1-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:8f8ba89a3acb3dc1ae90f65ec1894b0b9596fdb98ab003ff38e058f898b39bc7", size = 1325385, upload-time = "2025-08-12T06:59:27.722Z" },
-    { url = "https://files.pythonhosted.org/packages/bb/88/2b41e07bd24f33dcf2f18ec3b74247aa4af3526bad8907b8727ea3caba03/sentencepiece-0.2.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:02593eca45440ef39247cee8c47322a34bdcc1d8ae83ad28ba5a899a2cf8d79a", size = 1253319, upload-time = "2025-08-12T06:59:29.306Z" },
-    { url = "https://files.pythonhosted.org/packages/a0/54/38a1af0c6210a3c6f95aa46d23d6640636d020fba7135cd0d9a84ada05a7/sentencepiece-0.2.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:0a0d15781a171d188b661ae4bde1d998c303f6bd8621498c50c671bd45a4798e", size = 1316162, upload-time = "2025-08-12T06:59:30.914Z" },
-    { url = "https://files.pythonhosted.org/packages/ef/66/fb191403ade791ad2c3c1e72fe8413e63781b08cfa3aa4c9dfc536d6e795/sentencepiece-0.2.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4f5a3e0d9f445ed9d66c0fec47d4b23d12cfc858b407a03c194c1b26c2ac2a63", size = 1387785, upload-time = "2025-08-12T06:59:32.491Z" },
-    { url = "https://files.pythonhosted.org/packages/a9/2d/3bd9b08e70067b2124518b308db6a84a4f8901cc8a4317e2e4288cdd9b4d/sentencepiece-0.2.1-cp311-cp311-win32.whl", hash = "sha256:6d297a1748d429ba8534eebe5535448d78b8acc32d00a29b49acf28102eeb094", size = 999555, upload-time = "2025-08-12T06:59:34.475Z" },
-    { url = "https://files.pythonhosted.org/packages/32/b8/f709977f5fda195ae1ea24f24e7c581163b6f142b1005bc3d0bbfe4d7082/sentencepiece-0.2.1-cp311-cp311-win_amd64.whl", hash = "sha256:82d9ead6591015f009cb1be1cb1c015d5e6f04046dbb8c9588b931e869a29728", size = 1054617, upload-time = "2025-08-12T06:59:36.461Z" },
-    { url = "https://files.pythonhosted.org/packages/7a/40/a1fc23be23067da0f703709797b464e8a30a1c78cc8a687120cd58d4d509/sentencepiece-0.2.1-cp311-cp311-win_arm64.whl", hash = "sha256:39f8651bd10974eafb9834ce30d9bcf5b73e1fc798a7f7d2528f9820ca86e119", size = 1033877, upload-time = "2025-08-12T06:59:38.391Z" },
-    { url = "https://files.pythonhosted.org/packages/4a/be/32ce495aa1d0e0c323dcb1ba87096037358edee539cac5baf8755a6bd396/sentencepiece-0.2.1-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:57cae326c8727de58c85977b175af132a7138d84c764635d7e71bbee7e774133", size = 1943152, upload-time = "2025-08-12T06:59:40.048Z" },
-    { url = "https://files.pythonhosted.org/packages/88/7e/ff23008899a58678e98c6ff592bf4d368eee5a71af96d0df6b38a039dd4f/sentencepiece-0.2.1-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:56dd39a3c4d6493db3cdca7e8cc68c6b633f0d4195495cbadfcf5af8a22d05a6", size = 1325651, upload-time = "2025-08-12T06:59:41.536Z" },
-    { url = "https://files.pythonhosted.org/packages/19/84/42eb3ce4796777a1b5d3699dfd4dca85113e68b637f194a6c8d786f16a04/sentencepiece-0.2.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:d9381351182ff9888cc80e41c632e7e274b106f450de33d67a9e8f6043da6f76", size = 1253645, upload-time = "2025-08-12T06:59:42.903Z" },
-    { url = "https://files.pythonhosted.org/packages/89/fa/d3d5ebcba3cb9e6d3775a096251860c41a6bc53a1b9461151df83fe93255/sentencepiece-0.2.1-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:99f955df238021bf11f0fc37cdb54fd5e5b5f7fd30ecc3d93fb48b6815437167", size = 1316273, upload-time = "2025-08-12T06:59:44.476Z" },
-    { url = "https://files.pythonhosted.org/packages/04/88/14f2f4a2b922d8b39be45bf63d79e6cd3a9b2f248b2fcb98a69b12af12f5/sentencepiece-0.2.1-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0cdfecef430d985f1c2bcbfff3defd1d95dae876fbd0173376012d2d7d24044b", size = 1387881, upload-time = "2025-08-12T06:59:46.09Z" },
-    { url = "https://files.pythonhosted.org/packages/fd/b8/903e5ccb77b4ef140605d5d71b4f9e0ad95d456d6184688073ed11712809/sentencepiece-0.2.1-cp312-cp312-win32.whl", hash = "sha256:a483fd29a34c3e34c39ac5556b0a90942bec253d260235729e50976f5dba1068", size = 999540, upload-time = "2025-08-12T06:59:48.023Z" },
-    { url = "https://files.pythonhosted.org/packages/2d/81/92df5673c067148c2545b1bfe49adfd775bcc3a169a047f5a0e6575ddaca/sentencepiece-0.2.1-cp312-cp312-win_amd64.whl", hash = "sha256:4cdc7c36234fda305e85c32949c5211faaf8dd886096c7cea289ddc12a2d02de", size = 1054671, upload-time = "2025-08-12T06:59:49.895Z" },
-    { url = "https://files.pythonhosted.org/packages/fe/02/c5e3bc518655d714622bec87d83db9cdba1cd0619a4a04e2109751c4f47f/sentencepiece-0.2.1-cp312-cp312-win_arm64.whl", hash = "sha256:daeb5e9e9fcad012324807856113708614d534f596d5008638eb9b40112cd9e4", size = 1033923, upload-time = "2025-08-12T06:59:51.952Z" },
+    { url = "https://files.pythonhosted.org/packages/20/31/f23a2efaa0210b883574001b88fa64e499f798f0848a0b610fb9b384d162/sentencepiece-0.2.2-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:69e9dc8078e128286ed3b975e37c837ba96e215a50c3ef9f3f8b7ab9e5a832a0", size = 2184255, upload-time = "2026-07-12T08:38:14.855Z" },
+    { url = "https://files.pythonhosted.org/packages/96/f2/1ee0ccb772d71e822f625d6cb5f0ea825835e877f28a9ef299a1291df19e/sentencepiece-0.2.2-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:6dd76f3e5c8b2eb8a3a3efee787bbf5b9a66e52a048fe09cab85eca33fec6790", size = 1438545, upload-time = "2026-07-12T08:38:16.674Z" },
+    { url = "https://files.pythonhosted.org/packages/2a/92/3a6ea4a2c6dd9e7062698a5a33534ca0e20844883338ae9c6b9c122c1a9f/sentencepiece-0.2.2-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:443ac618c7a2a1377cf5c82581fbb849591d14e656d5e5a3e4682d4e36a34e4e", size = 1346997, upload-time = "2026-07-12T08:38:18.499Z" },
+    { url = "https://files.pythonhosted.org/packages/f3/3a/7839048997c7bc0c34c57526f539f835e20c7a57dc2a99f99579b11cdbef/sentencepiece-0.2.2-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:0e2aae42960392d6dcb9a72d8e1e65a97294c965071b43c7b3429a42f350250e", size = 1324282, upload-time = "2026-07-12T08:38:20.342Z" },
+    { url = "https://files.pythonhosted.org/packages/06/5f/9117bf854aef817ad0d0ee9310eed0308a7e529e7eaf2e80ad9cd281ef82/sentencepiece-0.2.2-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:1416b92f2f010333786fe6306ed2631121d5ea492219b0841e967b6765e64107", size = 1394242, upload-time = "2026-07-12T08:38:22.976Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/62/9e2569867e3dcff7ad6d89642a9615b9801b5cd698abe7df3b490361f66e/sentencepiece-0.2.2-cp311-cp311-win_amd64.whl", hash = "sha256:70d4ca6f4d06df7f0ccab6fe4f49c8a712c8c8b6847b4f0af9a0e1dbb0e0337e", size = 1246268, upload-time = "2026-07-12T08:38:24.857Z" },
+    { url = "https://files.pythonhosted.org/packages/96/c9/5d781d4ef1124564a45c98b9ff25d531c10cdf568ec6314a2d1946f9251c/sentencepiece-0.2.2-cp311-cp311-win_arm64.whl", hash = "sha256:252908153eeec06c3ca3a32077e64a49d572e3d89881475b4e0f02d99d9fcc7c", size = 1190702, upload-time = "2026-07-12T08:38:26.789Z" },
+    { url = "https://files.pythonhosted.org/packages/b8/13/7a562289c8d5b49ebdf3f9c1e8ab67cf14a8743b1d90c8f406bfdec36b72/sentencepiece-0.2.2-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:1edb10e520e4bddf74d85b0f5ae74cc2d60c2b448885080bfb618bc2b3a49f6b", size = 2188384, upload-time = "2026-07-12T08:38:28.486Z" },
+    { url = "https://files.pythonhosted.org/packages/85/d1/912f14fd5eae168aba726ffb6a9a2dc1c71fe7676c53da6f5c442b886d4a/sentencepiece-0.2.2-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:f7c06c751c19d923435a54bff4f7e66e728fad160e8da28254f133abc9725820", size = 1441553, upload-time = "2026-07-12T08:38:30.552Z" },
+    { url = "https://files.pythonhosted.org/packages/bd/44/caa9cab5f261a019e2808bc5046152775dc57352ba9cbae7525e9e7a1ed4/sentencepiece-0.2.2-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:38111ed1f79268f399c505028023d5eaaf0ab4e5eafceb709468b0d3323e7838", size = 1347176, upload-time = "2026-07-12T08:38:32.211Z" },
+    { url = "https://files.pythonhosted.org/packages/19/90/cd798935668cff71d309d8ff10385844ecf216b1fe454f1993ed8bf2cb91/sentencepiece-0.2.2-cp312-cp312-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:cbce24284f51f71d10a42b7b9c964dcb9048b28f1c8e5db40bcbcb6f428cba6a", size = 1325200, upload-time = "2026-07-12T08:38:33.689Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/2d/37e3da037318a70066ded0d51bc2a7f35491ae6338dd993d5eb1503fc3b5/sentencepiece-0.2.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:c8a168b040bc61681293f79a949b5d911c8e25086f4260285b8d97ab5f1195da", size = 1397736, upload-time = "2026-07-12T08:38:35.771Z" },
+    { url = "https://files.pythonhosted.org/packages/8d/11/753fca2e6b109be3ab7867abf357dfe48677fe726ae5a5363d0b54ca9450/sentencepiece-0.2.2-cp312-cp312-win_amd64.whl", hash = "sha256:7c6e7bf684dc12145bfa685d3060beaea55139134ba848289bee514ed42e7383", size = 1248030, upload-time = "2026-07-12T08:38:37.604Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/0a/70efbe861ca182d7d4b6e1a20f58e043400848fa9f2915229f082e221648/sentencepiece-0.2.2-cp312-cp312-win_arm64.whl", hash = "sha256:76ff5814db72e7462dece042d7593cdf102b8ec82c2b1cc201a2add34ee3050d", size = 1187325, upload-time = "2026-07-12T08:38:39.348Z" },
 ]
 
 [[package]]
@@ -2318,8 +2286,7 @@ source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/0d/1c/73e719955c59b8e424d015ab450f51c0af856ae46ea2da83eba51cc88de1/setuptools-81.0.0.tar.gz", hash = "sha256:487b53915f52501f0a79ccfd0c02c165ffe06631443a886740b91af4b7a5845a", size = 1198299, upload-time = "2026-02-06T21:10:39.601Z" }
 wheels = [
@@ -2331,18 +2298,16 @@ name = "setuptools"
 version = "83.0.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
     "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (platform_machine == 'aarch64' and platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')",
-    "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'darwin' and extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
     "sys_platform == 'emscripten' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
@@ -2507,8 +2472,7 @@ source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "cuda-bindings", version = "12.9.7", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -2599,9 +2563,7 @@ source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and sys_platform == 'linux') or (platform_machine == 'aarch64' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "filelock", marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -2632,8 +2594,7 @@ source = { registry = "https://download.pytorch.org/whl/cu126" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "cuda-bindings", version = "12.9.7", source = { registry = "https://pypi.org/simple" }, marker = "(sys_platform == 'linux' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -2665,7 +2626,8 @@ name = "torch"
 version = "2.13.0+cu130"
 source = { registry = "https://download.pytorch.org/whl/cu130" }
 resolution-markers = [
-    "sys_platform == 'win32'",
+    "python_full_version >= '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
     "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
@@ -2733,9 +2695,7 @@ source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and sys_platform == 'linux') or (platform_machine == 'aarch64' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchaudio-2.11.0%2Bcpu-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:7a5ecdd20fb26d8eb1d62135ddc6db0f806b17667c10e82df913fd509d1f5cfe", upload-time = "2026-03-23T15:50:10Z" },
@@ -2753,8 +2713,7 @@ source = { registry = "https://download.pytorch.org/whl/cu126" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cu126/torchaudio-2.11.0%2Bcu126-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:8a35d88d4a96edc2d7e5038b359a637026ba7441fa6011fd217453f0f8698149", upload-time = "2026-03-23T15:50:21Z" },
@@ -2772,8 +2731,7 @@ source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cu128/torchaudio-2.11.0%2Bcu128-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:299a859630655a61c90b7a134f3d68620f056c56f5bcf4f3f32206d1e3aaf379", upload-time = "2026-03-23T15:50:23Z" },
@@ -2789,7 +2747,8 @@ name = "torchaudio"
 version = "2.11.0+cu130"
 source = { registry = "https://download.pytorch.org/whl/cu130" }
 resolution-markers = [
-    "sys_platform == 'win32'",
+    "python_full_version >= '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
     "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
@@ -2804,26 +2763,35 @@ wheels = [
 
 [[package]]
 name = "torchcodec"
-version = "0.5"
-source = { registry = "https://download.pytorch.org/whl/cpu" }
+version = "0.11.1+cu128"
+source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and sys_platform == 'linux') or (platform_machine == 'aarch64' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
-    "sys_platform == 'darwin'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d582981f251979d4432a1606d2bfbc8d56b98a701957afbaf4cafe7569b19c68", upload-time = "2026-01-26T17:10:36Z" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:00252c2a138c655851cc7aa6e7ad6455c6513c9b2f93cec74563cba83196be8a", upload-time = "2026-01-26T17:10:37Z" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:221c1123eefe31d57a41fe85b020306f685b6823dc70c3f4648215038fbae52c", upload-time = "2026-01-26T17:10:37Z" },
-    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.5-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:310dfbfd7c56e283e0a9bd7cb4b5815cf1251a7bdeb93991b14311a1d144137d", upload-time = "2026-01-26T17:10:38Z" },
+    { url = "https://download.pytorch.org/whl/cu128/torchcodec-0.11.1%2Bcu128-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:1093ba49ce4898b182b2a782372123a50e3e497aec19985dbd430bd28607f357", upload-time = "2026-04-14T18:06:03Z" },
+    { url = "https://download.pytorch.org/whl/cu128/torchcodec-0.11.1%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:178c05770b6dd13cdbd3c52d6eb85240bc3cdf30173a7cd20015a52621c6d962", upload-time = "2026-04-14T18:06:03Z" },
+    { url = "https://download.pytorch.org/whl/cu128/torchcodec-0.11.1%2Bcu128-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:2f1efd182a3728d3a858382f973afabd144f66bfb5c1d5a72c504692cf73a65b", upload-time = "2026-04-14T18:06:03Z" },
+    { url = "https://download.pytorch.org/whl/cu128/torchcodec-0.11.1%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:74d692c90a5b0fbb71a6d100b792a19b0b4731c2aeb81b52cd523eb634c0c80c", upload-time = "2026-04-14T18:06:03Z" },
 ]
 
 [[package]]
 name = "torchcodec"
-version = "0.5"
+version = "0.15.0"
+source = { registry = "https://download.pytorch.org/whl/cpu" }
+resolution-markers = [
+    "sys_platform == 'darwin'",
+]
+wheels = [
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:a1f089f44e237620a291078f3b039e3262c73bf0e5ff83747e20fd67e55d53d7", upload-time = "2026-07-15T10:07:59Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:3a4b24012f7a7fe962dfee8f06d9c91e9e3fd1f4b6302fdb5b8884a02aca3f37", upload-time = "2026-07-15T10:07:59Z" },
+]
+
+[[package]]
+name = "torchcodec"
+version = "0.15.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
     "sys_platform == 'win32'",
@@ -2831,58 +2799,69 @@ resolution-markers = [
     "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/84/9f/8e0ae96b2560050eb1a8780dabbe3d192cf99e62a5ce2a128684bfd6f5d6/torchcodec-0.5-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d582981f251979d4432a1606d2bfbc8d56b98a701957afbaf4cafe7569b19c68", size = 3307718, upload-time = "2025-07-23T17:43:52.805Z" },
-    { url = "https://files.pythonhosted.org/packages/d3/a1/cc2b7f72104cbb5f60f5f277f470e9d0172bffb354f74b0e13a02a241165/torchcodec-0.5-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:00252c2a138c655851cc7aa6e7ad6455c6513c9b2f93cec74563cba83196be8a", size = 1374385, upload-time = "2025-07-23T17:42:43.219Z" },
-    { url = "https://files.pythonhosted.org/packages/02/52/23145c2a6580f0753104f257067db0cf68e1ba105408777ec54ce686c1f0/torchcodec-0.5-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:221c1123eefe31d57a41fe85b020306f685b6823dc70c3f4648215038fbae52c", size = 3493067, upload-time = "2025-07-23T17:43:54.519Z" },
-    { url = "https://files.pythonhosted.org/packages/65/38/dfe8aa3a71c4eb0fd930d0c6db661cc65d1f220b2225433207ceb15733c4/torchcodec-0.5-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:310dfbfd7c56e283e0a9bd7cb4b5815cf1251a7bdeb93991b14311a1d144137d", size = 1370294, upload-time = "2025-07-23T17:42:44.455Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/7e/1327cbf7fd2013ac2c06f438e6e6b4d4728b754d98e7c1539b80bafe5d42/torchcodec-0.15.0-cp311-cp311-macosx_14_0_arm64.whl", hash = "sha256:a1f089f44e237620a291078f3b039e3262c73bf0e5ff83747e20fd67e55d53d7", size = 4407134, upload-time = "2026-07-15T10:14:00.551Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/2f/1ce2feb161bbd12719f7fd0accef64125f4a6d926e02cd360999b70429e4/torchcodec-0.15.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:7ce1c120275f80eff56842b856ebd48232e46a87c6351607dd8d60ccf197bbb0", size = 2715872, upload-time = "2026-07-15T10:14:02.014Z" },
+    { url = "https://files.pythonhosted.org/packages/d8/ee/f14346b9e2d4aac6eee6f1658b5ffa1107e8c1be9e6a2130655a774755c6/torchcodec-0.15.0-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1c4257dc64554f1ed848511b7415b772f7df98217a30610d284e2a0a4df1a427", size = 2976495, upload-time = "2026-07-15T10:14:03.439Z" },
+    { url = "https://files.pythonhosted.org/packages/dd/b5/0ddc696f0121e5d300830cee43a73865a2436a8877833c97752cb005ed7b/torchcodec-0.15.0-cp311-cp311-win_amd64.whl", hash = "sha256:80a918b840c346f4167781a8eab241aeaf7d22979a603960f99c1ed1fc992461", size = 3234179, upload-time = "2026-07-15T10:14:04.917Z" },
+    { url = "https://files.pythonhosted.org/packages/c6/5e/ba71ff29b3f957a7e05cfb5c1d189f34c4224166b5bbe900ec8320f506f7/torchcodec-0.15.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:3a4b24012f7a7fe962dfee8f06d9c91e9e3fd1f4b6302fdb5b8884a02aca3f37", size = 4576065, upload-time = "2026-07-15T10:14:06.554Z" },
+    { url = "https://files.pythonhosted.org/packages/9d/de/c00b8d13e3e28de9c76f05b4c25fc4d882b4a3d1451b8d2073d089895684/torchcodec-0.15.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:5c62f4257b49c6473b0a1006519274b7daef9ef9c1d66b1a6a025dba9df5daac", size = 2727846, upload-time = "2026-07-15T10:14:08.066Z" },
+    { url = "https://files.pythonhosted.org/packages/d0/05/b7ba7ae04db4afeb1fd32d30ec6290d511c374adc464afe191c8fc8d4e22/torchcodec-0.15.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:fa31e33884829332cc55b301aa9d23ba90bf164aa8576a8c68aed6c0061c2d8c", size = 2988620, upload-time = "2026-07-15T10:14:09.504Z" },
+    { url = "https://files.pythonhosted.org/packages/e0/0f/fa432d8c8b523f5891a66483f607ec80e28ae025d99ce1d1c50667d8446b/torchcodec-0.15.0-cp312-cp312-win_amd64.whl", hash = "sha256:589e127778870c691d8977c08311bf57c4fecb9eb56fa52cf29d9671fe78eb72", size = 3242793, upload-time = "2026-07-15T10:14:10.84Z" },
 ]
 
 [[package]]
 name = "torchcodec"
-version = "0.5+cu126"
+version = "0.15.0+cpu"
+source = { registry = "https://download.pytorch.org/whl/cpu" }
+resolution-markers = [
+    "sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+wheels = [
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0%2Bcpu-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:1e98e17f4adfc90eeac0449653ba149435708a6078be34c7d564579323d96151", upload-time = "2026-07-15T10:07:59Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:8510d43c9562042129264ee1b902bb39f02cd923adc28f0a44cec065020abdd0", upload-time = "2026-07-15T10:07:59Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0%2Bcpu-cp311-cp311-win_amd64.whl", hash = "sha256:20dbd1c25cb4b7a390c23a56dc19e22199f6ef1a487342990183c7aff1821c36", upload-time = "2026-07-15T10:07:59Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0%2Bcpu-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:2eb4d54cbcc2e4440c80f83c2fee5d7a60120d4b145e744a7745208444fbcd27", upload-time = "2026-07-15T10:07:59Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:271ef964b8b24de032d276de059fe2edeff46242f539182c2c8e09171b01c02f", upload-time = "2026-07-15T10:07:59Z" },
+    { url = "https://download.pytorch.org/whl/cpu/torchcodec-0.15.0%2Bcpu-cp312-cp312-win_amd64.whl", hash = "sha256:bd2c9955231a6fbef696562cfca3b835a9e17b1e69236f4f329d9954e61682e9", upload-time = "2026-07-15T10:07:59Z" },
+]
+
+[[package]]
+name = "torchcodec"
+version = "0.15.0+cu126"
 source = { registry = "https://download.pytorch.org/whl/cu126" }
-resolution-markers = [
-    "sys_platform == 'win32'",
-    "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
-]
-wheels = [
-    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:1b5d5bb1ba2f054fb830077b64b875592566772f9a13e619d1f0b585f92216d1", upload-time = "2026-01-26T17:21:20Z" },
-    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.5%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:01af74c9b5d0f465bbc025287324417771cf9d1d7934cf0266d8762d45868585", upload-time = "2026-01-26T17:21:20Z" },
-]
-
-[[package]]
-name = "torchcodec"
-version = "0.5+cu128"
-source = { registry = "https://download.pytorch.org/whl/cu128" }
-resolution-markers = [
-    "sys_platform == 'win32'",
-    "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
-]
-wheels = [
-    { url = "https://download.pytorch.org/whl/cu128/torchcodec-0.5%2Bcu128-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:215558c407a80a3a3df7dd967aef6342759bc3560df182127e50b39a4a009b23", upload-time = "2026-01-26T17:33:16Z" },
-    { url = "https://download.pytorch.org/whl/cu128/torchcodec-0.5%2Bcu128-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:23c067e32e4851f01e1133e76d630efcf360138b2c4418fa31e1eab826d29130", upload-time = "2026-01-26T17:33:16Z" },
-]
-
-[[package]]
-name = "torchcodec"
-version = "0.14.0+cu130"
-source = { registry = "https://download.pytorch.org/whl/cu130" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
     "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.14.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:e34f8704bba953771b41834ecaad3d954cbcdb5735b5fec3039580aaafad6618", upload-time = "2026-06-03T12:39:04Z" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.14.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:58402593cff32d19d22ab9de649bc44a73adbf1275b5e14aa952f3338d6ba2f9", upload-time = "2026-06-03T12:39:04Z" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.14.0%2Bcu130-cp311-cp311-win_amd64.whl", hash = "sha256:f8d6baf4cf50f10905537d2e1424e604f9d788de8cfd8b0af8cc4f43b2ce5db7", upload-time = "2026-06-03T12:39:04Z" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.14.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:e3debff1c1932f0b835a250247fd04cf3a1caf5ee76977e3b2a90fece0bdb90b", upload-time = "2026-06-03T12:39:04Z" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.14.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:d40b91faf022d309a878a9cd5685f20279788ca2442cd1cc06c9fef687f8f34e", upload-time = "2026-06-03T12:39:04Z" },
-    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.14.0%2Bcu130-cp312-cp312-win_amd64.whl", hash = "sha256:9ee5e1575078d220632ad33d854a928c6546324cb3942bf67e1438487c62d612", upload-time = "2026-06-03T12:39:05Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.15.0%2Bcu126-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:9b471b04f9ef6203f851d95d4e484c6fa9bfee779eae3afb2f0017d2c28d77df", upload-time = "2026-07-15T10:08:07Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.15.0%2Bcu126-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:d4ef2d057ad4c380ca9abbd938908258f40ec6389948ce6ee1e885ecc3f1865e", upload-time = "2026-07-15T10:08:07Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.15.0%2Bcu126-cp311-cp311-win_amd64.whl", hash = "sha256:b4c9ac20ecc1f1430e74659cc2929ddca631c7d56f82c271d4647c5a48df95ca", upload-time = "2026-07-15T10:08:07Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.15.0%2Bcu126-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:9a2c22519a843228692c828efa3039185a15ef830a69ef18442e9425a528c899", upload-time = "2026-07-15T10:08:07Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.15.0%2Bcu126-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:6ab2bf446fda417d63d41f82dc82e9f21ca33f5893b3d6375ccee2f6a86440d0", upload-time = "2026-07-15T10:08:07Z" },
+    { url = "https://download.pytorch.org/whl/cu126/torchcodec-0.15.0%2Bcu126-cp312-cp312-win_amd64.whl", hash = "sha256:6c6389754b116a8b7bde69b0bef8265ac58c3ff7831e507fc99ec548eb7665e3", upload-time = "2026-07-15T10:08:07Z" },
+]
+
+[[package]]
+name = "torchcodec"
+version = "0.15.0+cu130"
+source = { registry = "https://download.pytorch.org/whl/cu130" }
+resolution-markers = [
+    "python_full_version >= '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
+    "sys_platform == 'emscripten'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
+]
+wheels = [
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.15.0%2Bcu130-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:17ffe113b6ff2dedfc282922c051267a5fde0a7cf69c65e84a214ce4ed100ae6", upload-time = "2026-07-15T10:08:11Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.15.0%2Bcu130-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:eeef23afe0831349114734d12d7a8b2d610e70dfc77035732c04897b6281a60f", upload-time = "2026-07-15T10:08:11Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.15.0%2Bcu130-cp311-cp311-win_amd64.whl", hash = "sha256:4e0fb3eed8f1fe020d82a82c1e16fe43701e48cc04ac1bdfa693fd4f7a1c1c3d", upload-time = "2026-07-15T10:08:11Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.15.0%2Bcu130-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:95a18a56fa12343e9c2e288307b7c625e81be6d5d3a7d639f39b61470c95a120", upload-time = "2026-07-15T10:08:11Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.15.0%2Bcu130-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:54e9c069270f7cbe84123d53b87678acd834a62f14acaa45bf8558cd21669bb0", upload-time = "2026-07-15T10:08:12Z" },
+    { url = "https://download.pytorch.org/whl/cu130/torchcodec-0.15.0%2Bcu130-cp312-cp312-win_amd64.whl", hash = "sha256:0d7504dfe400741708dbc41b880757cc6f8a55c618aeaeb22d9c590f629e6726", upload-time = "2026-07-15T10:08:12Z" },
 ]
 
 [[package]]
@@ -2892,8 +2871,7 @@ source = { registry = "https://download.pytorch.org/whl/cu128" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "numpy", marker = "extra == 'extra-8-hf-serve-cuda-128' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -2958,9 +2936,7 @@ source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and platform_machine != 'x86_64' and sys_platform == 'linux') or (platform_machine == 'aarch64' and platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'x86_64' and sys_platform == 'linux'",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "numpy", marker = "(sys_platform != 'darwin' and extra == 'extra-8-hf-serve-cpu') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -2983,8 +2959,7 @@ source = { registry = "https://download.pytorch.org/whl/cu126" }
 resolution-markers = [
     "sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
     { name = "numpy", marker = "extra == 'extra-8-hf-serve-cuda' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130')" },
@@ -3005,7 +2980,8 @@ name = "torchvision"
 version = "0.28.0+cu130"
 source = { registry = "https://download.pytorch.org/whl/cu130" }
 resolution-markers = [
-    "sys_platform == 'win32'",
+    "python_full_version >= '3.12' and sys_platform == 'win32'",
+    "python_full_version < '3.12' and sys_platform == 'win32'",
     "sys_platform == 'emscripten'",
     "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
@@ -3037,7 +3013,7 @@ wheels = [
 
 [[package]]
 name = "transformers"
-version = "5.13.0"
+version = "5.13.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "huggingface-hub" },
@@ -3050,9 +3026,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "typer" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/e1/720ff7ff666b04279fea5bb7ac3ef8675e98f0ddbc1b8cb8bc9f3889d62e/transformers-5.13.0.tar.gz", hash = "sha256:940c1428e42a4238f9ccf0cd41e63c590701aa63c19fd2ce3d7d602222d68495", size = 9195801, upload-time = "2026-07-03T16:05:39.362Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/6e/f7/418169401560cec2b61512e6bf37b0cfb4c8e27700cfa868a1de073cb65d/transformers-5.13.1.tar.gz", hash = "sha256:1e2452d6778a7482158df5d5dacf6bf775d5b2fdcfce33caaf7f6b0e5f3e3397", size = 9196891, upload-time = "2026-07-11T09:15:50.845Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a5/3a/d99704c5effe10c6339c98cb236259161103e159bb99a78468b6729572ec/transformers-5.13.0-py3-none-any.whl", hash = "sha256:8adbc1d20bd5463cd6876b2eb7cb31971e1065788e7dc6bc12bab597a7c504b7", size = 11503730, upload-time = "2026-07-03T16:05:35.569Z" },
+    { url = "https://files.pythonhosted.org/packages/29/47/54eacf96b5c835bbd6ca631aa2740e7705ed63d9e3a8afd2d2cc6d09cae5/transformers-5.13.1-py3-none-any.whl", hash = "sha256:53f0ea8aa397e29244c2377ba981bcaf0c87adcf44fbdd447ef6306522afcacd", size = 11503977, upload-time = "2026-07-11T09:15:46.801Z" },
 ]
 
 [package.optional-dependencies]
@@ -3094,8 +3070,7 @@ name = "triton"
 version = "3.6.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "(platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/0f/2c/96f92f3c60387e14cc45aed49487f3486f89ea27106c1b1376913c62abe4/triton-3.6.0-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:49df5ef37379c0c2b5c0012286f80174fcf0e073e5ade1ca9a86c36814553651", size = 176081190, upload-time = "2026-01-20T16:16:00.523Z" },
@@ -3109,10 +3084,7 @@ name = "triton"
 version = "3.7.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130'",
-    "(platform_machine != 'aarch64' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130') or (sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130')",
-    "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra != 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
-    "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-8-hf-serve-cpu' and extra != 'extra-8-hf-serve-cuda' and extra != 'extra-8-hf-serve-cuda-128' and extra != 'extra-8-hf-serve-cuda-130'",
+    "sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7b/f9/19d842d06a08559534fa1eaab6ca551b1bcf40f06620bddec1babaa2772d/triton-3.7.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:d4a0e1cd4c4a76370ed74a8432a53cea28716827d19e40ffc732233e35ceb3f6", size = 184664887, upload-time = "2026-06-17T20:03:42.913Z" },
