@@ -1,6 +1,6 @@
 [project]
 name = "hf-serve"
-version = "0.1.2"
+version = "0.1.3"
 description = "Experimental Hugging Face API for Transformers, Diffusers and Sentence Transformers, written in Python."
 readme = "README.md"
 license = "Apache-2.0"
