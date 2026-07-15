@@ -22,10 +22,6 @@ dependencies = [
     "prometheus-client>=0.21.1",
     "torch",
     "torchvision",
-    # NOTE: `torchcodec` as opposed to `torch` won't install the CUDA-compatible
-    # version by default but rather the CPU-only one.
-    # Reference: https://github.com/meta-pytorch/torchcodec?tab=readme-ov-file#installing-torchcodec
-    "torchcodec",
     # NOTE: `diffusers` won't complain, but support for `transformers` 5.0.0+
     # is still work in progress as per https://github.com/huggingface/diffusers/pull/12976
     "diffusers>=0.37.0",
@@ -58,10 +54,10 @@ dependencies = [
 # the only version currently published with CUDA-specific wheels on the PyTorch registries; other
 # versions only ship a single generic PyPI wheel that hardcodes one CUDA build (currently 13.0), which
 # then hard-errors on import against a `torch` built for a different CUDA version.
-cpu = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
-cuda = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
-cuda-128 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec<0.6"]
-cuda-130 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0", "torchcodec"]
+cpu = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
+cuda = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
+cuda-128 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
+cuda-130 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]
 # NOTE: `flash-linear-attention` has a lock on `transformers`<4.5.6.0
@@ -120,13 +116,6 @@ torchaudio = [
   { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
-torchcodec = [
-  { index = "pytorch-cpu", extra = "cpu" },
-  { index = "pytorch-cu126", extra = "cuda" },
-  { index = "pytorch-cu128", extra = "cuda-128" },
-  { index = "pytorch-cu130", extra = "cuda-130" },
-]
-
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
