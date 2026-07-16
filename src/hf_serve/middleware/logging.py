@@ -15,11 +15,13 @@ class LoggingMiddleware(BaseHTTPMiddleware):
         *,
         exclude_paths: Optional[List[str]] = None,
         inference_paths: Optional[List[str]] = None,
+        enable_log_requests: bool = False,
     ) -> None:
         super().__init__(app)
 
         self.exclude_paths = exclude_paths or []
         self.inference_paths = inference_paths or []
+        self.enable_log_requests = enable_log_requests
 
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         method = request.method
@@ -30,9 +32,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
         start_time = time.perf_counter()
 
+        if not self.enable_log_requests:
+            response = await call_next(request)
+            process_time = (time.perf_counter() - start_time) * 1000
+            response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
+            return response
+
         if path in self.inference_paths:
             request_id = getattr(request.state, "request_id", None)
-            logger.info(f"[{request_id}] Request: {method} {path}")
+            logger.debug(f"[{request_id}] Request: {method} {path}")
 
             response = await call_next(request)
 
@@ -40,15 +48,15 @@ class LoggingMiddleware(BaseHTTPMiddleware):
             response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
             request_id = getattr(request.state, "request_id", None)
 
-            logger.info(
+            logger.debug(
                 f"[{request_id}] {'Response' if response.status_code < 400 else 'Error'}: Status: {response.status_code} - Duration: {process_time:.2f}ms"
             )
         else:
-            logger.info(f"Request: {method} {path}")
+            logger.debug(f"Request: {method} {path}")
             response = await call_next(request)
 
             process_time = (time.perf_counter() - start_time) * 1000
             response.headers["X-Process-Time"] = f"{process_time:.2f}ms"
-            logger.info(f"Response: Status: {response.status_code} - Duration: {process_time:.2f}ms")
+            logger.debug(f"Response: Status: {response.status_code} - Duration: {process_time:.2f}ms")
 
         return response
