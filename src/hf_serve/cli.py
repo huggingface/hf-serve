@@ -119,6 +119,14 @@ parser.add_argument(
     help="To be defined when deploying on a cloud provider to ensure that it's compatible with the provider expectations e.g. `/score` route needs to be exposed for Azure AI Foundry and Azure ML deployments (among others); or e.g. `instances` needs to be a list of inputs for Vertex AI (among others).",
 )
 
+parser.add_argument(
+    "--enable-log-requests",
+    default=strtobool(os.getenv("HF_SERVE_LOG_REQUESTS", None)) or False,
+    action=argparse.BooleanOptionalAction,
+    required=False,
+    help="Whether to enable request/response logging at DEBUG level. Defaults to False. It can also be set via the environment variable `HF_SERVE_LOG_REQUESTS`.",
+)
+
 
 def main() -> None:
     args = parser.parse_args()
@@ -138,4 +146,5 @@ def main() -> None:
         accepted_mimetypes=args.accepted_mimetypes.split(",") if args.accepted_mimetypes else None,
         max_file_size=args.max_file_size,
         cloud=args.cloud,
+        enable_log_requests=args.enable_log_requests,
     )
