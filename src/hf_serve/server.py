@@ -60,6 +60,7 @@ def launch(
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
     cloud: Optional[Literal["azure", "google"]] = None,
+    enable_log_requests: bool = False,
 ) -> None:
     if model_id and model_dir:
         logger.warning(
@@ -110,6 +111,7 @@ def launch(
             "/v1/images/generations",
             "/v1/embeddings",
         ],
+        enable_log_requests=enable_log_requests,
     )
     app.add_middleware(
         middleware_class=RequestIdMiddleware,
