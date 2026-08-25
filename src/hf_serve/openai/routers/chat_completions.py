@@ -1,3 +1,4 @@
+import json
 from collections.abc import AsyncIterator
 from typing import Iterator, Union
 
@@ -59,6 +60,13 @@ def router(predictor: ChatCompletions) -> APIRouter:
 
 
 async def iter_chunks(chunks: Iterator[ChatCompletionsOutputChunk]) -> AsyncIterator[bytes]:
-    for chunk in chunks:
-        yield b"data: " + chunk.model_dump_json().encode() + b"\n\n"
+    try:
+        for chunk in chunks:
+            yield b"data: " + chunk.model_dump_json().encode() + b"\n\n"
+    except Exception as e:
+        # NOTE: headers have already been sent at this point, so the only way to surface
+        # generation failures to the client is as an OpenAI-style error event in the stream
+        logger.error(f"Failed while streaming chat completion chunks with: {str(e)}")
+        error = {"error": {"message": str(e), "type": "server_error"}}
+        yield b"data: " + json.dumps(error).encode() + b"\n\n"
     yield b"data: [DONE]\n\n"
