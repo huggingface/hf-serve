@@ -59,7 +59,7 @@ def launch(
     max_file_size: Optional[int] = None,
     host: Optional[str] = "0.0.0.0",
     port: Optional[int] = 8080,
-    cloud: Optional[Literal["azure", "google"]] = None,
+    cloud: Optional[Literal["azure", "google", "sagemaker"]] = None,
     enable_log_requests: bool = False,
 ) -> None:
     if model_id and model_dir:
@@ -1191,6 +1191,16 @@ def launch(
         )
 
     log_available_routes(app=app)
+
+    if cloud is not None and cloud == "sagemaker":
+        from hf_serve.compatibility.sagemaker import SageMakerRoutingMiddleware, post_paths
+
+        invocation_paths = post_paths(app.routes)
+        logger.info(f"SageMaker invocation routes: {sorted(invocation_paths)}")
+        app.add_middleware(
+            middleware_class=SageMakerRoutingMiddleware,
+            invocation_paths=invocation_paths,
+        )
 
     uvicorn.run(
         "hf_serve.server:app",
