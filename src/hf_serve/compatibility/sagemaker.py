@@ -5,7 +5,6 @@ from typing import Any
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-
 _ROUTE_ATTRIBUTE = re.compile(r"(?:^|[,;])\s*route\s*=\s*([^,;\s]+)", re.IGNORECASE)
 
 
