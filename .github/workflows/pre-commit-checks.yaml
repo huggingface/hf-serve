@@ -6,31 +6,27 @@ on:
       - main
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   pre-commit:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          fetch-depth: 0
+          persist-credentials: false
 
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86  # v5
+      - name: Install uv
+        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9  # v9.0.0
         with:
-          version: "latest"
-
-      - name: Set up Python with uv
-        run: uv venv --python 3.12
-
-      - name: Install dependencies
-        run: |
-          source .venv/bin/activate
-          uv pip install pre-commit
+          version: "0.12.10"
+          enable-cache: false
 
       - name: Run pre-commit checks
-        run: |
-          source .venv/bin/activate
-          pre-commit run --all-files
+        run: uvx --from pre-commit==4.6.2 pre-commit run --all-files
