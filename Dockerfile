@@ -1,4 +1,6 @@
-FROM nvidia/cuda:12.6.0-devel-ubuntu24.04
+ARG BASE_IMAGE=nvidia/cuda:12.6.0-devel-ubuntu24.04
+
+FROM ${BASE_IMAGE}
 LABEL maintainer="Hugging Face"
 
 SHELL ["/bin/bash", "-c"]
