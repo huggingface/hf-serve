@@ -30,6 +30,25 @@ def _requested_route(headers: Iterable[tuple[bytes, bytes]]) -> str | None:
     return None
 
 
+def _default_invocation_route(headers: Iterable[tuple[bytes, bytes]], invocation_paths: set[str]) -> str:
+    """Select an available media route directly, avoiding the /predict redirect."""
+    content_type = next(
+        (
+            value.decode("latin-1").split(";", 1)[0].strip().lower()
+            for name, value in headers
+            if name.lower() == b"content-type"
+        ),
+        "",
+    )
+    if content_type == "application/json" and "/predict-json" in invocation_paths:
+        return "/predict-json"
+    if content_type == "multipart/form-data" and "/predict-form" in invocation_paths:
+        return "/predict-form"
+    if "/predict-file" in invocation_paths:
+        return "/predict-file"
+    return "/predict"
+
+
 class SageMakerRoutingMiddleware:
     """Internally route SageMaker's fixed endpoints to hf-serve endpoints."""
 
@@ -46,7 +65,8 @@ class SageMakerRoutingMiddleware:
         if scope["path"] == "/ping":
             target_path = "/health"
         elif scope["path"] == "/invocations":
-            target_path = _requested_route(scope.get("headers", [])) or "/predict"
+            headers = scope.get("headers", [])
+            target_path = _requested_route(headers) or _default_invocation_route(headers, self.invocation_paths)
             if target_path not in self.invocation_paths:
                 available_routes = ", ".join(sorted(self.invocation_paths)) or "none"
                 response = JSONResponse(
