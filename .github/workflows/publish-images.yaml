@@ -5,12 +5,14 @@ on:
     branches:
       - main
 
-permissions:
-  contents: read
-  packages: write
+
+permissions: {}
 
 jobs:
   publish:
+    permissions:
+      contents: read
+      packages: write
     name: Publish ${{ matrix.variant }} image
     runs-on: ubuntu-latest
     strategy:

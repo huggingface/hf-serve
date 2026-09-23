@@ -6,11 +6,13 @@ on:
       - main
   pull_request:
 
-permissions:
-  contents: read
+
+permissions: {}
 
 jobs:
   pre-commit:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
