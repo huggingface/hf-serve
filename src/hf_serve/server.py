@@ -825,6 +825,59 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
+        case "speaker-diarization":
+            from hf_serve.tasks.transformers.speaker_diarization import (
+                SpeakerDiarization,
+                SpeakerDiarizationFormInput,
+                SpeakerDiarizationInput,
+                SpeakerDiarizationOutput,
+            )
+
+            predictor = SpeakerDiarization(
+                model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
+
+            match cloud:
+                case "google":
+                    from hf_serve.compatibility.google.routers.predict import (
+                        router as google_predict_router,
+                    )
+                    from hf_serve.compatibility.google.schemas.transformers.speaker_diarization import (
+                        SpeakerDiarizationInputForGoogle,
+                        SpeakerDiarizationOutputForGoogle,
+                    )
+
+                    app.include_router(
+                        router=google_predict_router(
+                            predictor=predictor,
+                            input_schema=SpeakerDiarizationInputForGoogle,
+                            output_schema=SpeakerDiarizationOutputForGoogle,
+                            inner_input_schema=SpeakerDiarizationInput,
+                        )
+                    )
+                case "azure":
+                    app.include_router(
+                        router=predict_router(
+                            predictor=predictor,
+                            input_schema=SpeakerDiarizationInput,
+                            output_schema=SpeakerDiarizationOutput,
+                        )
+                    )
+                case _:
+                    app.include_router(
+                        router=predict_media_router(
+                            predictor=predictor,
+                            input_schema=SpeakerDiarizationInput,
+                            input_form_schema=SpeakerDiarizationFormInput,
+                            output_schema=SpeakerDiarizationOutput,
+                            accepted_mimetypes=accepted_mimetypes or ["audio/*"],
+                            max_file_size=max_file_size,
+                        )
+                    )
         # transformers - image
         case "image-classification":
             from hf_serve.tasks.transformers.image_classification import (

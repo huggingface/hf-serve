@@ -137,6 +137,39 @@ curl -L http://localhost:8080/predict \
 > The OpenAI Audio Transcriptions API is still not yet part of `hf-serve` but it's
 > on the roadmap and it will be released soon, stay tuned!
 
+### Run speaker diarization
+
+The `speaker-diarization` task returns speaker segments with `start`, `end` (seconds),
+and `speaker` (arrival-order index). Use a compatible audio frame classification
+model and processor:
+
+```bash
+uv run hf-serve --model-id your-org/your-model --task speaker-diarization
+```
+
+Send an audio URL, base64-encoded audio, or an audio file through the same JSON,
+form, or binary endpoints used by ASR:
+
+```bash
+curl -L http://localhost:8080/predict-json \
+    -H "Content-Type: application/json" \
+    -d '{"inputs":"https://huggingface.co/datasets/hf-internal-testing/dummy-audio-samples/resolve/main/diarization_example.mp3"}'
+```
+
+Offline inference is the default. To process the recording in streaming chunks
+within one request, add `"parameters":{"streaming_mode":"low_latency"}` to the
+JSON body, or send `streaming_mode=low_latency` with a form upload. The other
+supported modes are `very_low_latency` and `ultra_low_latency`. Each request has
+its own speaker cache; the API does not retain a streaming session across requests.
+
+On Google Cloud, run with `--cloud google` and send audio strings in `instances`.
+The same `parameters` apply to every instance, and the response contains one
+`predictions` entry per instance:
+
+```json
+{"instances": ["<base64-encoded audio>"], "parameters": {"streaming_mode": "low_latency"}}
+```
+
 ### 🔈 Run `facebook/wav2vec2-lv-60-espeak-cv-ft` (with `phonemizer` and `espeak`)
 
 > [!NOTE]
