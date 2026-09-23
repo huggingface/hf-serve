@@ -34,6 +34,21 @@ from hf_serve.openai.schemas.chat_completions import (
 )
 
 
+def _deserialize_arguments(arguments: Union[str, dict]) -> Union[dict, str]:
+    """Deserialize OpenAI-style `arguments` JSON string into a dict for chat templates.
+
+    Falls back to the raw string if it's not valid JSON, so malformed arguments
+    don't crash the request.
+    """
+    if isinstance(arguments, dict):
+        return arguments
+    try:
+        parsed = json.loads(arguments)
+        return parsed if isinstance(parsed, dict) else arguments
+    except (json.JSONDecodeError, TypeError):
+        return arguments
+
+
 def extract_tool_calls(text: str) -> List[ToolCall]:
     """Extract tool calls from generated text."""
     tool_calls = []
@@ -192,7 +207,10 @@ class ChatCompletions:
                                 "type": tool_call.type,
                                 "function": {
                                     "name": tool_call.function.name,
-                                    "arguments": tool_call.function.arguments,
+                                    # NOTE: the OpenAI API defines `arguments` as a JSON string, but
+                                    # transformers chat templates (e.g. Gemma's) expect a mapping,
+                                    # so it needs to be deserialized before `apply_chat_template`
+                                    "arguments": _deserialize_arguments(tool_call.function.arguments),
                                 },
                             }
                             for tool_call in message.tool_calls

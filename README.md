@@ -100,6 +100,27 @@ uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentenc
 > curl -L http://localhost:8080/score -H "Content-Type: application/json" -d '{"inputs":{"source_sentence":"What is Deep Learning?","sentences":["Deep Learning is...","Deep Learning is not..."]}}'
 > ```
 
+### 🟠 Run `sentence-transformers/all-MiniLM-L6-v2` on Amazon SageMaker
+
+```bash
+uv run hf-serve --model-id sentence-transformers/all-MiniLM-L6-v2 --task sentence-similarity --dtype float32 --cloud sagemaker
+```
+
+> [!NOTE]
+> When `--cloud sagemaker` is set, middleware internally routes `GET /ping` to
+> `/health` and `POST /invocations` to `/predict`. To invoke another POST route,
+> set `route` in `X-Amzn-SageMaker-Custom-Attributes`, for example
+> `route=/v1/chat/completions`. Unknown routes are rejected with HTTP 400.
+> When deploying `Dockerfile.sagemaker`, set `TASK` in the SageMaker model's
+> container environment. Set `MODEL_ID` to load from the Hub. If neither
+> `MODEL_ID` nor `MODEL_DIR` is provided, model artifacts extracted by SageMaker
+> into `/opt/ml/model` are selected automatically.
+>
+> ```bash
+> curl http://localhost:8080/ping
+> curl http://localhost:8080/invocations -H "Content-Type: application/json" -d '{"inputs":{"source_sentence":"What is Deep Learning?","sentences":["Deep Learning is...","Deep Learning is not..."]}}'
+> ```
+
 ### 👂 Run `facebook/wav2vec2-base-960h` an `automatic-speech-recognition` model
 
 > [!NOTE]
