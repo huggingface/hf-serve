@@ -825,15 +825,15 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
-        case "speaker-diarization":
-            from hf_serve.tasks.transformers.speaker_diarization import (
-                SpeakerDiarization,
-                SpeakerDiarizationFormInput,
-                SpeakerDiarizationInput,
-                SpeakerDiarizationOutput,
+        case "voice-activity-detection":
+            from hf_serve.tasks.transformers.voice_activity_detection import (
+                VoiceActivityDetection,
+                VoiceActivityDetectionFormInput,
+                VoiceActivityDetectionInput,
+                VoiceActivityDetectionOutput,
             )
 
-            predictor = SpeakerDiarization(
+            predictor = VoiceActivityDetection(
                 model_id=model_id or model_dir,  # type: ignore
                 revision=revision,
                 dtype=dtype,
@@ -846,34 +846,34 @@ def launch(
                     from hf_serve.compatibility.google.routers.predict import (
                         router as google_predict_router,
                     )
-                    from hf_serve.compatibility.google.schemas.transformers.speaker_diarization import (
-                        SpeakerDiarizationInputForGoogle,
-                        SpeakerDiarizationOutputForGoogle,
+                    from hf_serve.compatibility.google.schemas.transformers.voice_activity_detection import (
+                        VoiceActivityDetectionInputForGoogle,
+                        VoiceActivityDetectionOutputForGoogle,
                     )
 
                     app.include_router(
                         router=google_predict_router(
                             predictor=predictor,
-                            input_schema=SpeakerDiarizationInputForGoogle,
-                            output_schema=SpeakerDiarizationOutputForGoogle,
-                            inner_input_schema=SpeakerDiarizationInput,
+                            input_schema=VoiceActivityDetectionInputForGoogle,
+                            output_schema=VoiceActivityDetectionOutputForGoogle,
+                            inner_input_schema=VoiceActivityDetectionInput,
                         )
                     )
                 case "azure":
                     app.include_router(
                         router=predict_router(
                             predictor=predictor,
-                            input_schema=SpeakerDiarizationInput,
-                            output_schema=SpeakerDiarizationOutput,
+                            input_schema=VoiceActivityDetectionInput,
+                            output_schema=VoiceActivityDetectionOutput,
                         )
                     )
                 case _:
                     app.include_router(
                         router=predict_media_router(
                             predictor=predictor,
-                            input_schema=SpeakerDiarizationInput,
-                            input_form_schema=SpeakerDiarizationFormInput,
-                            output_schema=SpeakerDiarizationOutput,
+                            input_schema=VoiceActivityDetectionInput,
+                            input_form_schema=VoiceActivityDetectionFormInput,
+                            output_schema=VoiceActivityDetectionOutput,
                             accepted_mimetypes=accepted_mimetypes or ["audio/*"],
                             max_file_size=max_file_size,
                         )

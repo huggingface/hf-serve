@@ -158,14 +158,14 @@ curl -L http://localhost:8080/predict \
 > The OpenAI Audio Transcriptions API is still not yet part of `hf-serve` but it's
 > on the roadmap and it will be released soon, stay tuned!
 
-### Run speaker diarization
+### Run voice activity detection
 
-The `speaker-diarization` task returns speaker segments with `start`, `end` (seconds),
-and `speaker` (arrival-order index). Use a compatible audio frame classification
-model and processor:
+The `voice-activity-detection` task supports diarization-capable audio frame
+classification models whose processor exposes `extract_speaker_dict`. It returns
+speaker segments with `start`, `end` (seconds), and `speaker` (arrival-order index):
 
 ```bash
-uv run hf-serve --model-id your-org/your-model --task speaker-diarization
+uv run hf-serve --model-id your-org/your-model --task voice-activity-detection
 ```
 
 Send an audio URL, base64-encoded audio, or an audio file through the same JSON,

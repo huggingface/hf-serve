@@ -12,13 +12,13 @@ from hf_serve.types import FileForm
 StreamingMode = Literal["low_latency", "very_low_latency", "ultra_low_latency"]
 
 
-class SpeakerDiarizationParameters(BaseModel):
+class VoiceActivityDetectionParameters(BaseModel):
     streaming_mode: Optional[StreamingMode] = None
 
 
-class SpeakerDiarizationInput(BaseModel):
+class VoiceActivityDetectionInput(BaseModel):
     inputs: Union[str, bytes] = Field(validation_alias=AliasChoices("inputs", "audio"))
-    parameters: Optional[SpeakerDiarizationParameters] = None
+    parameters: Optional[VoiceActivityDetectionParameters] = None
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -34,7 +34,7 @@ class SpeakerDiarizationInput(BaseModel):
     )
 
 
-class SpeakerDiarizationFormInput(BaseModel):
+class VoiceActivityDetectionFormInput(BaseModel):
     file: FileForm
     streaming_mode: Optional[Annotated[StreamingMode, Form()]] = None
 
@@ -47,11 +47,11 @@ class SpeakerSegment(BaseModel):
     speaker: int = Field(validation_alias=AliasChoices("Speaker", "speaker"))
 
 
-class SpeakerDiarizationOutput(BaseModel):
+class VoiceActivityDetectionOutput(BaseModel):
     segments: List[SpeakerSegment]
 
 
-class SpeakerDiarization(Predictor[SpeakerDiarizationInput, SpeakerDiarizationOutput]):
+class VoiceActivityDetection(Predictor[VoiceActivityDetectionInput, VoiceActivityDetectionOutput]):
     def __init__(
         self,
         model_id: str,
@@ -117,7 +117,7 @@ class SpeakerDiarization(Predictor[SpeakerDiarizationInput, SpeakerDiarizationOu
             is_last_audio_chunk=True,
         )
 
-    def __call__(self, payload: SpeakerDiarizationInput) -> SpeakerDiarizationOutput:
+    def __call__(self, payload: VoiceActivityDetectionInput) -> VoiceActivityDetectionOutput:
         import torch
         from transformers.audio_utils import load_audio
 
@@ -148,6 +148,6 @@ class SpeakerDiarization(Predictor[SpeakerDiarizationInput, SpeakerDiarizationOu
                 logits = torch.cat(logits_chunks, dim=1)
                 segments = self.processor.extract_speaker_dict(logits)[0]
 
-        return SpeakerDiarizationOutput(
+        return VoiceActivityDetectionOutput(
             segments=[SpeakerSegment.model_validate(segment) for segment in segments]
         )

@@ -23,7 +23,7 @@ TaskTypes = Literal[
     "audio-classification",
     "asr",  # NOTE: shortened name for `automatic-speech-recognition`
     "automatic-speech-recognition",
-    "speaker-diarization",
+    "voice-activity-detection",
     "image-classification",
     "zero-shot-image-classification",
     "image-segmentation",
