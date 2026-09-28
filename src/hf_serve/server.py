@@ -1048,6 +1048,46 @@ def launch(
                             max_file_size=max_file_size,
                         )
                     )
+        case "zero-shot-object-detection":
+            from hf_serve.tasks.transformers.zero_shot_object_detection import (
+                ZeroShotObjectDetection,
+                ZeroShotObjectDetectionInput,
+                ZeroShotObjectDetectionOutput,
+            )
+
+            predictor = ZeroShotObjectDetection(
+                model_id=model_id or model_dir,  # type: ignore
+                revision=revision,
+                dtype=dtype,
+                device=device,  # type: ignore
+                trust_remote_code=trust_remote_code,
+            )
+
+            if cloud is not None and cloud == "google":
+                from hf_serve.compatibility.google.routers.predict import (
+                    router as google_predict_router,
+                )
+                from hf_serve.compatibility.google.schemas.transformers.zero_shot_object_detection import (
+                    ZeroShotObjectDetectionInputForGoogle,
+                    ZeroShotObjectDetectionOutputForGoogle,
+                )
+
+                app.include_router(
+                    router=google_predict_router(
+                        predictor=predictor,
+                        input_schema=ZeroShotObjectDetectionInputForGoogle,
+                        output_schema=ZeroShotObjectDetectionOutputForGoogle,
+                        inner_input_schema=ZeroShotObjectDetectionInput,
+                    )
+                )
+            else:
+                app.include_router(
+                    router=predict_router(
+                        predictor=predictor,
+                        input_schema=ZeroShotObjectDetectionInput,
+                        output_schema=ZeroShotObjectDetectionOutput,
+                    )
+                )
         case "zero-shot-image-classification":
             from hf_serve.tasks.transformers.zero_shot_image_classification import (
                 ZeroShotImageClassification,
