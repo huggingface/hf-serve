@@ -1,3 +1,4 @@
+import reprlib
 import time
 from abc import ABC, abstractmethod
 from typing import Generic, TypeVar, Union, get_args, get_origin
@@ -9,6 +10,15 @@ from hf_serve.logging import logger
 # NOTE: here to handle both the standard type and the `anyOf` syntax if multiple I/O schemas are valid
 InputType = TypeVar("InputType", bound=Union[BaseModel, Union[BaseModel, ...]])  # type: ignore
 OutputType = TypeVar("OutputType", bound=Union[BaseModel, Union[BaseModel, ...]])  # type: ignore
+
+# NOTE: used to truncate long values (e.g. base64-encoded images or audios) when logging the warmup examples
+_example_repr = reprlib.Repr(maxstring=100, maxother=100, maxlist=10, maxdict=20, maxlevel=10)
+
+
+def _truncated_repr(example: BaseModel) -> str:
+    return " ".join(
+        f"{name}={_example_repr.repr(value)}" for name, value in example.model_dump(exclude_none=True).items()
+    )
 
 
 class Predictor(ABC, Generic[InputType, OutputType]):
@@ -62,7 +72,7 @@ class Predictor(ABC, Generic[InputType, OutputType]):
         warmup_successful = False
         for i, example in enumerate(examples):
             try:
-                logger.info(f"Running warmup with example {i + 1}/{len(examples)}: {example}")
+                logger.info(f"Running warmup with example {i + 1}/{len(examples)}: {_truncated_repr(example)}")
                 self(example)
                 warmup_successful = True
                 break
