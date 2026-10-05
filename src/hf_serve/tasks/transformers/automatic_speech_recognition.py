@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore", module="pydub")
 from pydub import AudioSegment
 
 from hf_serve.serde.audio import Audio
-from hf_serve.tasks.examples import EXAMPLE_AUDIO_BASE64
+from hf_serve.tasks.examples import AUDIO_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import BoolForm, FileForm, FloatForm, IntForm
 
@@ -50,7 +50,7 @@ class AutomaticSpeechRecognitionInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": EXAMPLE_AUDIO_BASE64,
+                    "inputs": AUDIO_BASE64,
                     "parameters": {
                         "return_timestamps": True,
                         "generation_parameters": {"temperature": 0.1, "top_k": 50},

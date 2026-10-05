@@ -5,7 +5,7 @@ from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
-from hf_serve.tasks.examples import EXAMPLE_IMAGE_BASE64
+from hf_serve.tasks.examples import IMAGE_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types.form import FileForm, FloatForm
 
@@ -25,7 +25,7 @@ class ImageSegmentationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": EXAMPLE_IMAGE_BASE64,
+                    "inputs": IMAGE_BASE64,
                     "parameters": {
                         "mask_threshold": 0.5,
                         "overlap_mask_area_threshold": 0.5,

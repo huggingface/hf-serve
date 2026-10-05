@@ -4,7 +4,7 @@ from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Audio
-from hf_serve.tasks.examples import EXAMPLE_AUDIO_BASE64
+from hf_serve.tasks.examples import AUDIO_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types.form import FileForm, StrForm
 
@@ -34,7 +34,7 @@ class ZeroShotAudioClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": EXAMPLE_AUDIO_BASE64,
+                    "inputs": AUDIO_BASE64,
                     "parameters": {
                         "candidate_labels": [
                             "Sound of a dog",

@@ -4,7 +4,7 @@ from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Audio
-from hf_serve.tasks.examples import EXAMPLE_AUDIO_BASE64
+from hf_serve.tasks.examples import AUDIO_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import FileForm, IntForm
 
@@ -22,7 +22,7 @@ class AudioClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": EXAMPLE_AUDIO_BASE64,
+                    "inputs": AUDIO_BASE64,
                     "parameters": {
                         "top_k": 5,
                         "function_to_apply": "softmax",
