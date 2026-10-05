@@ -4,6 +4,7 @@ from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Audio
+from hf_serve.tasks.examples import EXAMPLE_AUDIO_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types.form import FileForm, StrForm
 
@@ -33,21 +34,19 @@ class ZeroShotAudioClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/Narsil/asr_dummy/resolve/main/1.flac",
-                    "candidate_labels": ["Sound of a dog", "Sound of vacuum cleaner", "Sound of a human voice"],
+                    "inputs": EXAMPLE_AUDIO_BASE64,
                     "parameters": {
+                        "candidate_labels": [
+                            "Sound of a dog",
+                            "Sound of vacuum cleaner",
+                            "Sound of a human voice",
+                        ],
                         "hypothesis_template": "This is a sound of {}",
                     },
                 }
             ]
         }
     )
-
-    @field_validator("candidate_labels")
-    def validate_candidate_labels(cls, v):
-        if not v:
-            raise ValueError("candidate_labels must contain at least one label")
-        return v
 
 
 class ZeroShotAudioClassificationFormInput(BaseModel):
