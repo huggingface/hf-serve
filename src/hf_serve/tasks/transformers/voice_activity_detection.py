@@ -6,6 +6,7 @@ from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Audio
+from hf_serve.tasks.examples import EXAMPLE_AUDIO_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import FileForm
 
@@ -24,10 +25,7 @@ class VoiceActivityDetectionInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": (
-                        "https://huggingface.co/datasets/hf-internal-testing/dummy-audio-samples/"
-                        "resolve/main/diarization_example.mp3"
-                    ),
+                    "inputs": EXAMPLE_AUDIO_BASE64,
                 }
             ]
         }

@@ -5,6 +5,7 @@ from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
+from hf_serve.tasks.examples import EXAMPLE_IMAGE_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types.form import FileForm, FloatForm, IntForm
 
@@ -29,7 +30,7 @@ class MaskGenerationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/hf-internal-testing/sam2-fixtures/resolve/main/truck.jpg",
+                    "inputs": EXAMPLE_IMAGE_BASE64,
                     "parameters": {"points_per_batch": 64},
                 }
             ]

@@ -3,6 +3,7 @@ from typing import List, Optional, Union
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field, RootModel, field_validator
 
 from hf_serve.serde import Image
+from hf_serve.tasks.examples import EXAMPLE_IMAGE_BASE64
 from hf_serve.tasks.predictor import Predictor
 
 
@@ -35,7 +36,7 @@ class ZeroShotImageClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png",
+                    "inputs": EXAMPLE_IMAGE_BASE64,
                     "parameters": {
                         "candidate_labels": ["parrots", "car", "building"],
                         "hypothesis_template": "This is a photo of {}",

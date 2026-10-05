@@ -4,6 +4,7 @@ from fastapi import Form
 from pydantic import AliasChoices, BaseModel, ConfigDict, Field
 
 from hf_serve.serde import Image
+from hf_serve.tasks.examples import EXAMPLE_IMAGE_BASE64
 from hf_serve.tasks.predictor import Predictor
 from hf_serve.types import FileForm, IntForm
 
@@ -21,7 +22,7 @@ class ImageClassificationInput(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "inputs": "https://huggingface.co/datasets/Narsil/image_dummy/raw/main/parrots.png",
+                    "inputs": EXAMPLE_IMAGE_BASE64,
                     "parameters": {
                         "function_to_apply": "softmax",
                         "top_k": 5,
