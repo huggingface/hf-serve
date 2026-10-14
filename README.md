@@ -61,6 +61,19 @@ uv sync --active --frozen --extra cuda-130
 $ uv run hf-serve --help
 ```
 
+KenLM is optional because its installation requires compiling a C++ extension.
+EmbeddingGemma 2 and normal audio inference do not need it. For ASR models that
+use KenLM language-model decoding, add `--extra kenlm` alongside your backend:
+
+```bash
+uv sync --active --frozen --extra cpu --extra kenlm
+```
+
+Video inputs require TorchCodec and system FFmpeg libraries. TorchCodec is included
+in the dependencies; this checkout selects its CPU wheels for all model backends,
+so video decoding does not require a separate CUDA runtime. If updating an existing
+environment, run `uv sync --active --frozen --extra cpu` (or your CUDA backend extra).
+
 ## Container images
 
 On each push to `main`, CI publishes images to `ghcr.io/<owner>/hf-serve` using
@@ -114,6 +127,56 @@ uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dty
 > ```bash
 > uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 > ```
+
+### 📏 Run `google/embeddinggemma-2`
+
+[EmbeddingGemma 2](https://huggingface.co/google/embeddinggemma-2) supports text,
+images, audio, video, and interleaved inputs through Sentence Transformers.
+It requires Transformers 5.19+ and Sentence Transformers 6.1+.
+
+```bash
+uv run hf-serve --model-id google/embeddinggemma-2 --task feature-extraction
+```
+
+For embedding tasks, `--device auto` selects a single available device rather than
+sharding the model across GPUs. To select a specific GPU on a multi-GPU host:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 uv run hf-serve --model-id google/embeddinggemma-2 --task feature-extraction --device cuda
+```
+
+The default precision is bfloat16 on CUDA devices that support it and float32
+elsewhere. Use `--dtype float32` or `--dtype bfloat16` to override it; float16
+is rejected because it produces invalid embeddings for this model.
+
+Choose `SearchQuery` for search queries and `Document` for untitled documents.
+Other prompt names, including `CodeRetrieval` and `SentenceSimilarity`, are
+listed in the model card. No task prefix is added unless a prompt is selected.
+
+```bash
+curl http://localhost:8080/predict -H 'Content-Type: application/json' \
+  -d '{"inputs":"What causes the northern lights?","prompt_name":"SearchQuery","dimensions":256}'
+
+curl http://localhost:8080/v1/embeddings -H 'Content-Type: application/json' \
+  -d '{"model":"google/embeddinggemma-2","input":"The northern lights are caused by charged particles from the sun.","prompt_name":"Document","dimensions":256}'
+```
+
+Both routes accept a single modality dictionary or a batch of dictionaries as
+well as the existing text strings. Media values can be URLs or server-local
+paths. Images also support base64. A list of media values inside one dictionary
+produces one shared embedding. You should can use the model's placeholder tokens to position
+media within text:
+
+```bash
+curl http://localhost:8080/predict -H 'Content-Type: application/json' \
+  -d '{"inputs":{"text":"Waterproof running shoes. <|image|> Grip test: <|video|>","image":"https://example.com/shoe.jpg","video":"/data/grip-test.mp4"},"dimensions":512}'
+```
+
+Use `image`, `audio`, or `video` dictionaries without a prompt for media-only
+inputs. On Google Cloud, the same inputs can be supplied in `instances`.
+The native vector has 768 dimensions; the model supports shortening it to 512,
+256, or 128. Outputs are L2-normalized after truncation by default. `/predict`
+also accepts `normalize: false` to disable that final normalization.
 
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 

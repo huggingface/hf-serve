@@ -2,16 +2,20 @@ from typing import List, Literal, Optional, Union
 
 from pydantic import BaseModel, Field
 
+from hf_serve.tasks.sentence_transformers.inputs import EmbeddingInputs
+
 
 class EmbeddingsInput(BaseModel):
     # NOTE: Using `alias="input"` because `input` is a reserved keyword. Note that when dumping the schema into
     # a JSON, you should use `.model_dump(by_alias=True)` so that the dump uses the alias rather than `input_`
-    input_: Union[str, List[str]] = Field(..., alias="input")
+    input_: EmbeddingInputs = Field(..., alias="input")
     model: str
     # NOTE: Dimensions is only supported if the embedding model was trained with Matryoshka Representation
     # Learning (MRL), otherwise it will use the default dimensions it was trained for, not allowing truncation
     # to lower dimensions
-    dimensions: Optional[int] = Field(default=None)
+    dimensions: Optional[int] = Field(default=None, gt=0)
+    # Extension for embedding models with task-specific prompts (e.g. SearchQuery or Document).
+    prompt_name: Optional[str] = Field(default=None)
     encoding_format: Literal["float", "base64"] = Field(default="float")
     user: Optional[str] = Field(default=None)
 
