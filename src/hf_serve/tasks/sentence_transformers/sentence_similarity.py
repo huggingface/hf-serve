@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.sentence_transformers.loading import resolve_embedding_dtype
 
 
 class SentenceSimilarityInputs(BaseModel):
@@ -92,7 +93,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         model_kwargs = {
             # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
             # and Sentence Transformers raises a warning starting on 5.1.0
-            "dtype": dtype or "auto",
+            "dtype": resolve_embedding_dtype(model_id, revision, dtype, device),
             # NOTE: Default to `eager` instead of `sdpa`, even if `sdpa` tends to be supported and more
             # performant, there are still some models that won't support it e.g. `sentence-transformers/all-mpnet-base-v2`
             "attn_implementation": attn_implementation or "eager",

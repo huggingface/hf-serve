@@ -1,9 +1,11 @@
-from typing import Any, List, Literal, Optional, Self, Type, Union
+from typing import Any, List, Literal, Optional, Self, Type
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, model_validator
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.sentence_transformers.inputs import EmbeddingInputs
+from hf_serve.tasks.sentence_transformers.loading import resolve_embedding_dtype
 
 
 # NOTE: `FeatureExtraction` won't define the input payload as `inputs` and `parameters` to keep parity with the
@@ -11,7 +13,7 @@ from hf_serve.tasks.predictor import Predictor
 # the required aliases to prevent from being disruptive with the rest of the input payloads along `hf-serve`
 # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/embed
 class FeatureExtractionInput(BaseModel):
-    sentences: Union[str, List[str]] = Field(
+    sentences: EmbeddingInputs = Field(
         validation_alias=AliasChoices("sentences", "inputs", AliasPath("inputs", "sentences"))
     )
 
@@ -21,6 +23,7 @@ class FeatureExtractionInput(BaseModel):
     )
     dimensions: Optional[int] = Field(
         default=None,
+        gt=0,
         validation_alias=AliasChoices("dimensions", AliasPath("parameters", "dimensions")),
     )
     prompt_name: Optional[str] = Field(
@@ -34,21 +37,6 @@ class FeatureExtractionInput(BaseModel):
     truncation_direction: Optional[Literal["left", "Left", "right", "Right"]] = Field(
         default=None, exclude=True
     )
-
-    @field_validator("sentences", mode="after")
-    @classmethod
-    def validate_sentences(cls: Type[Self], v: Union[str, List[str]]) -> Union[str, List[str]]:
-        if isinstance(v, str):
-            if len(v) < 1:
-                raise ValueError("When `sentences` is provided as a string, it must not be empty")
-        elif isinstance(v, list):
-            if len(v) == 0:
-                raise ValueError("When `sentences` is provided as a list, it must not be empty")
-            if not all(isinstance(s, str) and len(s) > 0 for s in v):
-                raise ValueError(
-                    "When `sentences` is provided as a list, all the items must be non-empty strings"
-                )
-        return v
 
     @model_validator(mode="before")
     @classmethod
@@ -112,7 +100,7 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
         model_kwargs = {
             # NOTE: `torch_dtype` to be deprecated in favour of `dtype` as Transformers will be PyTorch-only
             # and Sentence Transformers raises a warning starting on 5.1.0
-            "dtype": dtype or "auto",
+            "dtype": resolve_embedding_dtype(model_id, revision, dtype, device),
             # NOTE: Default to `eager` instead of `sdpa`, even if `sdpa` tends to be supported and more
             # performant, there are still some models that won't support it e.g. `sentence-transformers/all-mpnet-base-v2`
             "attn_implementation": attn_implementation or "eager",
@@ -137,12 +125,11 @@ class FeatureExtraction(Predictor[FeatureExtractionInput, FeatureExtractionOutpu
 
     def __call__(self, payload: FeatureExtractionInput) -> FeatureExtractionOutput:
         # NOTE: Exclude `sentences` because it's the input i.e. not a parameter
-        parameters = payload.model_dump(exclude={"sentences"}, exclude_none=True, exclude_defaults=True)
+        parameters = payload.model_dump(exclude={"sentences"}, exclude_none=True)
 
         if dimensions := parameters.pop("dimensions", None):
             parameters["truncate_dim"] = dimensions
-        if normalize_embeddings := parameters.pop("normalize", None):
-            parameters["normalize_embeddings"] = normalize_embeddings
+        parameters["normalize_embeddings"] = parameters.pop("normalize")
         parameters["convert_to_tensor"] = True
 
         embeddings = self.pipeline.encode(payload.sentences, **parameters)
