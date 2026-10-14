@@ -115,6 +115,66 @@ uv run hf-serve --model-id HuggingFaceTB/SmolLM3-3B --task text-generation --dty
 > uv sync --active --frozen --extra cuda --extra flash-attn --preview-features extra-build-dependencies
 > ```
 
+### 📏 Run `google/embeddinggemma-2`
+
+[EmbeddingGemma 2](https://huggingface.co/google/embeddinggemma-2) supports text,
+images, audio, video, and interleaved inputs through Sentence Transformers.
+It requires Transformers 5.19+ and Sentence Transformers 6.1+.
+
+```bash
+uv run hf-serve --model-id google/embeddinggemma-2 --task feature-extraction
+```
+
+The default precision is bfloat16 on CUDA devices that support it and float32
+elsewhere. Use `--dtype float32` or `--dtype bfloat16` to override it; float16
+is rejected because it produces invalid embeddings for this model.
+
+Choose `SearchQuery` for search queries and `Document` for untitled documents.
+Other prompt names, including `CodeRetrieval` and `SentenceSimilarity`, are
+listed in the model card. No task prefix is added unless a prompt is selected.
+
+```bash
+curl http://localhost:8080/predict -H 'Content-Type: application/json' \
+  -d '{"inputs":"What causes the northern lights?","prompt_name":"SearchQuery","dimensions":256}'
+
+curl http://localhost:8080/v1/embeddings -H 'Content-Type: application/json' \
+  -d '{"model":"google/embeddinggemma-2","input":"The northern lights are caused by charged particles from the sun.","prompt_name":"Document","dimensions":256}'
+```
+
+Both routes accept a single modality dictionary or a batch of dictionaries as
+well as the existing text strings. Media values can be URLs or server-local
+paths; images also support base64. A list of media values inside one dictionary
+produces one shared embedding. Use the model's placeholder tokens to position
+media within text:
+
+```bash
+curl http://localhost:8080/predict -H 'Content-Type: application/json' \
+  -d '{"inputs":{"text":"Waterproof running shoes. <|image|> Grip test: <|video|>","image":"https://example.com/shoe.jpg","video":"/data/grip-test.mp4"},"dimensions":512}'
+```
+
+Use `image`, `audio`, or `video` dictionaries without a prompt for media-only
+inputs. On Google Cloud, the same inputs can be supplied in `instances`.
+The native vector has 768 dimensions; the model supports shortening it to 512,
+256, or 128. Outputs are L2-normalized after truncation by default. `/predict`
+also accepts `normalize: false` to disable that final normalization.
+
+Media sampling and truncation follow the model's processor configuration. In
+particular, video defaults to 1 FPS with at most 32 sampled frames per video;
+accepting a long audio file does not guarantee that the whole recording is
+represented. This API currently adds no separate media-count or context-budget
+validation.
+
+To run the CPU integration tests against the published weights in an activated
+environment:
+
+```bash
+hf download google/embeddinggemma-2 --local-dir /tmp/embeddinggemma-2
+HF_SERVE_EMBEDDINGGEMMA2_MODEL=/tmp/embeddinggemma-2 python -m unittest discover -s tests -v
+```
+
+Without that environment variable, the published-weight integration tests are
+skipped and the regression tests run without downloading a model.
+
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 
 ```bash
