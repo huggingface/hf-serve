@@ -61,6 +61,19 @@ uv sync --active --frozen --extra cuda-130
 $ uv run hf-serve --help
 ```
 
+KenLM is optional because its installation requires compiling a C++ extension.
+EmbeddingGemma 2 and normal audio inference do not need it. For ASR models that
+use KenLM language-model decoding, add `--extra kenlm` alongside your backend:
+
+```bash
+uv sync --active --frozen --extra cpu --extra kenlm
+```
+
+Video inputs require TorchCodec and system FFmpeg libraries. TorchCodec is included
+in the dependencies; this checkout selects its CPU wheels for all model backends,
+so video decoding does not require a separate CUDA runtime. If updating an existing
+environment, run `uv sync --active --frozen --extra cpu` (or your CUDA backend extra).
+
 ## Container images
 
 On each push to `main`, CI publishes images to `ghcr.io/<owner>/hf-serve` using
@@ -123,6 +136,13 @@ It requires Transformers 5.19+ and Sentence Transformers 6.1+.
 
 ```bash
 uv run hf-serve --model-id google/embeddinggemma-2 --task feature-extraction
+```
+
+For embedding tasks, `--device auto` selects a single available device rather than
+sharding the model across GPUs. To select a specific GPU on a multi-GPU host:
+
+```bash
+CUDA_VISIBLE_DEVICES=0 uv run hf-serve --model-id google/embeddinggemma-2 --task feature-extraction --device cuda
 ```
 
 The default precision is bfloat16 on CUDA devices that support it and float32

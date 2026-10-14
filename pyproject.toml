@@ -20,15 +20,21 @@ dependencies = [
     # would otherwise let a fresh resolve drop back to vulnerable 0.x or 1.0.0.
     "starlette>=1.0.1",
     "prometheus-client>=0.21.1",
-    "torch",
+    "torch>=2.11,<2.14",
     "torchvision",
+    # Sentence Transformers defaults to TorchCodec for video decoding; torchvision
+    # removed read_video in 0.26. TorchCodec 0.12+ supports torch 2.11+ through its stable ABI.
+    "torchcodec>=0.12,<0.17",
     # NOTE: `diffusers` won't complain, but support for `transformers` 5.0.0+
     # is still work in progress as per https://github.com/huggingface/diffusers/pull/12976
     "diffusers>=0.37.0",
-    # NOTE: `torch-speech` is now `audio` in Transformers 5.0+ and `phonemizer`
-    # is included as a default dependency instead of an `audio` specific one.
-    # Anyway, `audio` models might need some system dependencies e.g. `espeak-ng`
-    "transformers[accelerate,audio,chat_template,kernels,video,vision]>=5.19.0",
+    "transformers[accelerate,chat_template,kernels,video,vision]>=5.19.0",
+    # Keep audio support without transformers[audio], which also pulls in the
+    # source-only KenLM package. KenLM is available through our optional extra.
+    "torchaudio",
+    "librosa",
+    "pyctcdecode>=0.4.0",
+    "phonemizer",
     "pydantic>=2.10.5",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
     # NOTE: `optimum` for ONNX recently migrated to `optimum-onnx` at https://github.com/huggingface/optimum-onnx
@@ -50,6 +56,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Optional language-model decoding for ASR; requires compiling a C++ extension.
+kenlm = ["kenlm>=0.3.0"]
+
 # NOTE: `torchaudio` is pinned to `2.11.0` (rather than following the `torch` range below) as that's
 # the only version currently published with CUDA-specific wheels on the PyTorch registries; other
 # versions only ship a single generic PyPI wheel that hardcodes one CUDA build (currently 13.0), which
@@ -98,6 +107,9 @@ required-environments = [
 ]
 
 [tool.uv.sources]
+# Decode media on CPU even when model inference uses CUDA. CPU wheels avoid
+# pulling in TorchCodec's default CUDA build and its extra runtime requirements.
+torchcodec = { index = "pytorch-cpu" }
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
   { index = "pytorch-cu126", extra = "cuda" },
