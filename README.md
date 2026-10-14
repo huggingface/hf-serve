@@ -143,8 +143,8 @@ curl http://localhost:8080/v1/embeddings -H 'Content-Type: application/json' \
 
 Both routes accept a single modality dictionary or a batch of dictionaries as
 well as the existing text strings. Media values can be URLs or server-local
-paths; images also support base64. A list of media values inside one dictionary
-produces one shared embedding. Use the model's placeholder tokens to position
+paths. Images also support base64. A list of media values inside one dictionary
+produces one shared embedding. You should can use the model's placeholder tokens to position
 media within text:
 
 ```bash
@@ -157,23 +157,6 @@ inputs. On Google Cloud, the same inputs can be supplied in `instances`.
 The native vector has 768 dimensions; the model supports shortening it to 512,
 256, or 128. Outputs are L2-normalized after truncation by default. `/predict`
 also accepts `normalize: false` to disable that final normalization.
-
-Media sampling and truncation follow the model's processor configuration. In
-particular, video defaults to 1 FPS with at most 32 sampled frames per video;
-accepting a long audio file does not guarantee that the whole recording is
-represented. This API currently adds no separate media-count or context-budget
-validation.
-
-To run the CPU integration tests against the published weights in an activated
-environment:
-
-```bash
-hf download google/embeddinggemma-2 --local-dir /tmp/embeddinggemma-2
-HF_SERVE_EMBEDDINGGEMMA2_MODEL=/tmp/embeddinggemma-2 python -m unittest discover -s tests -v
-```
-
-Without that environment variable, the published-weight integration tests are
-skipped and the regression tests run without downloading a model.
 
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 
