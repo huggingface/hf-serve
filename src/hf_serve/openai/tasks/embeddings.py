@@ -1,5 +1,6 @@
 import base64
 import os
+from contextvars import ContextVar
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Dict, Optional, Union
@@ -9,6 +10,9 @@ from hf_serve.openai.schemas.embeddings import EmbeddingOutput, EmbeddingsInput,
 
 if TYPE_CHECKING:
     from sentence_transformers import SentenceTransformer
+
+
+_usage_request: ContextVar[Optional[object]] = ContextVar("embedding_usage_request", default=None)
 
 
 class Embeddings:
@@ -39,29 +43,42 @@ class Embeddings:
             logger.warning(message)
 
         payload_json: Dict[str, Any] = {
-            "sentences": payload.input_,
             "convert_to_numpy": True,
             "normalize_embeddings": True,
         }
         if payload.dimensions is not None:
             payload_json["truncate_dim"] = payload.dimensions
+        if payload.prompt_name is not None:
+            payload_json["prompt_name"] = payload.prompt_name
 
         prompt_tokens = 0
-        if isinstance(payload.input_, str):
-            inputs = self.pipeline.tokenize([payload.input_])
-            prompt_tokens = inputs["input_ids"].size(1)
-            del inputs
-        else:
-            # NOTE: `if` already covers `str`, so if falling into `elif` it's a `List[str]` given that otherwise
-            # the `pydantic` validation would've failed before
-            for input_ in payload.input_:
-                inputs = self.pipeline.tokenize([input_])
-                prompt_tokens += inputs["input_ids"].size(1)
-                del inputs
+        request_marker = object()
+
+        def count_tokens(_module: Any, args: Any) -> None:
+            nonlocal prompt_tokens
+            # Hooks belong to the shared pipeline; only count this request's forwards.
+            if _usage_request.get() is not request_marker:
+                return
+            features = args[0]
+            if (mask := features.get("attention_mask")) is not None:
+                prompt_tokens += int(mask.sum().item())
+            elif (input_ids := features.get("input_ids")) is not None:
+                prompt_tokens += input_ids.numel()
+
+        # Observe the exact batch used by encode(), including prompts and media tokens,
+        # without downloading/decoding media a second time. Ignore batch padding.
+        # SentenceTransformer.encode passes features positionally. Avoid with_kwargs:
+        # PyTorch tracks that flag separately, so removing a hook during another
+        # request's forward can otherwise change its calling convention mid-iteration.
+        handle = self.pipeline.register_forward_pre_hook(count_tokens)
+        context_token = _usage_request.set(request_marker)
+        try:
+            outputs = self.pipeline.encode(payload.input_, **payload_json)
+        finally:
+            handle.remove()
+            _usage_request.reset(context_token)
 
         usage = Usage(prompt_tokens=prompt_tokens, total_tokens=prompt_tokens)
-
-        outputs = self.pipeline.encode(**payload_json)
 
         # NOTE: Add the batch dimension if `ndim` is 1 i.e., a 1D-vector so that we can unify the output
         if outputs.ndim == 1:
