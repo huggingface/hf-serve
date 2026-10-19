@@ -1,4 +1,5 @@
-from typing import Optional
+import os
+from typing import List, Optional, Tuple
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as ImageType
@@ -6,6 +7,35 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+
+MODULAR_MODEL_INDEX = "modular_model_index.json"
+MODEL_INDEX = "model_index.json"
+
+
+def is_modular_pipeline(model_id: str, revision: Optional[str] = None) -> bool:
+    """Whether `model_id` only ships a `diffusers.ModularPipeline`, i.e. a `modular_model_index.json`
+    without a `model_index.json`, which `AutoPipelineForText2Image` cannot load."""
+    if os.path.isdir(model_id):
+        return os.path.isfile(os.path.join(model_id, MODULAR_MODEL_INDEX)) and not os.path.isfile(
+            os.path.join(model_id, MODEL_INDEX)
+        )
+
+    from huggingface_hub import file_exists
+
+    return file_exists(model_id, MODULAR_MODEL_INDEX, revision=revision) and not file_exists(
+        model_id, MODEL_INDEX, revision=revision
+    )
+
+
+def resolve_modular_device(device: str) -> str:
+    # NOTE: `ModularPipeline` has no `device_map`, so `auto` and `balanced` resolve to a single device
+    if device not in {"auto", "balanced"}:
+        return device
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
 
 
 class TextToImageParameters(BaseModel):
@@ -79,6 +109,23 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
     ) -> None:
         super().__init__()
 
+        self.is_modular = is_modular_pipeline(model_id, revision=revision)
+        if self.is_modular:
+            from diffusers import ModularPipeline  # type: ignore
+
+            # NOTE: components whose files are within a local `model_id` (e.g. `/repository` on Inference
+            # Endpoints) are loaded from there, any other component (e.g. a prompt upsampler living in a
+            # separate repository) is loaded from the Hub as declared in `modular_model_index.json`
+            self.pipeline = ModularPipeline.from_pretrained(
+                model_id, revision=revision, trust_remote_code=trust_remote_code
+            )
+            if dtype is not None:
+                self.pipeline.load_components(dtype=getattr(torch, dtype))
+            else:
+                self.pipeline.load_components()
+            self.pipeline.to(resolve_modular_device(device))
+            return
+
         if device == "auto":
             logger.warning(
                 f"{device=} is set, but on `diffusers` only `device_map='balanced'` is supported at the moment,"
@@ -117,6 +164,18 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
                 self.pipeline.enable_attention_slicing()
 
+    def generate(self, prompt: str, **kwargs) -> Tuple[List[ImageType], Optional[str]]:
+        """Runs the pipeline and returns the generated images, plus the prompt the image model actually
+        received when a `ModularPipeline` rewrote it (e.g. via a prompt upsampler), otherwise `None`."""
+        if not self.is_modular:
+            return self.pipeline(prompt=prompt, **kwargs)[0], None
+
+        output = self.pipeline(prompt=prompt, **kwargs, output=["images", "prompt"])
+        revised_prompt = output.get("prompt")
+        if isinstance(revised_prompt, list):
+            revised_prompt = revised_prompt[0] if revised_prompt else None
+        return output["images"], revised_prompt if revised_prompt and revised_prompt != prompt else None
+
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
         parameters = {}
         if payload.parameters:
@@ -129,5 +188,5 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
 
         # NOTE: `num_images_per_prompt=1` because the `TextToImage` task returns an image without
         # a JSON, meaning that only a single image is supported
-        images = self.pipeline(prompt=payload.inputs, **parameters, num_images_per_prompt=1)[0]
+        images, _ = self.generate(prompt=payload.inputs, **parameters, num_images_per_prompt=1)
         return TextToImageOutput(root=images[0])

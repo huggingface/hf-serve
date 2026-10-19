@@ -308,7 +308,7 @@ def launch(
             from hf_serve.openai.routers import images_generations_router, models_router
             from hf_serve.openai.tasks.images_generations import ImagesGenerations
 
-            images_generations = ImagesGenerations(pipeline=predictor.pipeline)
+            images_generations = ImagesGenerations(predictor=predictor)
             app.include_router(router=images_generations_router(predictor=images_generations))
             app.include_router(
                 router=models_router(model_id=images_generations.model_id, timestamp=int(time.time()))  # type: ignore
