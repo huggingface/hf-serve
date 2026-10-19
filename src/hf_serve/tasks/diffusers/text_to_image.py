@@ -1,5 +1,6 @@
+import json
 import os
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as ImageType
@@ -36,6 +37,38 @@ def resolve_modular_device(device: str) -> str:
     if torch.backends.mps.is_available():
         return "mps"
     return "cpu"
+
+
+def modular_external_components(model_dir: str) -> Dict[str, Dict[str, Any]]:
+    """Components that the local `modular_model_index.json` declares in another repository than the one
+    `model_dir` is a copy of (e.g. a prompt upsampler), keyed by name with their declared loading spec.
+
+    `ModularPipeline.from_pretrained` considers any component local when `model_dir` holds matching files under
+    its `subfolder`, so a component without one gets loaded from the root of `model_dir` whenever the copied
+    repository has weights at its root, instead of from the repository it's declared in."""
+    with open(os.path.join(model_dir, MODULAR_MODEL_INDEX)) as f:
+        index = json.load(f)
+
+    specs = {
+        name: value[2]
+        for name, value in index.items()
+        if not name.startswith("_")
+        and isinstance(value, list)
+        and len(value) == 3
+        and isinstance(value[2], dict)
+    }
+    # NOTE: the repository `model_dir` is a copy of is the one declared by the components found in its subfolders
+    own_repositories = {
+        spec.get("pretrained_model_name_or_path")
+        for spec in specs.values()
+        if spec.get("subfolder") and os.path.isdir(os.path.join(model_dir, spec["subfolder"]))
+    }
+    return {
+        name: spec
+        for name, spec in specs.items()
+        if spec.get("pretrained_model_name_or_path")
+        and spec["pretrained_model_name_or_path"] not in own_repositories
+    }
 
 
 class TextToImageParameters(BaseModel):
@@ -119,10 +152,27 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             self.pipeline = ModularPipeline.from_pretrained(
                 model_id, revision=revision, trust_remote_code=trust_remote_code
             )
-            if dtype is not None:
-                self.pipeline.load_components(dtype=getattr(torch, dtype))
-            else:
-                self.pipeline.load_components()
+            load_kwargs = {"dtype": getattr(torch, dtype)} if dtype is not None else {}
+            if os.path.isdir(model_id):
+                for name, spec in modular_external_components(model_id).items():
+                    self.pipeline.load_components(
+                        names=name,
+                        pretrained_model_name_or_path=spec["pretrained_model_name_or_path"],
+                        subfolder=spec.get("subfolder") or "",
+                        revision=spec.get("revision"),
+                        **load_kwargs,
+                    )
+            self.pipeline.load_components(**load_kwargs)
+
+            # NOTE: `load_components` only logs a warning when a component fails to load, which would leave the
+            # pipeline unusable while the server reports itself as healthy
+            if missing := [
+                name
+                for name in self.pipeline.pretrained_component_names
+                if name in self.pipeline.null_component_names
+            ]:
+                raise RuntimeError(f"Failed loading the following components of `{model_id}`: {missing}")
+
             self.pipeline.to(resolve_modular_device(device))
             return
 

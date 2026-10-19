@@ -1,5 +1,6 @@
 import base64
 import io
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,7 +11,11 @@ from PIL import Image
 
 from hf_serve.openai.routers.images_generations import router as images_generations_router
 from hf_serve.openai.tasks.images_generations import ImagesGenerations
-from hf_serve.tasks.diffusers.text_to_image import TextToImage, is_modular_pipeline
+from hf_serve.tasks.diffusers.text_to_image import (
+    TextToImage,
+    is_modular_pipeline,
+    modular_external_components,
+)
 
 
 class FakeModularPipeline:
@@ -44,6 +49,38 @@ class IsModularPipelineTest(unittest.TestCase):
                 for name in files:
                     (Path(tmp) / name).write_text("{}")
                 self.assertEqual(is_modular_pipeline(tmp), expected)
+
+
+class ModularExternalComponentsTest(unittest.TestCase):
+    def test_components_declared_in_another_repository(self) -> None:
+        def spec(repository: str, subfolder: str) -> list:
+            return [
+                "transformers",
+                "Model",
+                {"pretrained_model_name_or_path": repository, "subfolder": subfolder},
+            ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            # NOTE: weights at the root of the copy are what makes `ModularPipeline.from_pretrained` wrongly
+            # resolve the components without a `subfolder` to the local copy
+            (Path(tmp) / "model.safetensors").write_bytes(b"")
+            (Path(tmp) / "transformer").mkdir()
+            (Path(tmp) / "modular_model_index.json").write_text(
+                json.dumps(
+                    {
+                        "_class_name": "Pipeline",
+                        "transformer": spec("org/model", "transformer"),
+                        "text_encoder": spec("org/model", "text_encoder"),
+                        "prompt_upsampler": spec("org/upsampler", ""),
+                        "prompt_upsampler_processor": spec("org/upsampler", ""),
+                    }
+                )
+            )
+
+            external = modular_external_components(tmp)
+
+        self.assertEqual(set(external), {"prompt_upsampler", "prompt_upsampler_processor"})
+        self.assertEqual(external["prompt_upsampler"]["pretrained_model_name_or_path"], "org/upsampler")
 
 
 class ModularImagesGenerationsTest(unittest.TestCase):
