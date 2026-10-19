@@ -1,4 +1,6 @@
-from typing import Optional
+import json
+import os
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__init__` and `__call__`
 from PIL.Image import Image as ImageType
@@ -6,6 +8,67 @@ from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, Root
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+
+MODULAR_MODEL_INDEX = "modular_model_index.json"
+MODEL_INDEX = "model_index.json"
+
+
+def is_modular_pipeline(model_id: str, revision: Optional[str] = None) -> bool:
+    """Whether `model_id` only ships a `diffusers.ModularPipeline`, i.e. a `modular_model_index.json`
+    without a `model_index.json`, which `AutoPipelineForText2Image` cannot load."""
+    if os.path.isdir(model_id):
+        return os.path.isfile(os.path.join(model_id, MODULAR_MODEL_INDEX)) and not os.path.isfile(
+            os.path.join(model_id, MODEL_INDEX)
+        )
+
+    from huggingface_hub import file_exists
+
+    return file_exists(model_id, MODULAR_MODEL_INDEX, revision=revision) and not file_exists(
+        model_id, MODEL_INDEX, revision=revision
+    )
+
+
+def resolve_modular_device(device: str) -> str:
+    # NOTE: `ModularPipeline` has no `device_map`, so `auto` and `balanced` resolve to a single device
+    if device not in {"auto", "balanced"}:
+        return device
+    if torch.cuda.is_available():
+        return "cuda"
+    if torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def modular_external_components(model_dir: str) -> Dict[str, Dict[str, Any]]:
+    """Components that the local `modular_model_index.json` declares in another repository than the one
+    `model_dir` is a copy of (e.g. a prompt upsampler), keyed by name with their declared loading spec.
+
+    `ModularPipeline.from_pretrained` considers any component local when `model_dir` holds matching files under
+    its `subfolder`, so a component without one gets loaded from the root of `model_dir` whenever the copied
+    repository has weights at its root, instead of from the repository it's declared in."""
+    with open(os.path.join(model_dir, MODULAR_MODEL_INDEX)) as f:
+        index = json.load(f)
+
+    specs = {
+        name: value[2]
+        for name, value in index.items()
+        if not name.startswith("_")
+        and isinstance(value, list)
+        and len(value) == 3
+        and isinstance(value[2], dict)
+    }
+    # NOTE: the repository `model_dir` is a copy of is the one declared by the components found in its subfolders
+    own_repositories = {
+        spec.get("pretrained_model_name_or_path")
+        for spec in specs.values()
+        if spec.get("subfolder") and os.path.isdir(os.path.join(model_dir, spec["subfolder"]))
+    }
+    return {
+        name: spec
+        for name, spec in specs.items()
+        if spec.get("pretrained_model_name_or_path")
+        and spec["pretrained_model_name_or_path"] not in own_repositories
+    }
 
 
 class TextToImageParameters(BaseModel):
@@ -79,6 +142,40 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
     ) -> None:
         super().__init__()
 
+        self.is_modular = is_modular_pipeline(model_id, revision=revision)
+        if self.is_modular:
+            from diffusers import ModularPipeline  # type: ignore
+
+            # NOTE: components whose files are within a local `model_id` (e.g. `/repository` on Inference
+            # Endpoints) are loaded from there, any other component (e.g. a prompt upsampler living in a
+            # separate repository) is loaded from the Hub as declared in `modular_model_index.json`
+            self.pipeline = ModularPipeline.from_pretrained(
+                model_id, revision=revision, trust_remote_code=trust_remote_code
+            )
+            load_kwargs = {"dtype": getattr(torch, dtype)} if dtype is not None else {}
+            if os.path.isdir(model_id):
+                for name, spec in modular_external_components(model_id).items():
+                    self.pipeline.load_components(
+                        names=name,
+                        pretrained_model_name_or_path=spec["pretrained_model_name_or_path"],
+                        subfolder=spec.get("subfolder") or "",
+                        revision=spec.get("revision"),
+                        **load_kwargs,
+                    )
+            self.pipeline.load_components(**load_kwargs)
+
+            # NOTE: `load_components` only logs a warning when a component fails to load, which would leave the
+            # pipeline unusable while the server reports itself as healthy
+            if missing := [
+                name
+                for name in self.pipeline.pretrained_component_names
+                if name in self.pipeline.null_component_names
+            ]:
+                raise RuntimeError(f"Failed loading the following components of `{model_id}`: {missing}")
+
+            self.pipeline.to(resolve_modular_device(device))
+            return
+
         if device == "auto":
             logger.warning(
                 f"{device=} is set, but on `diffusers` only `device_map='balanced'` is supported at the moment,"
@@ -117,6 +214,18 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
             if (torch.mps.driver_allocated_memory() / (1024**3)) < 64:
                 self.pipeline.enable_attention_slicing()
 
+    def generate(self, prompt: str, **kwargs) -> Tuple[List[ImageType], Optional[str]]:
+        """Runs the pipeline and returns the generated images, plus the prompt the image model actually
+        received when a `ModularPipeline` rewrote it (e.g. via a prompt upsampler), otherwise `None`."""
+        if not self.is_modular:
+            return self.pipeline(prompt=prompt, **kwargs)[0], None
+
+        output = self.pipeline(prompt=prompt, **kwargs, output=["images", "prompt"])
+        revised_prompt = output.get("prompt")
+        if isinstance(revised_prompt, list):
+            revised_prompt = revised_prompt[0] if revised_prompt else None
+        return output["images"], revised_prompt if revised_prompt and revised_prompt != prompt else None
+
     def __call__(self, payload: TextToImageInput) -> TextToImageOutput:
         parameters = {}
         if payload.parameters:
@@ -129,5 +238,5 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
 
         # NOTE: `num_images_per_prompt=1` because the `TextToImage` task returns an image without
         # a JSON, meaning that only a single image is supported
-        images = self.pipeline(prompt=payload.inputs, **parameters, num_images_per_prompt=1)[0]
+        images, _ = self.generate(prompt=payload.inputs, **parameters, num_images_per_prompt=1)
         return TextToImageOutput(root=images[0])

@@ -4,8 +4,6 @@ from pathlib import Path
 from time import time
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 
-from PIL.Image import Image as ImageType
-
 from hf_serve.logging import logger
 from hf_serve.openai.schemas.images_generations import (
     ImagesGenerationsInput,
@@ -14,21 +12,24 @@ from hf_serve.openai.schemas.images_generations import (
 from hf_serve.serde import Image
 
 if TYPE_CHECKING:
-    from diffusers.pipelines.pipeline_utils import DiffusionPipeline
+    from hf_serve.tasks.diffusers.text_to_image import TextToImage
 
 
 class ImagesGenerations:
-    def __init__(self, pipeline: "DiffusionPipeline") -> None:
+    def __init__(self, predictor: "TextToImage") -> None:
         super().__init__()
 
-        self.pipeline = pipeline
+        self.predictor = predictor
+        self.pipeline = predictor.pipeline
 
     @property
     @lru_cache(maxsize=1)
     def model_id(self) -> Union[str, None]:
+        # NOTE: `ModularPipeline.config` doesn't necessarily carry `_name_or_path`
+        name_or_path = getattr(getattr(self.pipeline, "config", None), "_name_or_path", None)
         return (
-            self.pipeline.config._name_or_path  # type: ignore
-            if self.pipeline.config is not None and not Path(self.pipeline.config._name_or_path).exists()  # type: ignore
+            name_or_path
+            if name_or_path and not Path(name_or_path).exists()
             else os.getenv("MODEL_ID", os.getenv("MODEL_DIR"))
         )
 
@@ -64,7 +65,7 @@ class ImagesGenerations:
             logger.error(message)
             raise ValueError(message)
 
-        payload_json: Dict[str, Any] = {"prompt": payload.prompt, "num_images_per_prompt": payload.n}
+        payload_json: Dict[str, Any] = {"prompt": payload.prompt, "num_images_per_prompt": payload.n or 1}
 
         if payload.size and payload.size != "auto":
             try:
@@ -76,12 +77,19 @@ class ImagesGenerations:
                 logger.error(message)
                 raise ValueError(message)
 
-        images: List[ImageType] = self.pipeline(**payload_json)[0]  # type: ignore
+        images, revised_prompt = self.predictor.generate(**payload_json)
+
+        data: List[Dict[str, str]] = []
+        for image in images:
+            item = {"b64_json": Image.serialize(image, image_format=payload.output_format)}
+            if revised_prompt is not None:
+                item["revised_prompt"] = revised_prompt
+            data.append(item)
 
         return ImagesGenerationsOutput(
             background=None,
             created=int(time()),
-            data=[{"b64_json": Image.serialize(image, image_format=payload.output_format)} for image in images],
+            data=data,  # type: ignore
             output_format=payload.output_format,
             quality=None,
             size=f"{images[0].height}x{images[0].width}",
