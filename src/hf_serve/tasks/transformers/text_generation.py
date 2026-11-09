@@ -65,7 +65,6 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device != "auto" else None,
             device_map=device if device == "auto" else None,
-            attn_implementation="kernels-community/flash-attn2@v2" if not torch.mps.is_available() else "eager",
             trust_remote_code=trust_remote_code,
         )
 
@@ -94,6 +93,7 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
         # NOTE: https://huggingface.co/docs/transformers/v4.57.3/en/main_classes/text_generation#transformers.GenerationConfig.stop_strings
         if stop_strings := parameters.pop("stop", None):
             generate_kwargs["stop_strings"] = stop_strings
+            generate_kwargs["tokenizer"] = self.pipeline.tokenizer
 
         # NOTE: Removing these here instead of within the schema as otherwise when logging the schema the user
         # might be confused if they see that the schema is different to what they provided despite the warning
@@ -103,6 +103,6 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
             )
             parameters.pop(p, None)
 
-        output = self.pipeline(text_inputs=payload.inputs, generate_kwargs=generate_kwargs, **parameters)
+        output = self.pipeline(payload.inputs, **generate_kwargs, **parameters)
         generated_text = output[0]["generated_text"]
         return TextGenerationOutput(generated_text=generated_text)
