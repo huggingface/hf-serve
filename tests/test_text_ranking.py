@@ -16,7 +16,7 @@ QUERY = "what is deep learning"
 TEXTS = ["cheese is tasty", "deep learning is a subfield of machine learning"]
 
 
-def build_cross_encoder(directory: str) -> None:
+def build_cross_encoder(directory: str, num_labels: int = 1) -> None:
     # NOTE: a tiny randomly initialized BERT cross-encoder, so that the tests run offline and deterministically
     tokens = ["[PAD]", "[UNK]", "[CLS]", "[SEP]", "[MASK]", *WORDS]
     BertTokenizer(
@@ -30,7 +30,7 @@ def build_cross_encoder(directory: str) -> None:
         num_attention_heads=2,
         intermediate_size=32,
         max_position_embeddings=32,
-        num_labels=1,
+        num_labels=num_labels,
     )
     BertForSequenceClassification(config).save_pretrained(directory)
 
@@ -117,6 +117,52 @@ class TextRankingTest(unittest.TestCase):
         self.assertEqual(response.status_code, 200, response.text)
         expected = self.rerank(raw_scores=True).json()
         self.assertEqual(response.json(), {"scores": [{**rank, "text": None} for rank in expected]})
+
+
+class SentencePairScoresTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.tmp = tempfile.TemporaryDirectory()
+        cls.clients = {}
+        for num_labels in (1, 3):
+            directory = f"{cls.tmp.name}/{num_labels}"
+            build_cross_encoder(directory, num_labels=num_labels)
+            predictor = TextRanking(model_id=directory, device="cpu")
+            app = FastAPI()
+            app.include_router(predict_router(predictor, TextRankingInput, TextRankingOutput))
+            cls.clients[num_labels] = TestClient(app)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        cls.tmp.cleanup()
+
+    def predict(self, num_labels: int, sentences):
+        return self.clients[num_labels].post("/predict", json={"sentences": sentences})
+
+    def test_returns_one_entry_per_pair(self) -> None:
+        pairs = [[QUERY, text] for text in TEXTS]
+        for num_labels in (1, 3):
+            with self.subTest(num_labels=num_labels):
+                single = [self.predict(num_labels, pair).json()["scores"] for pair in pairs]
+                wrapped = [self.predict(num_labels, [pair]).json()["scores"] for pair in pairs]
+                batched = self.predict(num_labels, pairs).json()["scores"]
+
+                self.assertEqual(len(batched), len(pairs))
+                for scores in batched:
+                    if num_labels == 1:
+                        self.assertIsInstance(scores, float)
+                    else:
+                        self.assertEqual(len(scores), num_labels)
+                # NOTE: a pair gets the same scores whether sent alone, wrapped in a list, or batched
+                for index in range(len(pairs)):
+                    self.assertEqual(single[index], wrapped[index])
+                    self.assertEqual(len(single[index]), 1)
+                    torch.testing.assert_close(torch.tensor(single[index][0]), torch.tensor(batched[index]))
+
+    def test_rejects_malformed_pairs(self) -> None:
+        for sentences in (["a", "b", "c"], ["a"], [], [["a"]], [["a", "b", "c"]], [["a", "b"], ["c"]]):
+            with self.subTest(sentences=sentences):
+                self.assertEqual(self.predict(1, sentences).status_code, 422)
 
 
 if __name__ == "__main__":
