@@ -5,10 +5,13 @@ from typing import List, Literal, Optional, Union
 import uvicorn
 from fastapi import FastAPI
 from fastapi.encoders import jsonable_encoder
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from hf_serve.errors import truncate_message, truncate_values
 from hf_serve.logging import logger
 from hf_serve.middleware import (
     LoggingMiddleware,
@@ -35,10 +38,27 @@ app = FastAPI(title="Hugging Face Serve API")
 # even if manually to keep those as simple as e.g. "Required 'X' but not provided in payload 'Y'"
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(_: Request, exc: RequestValidationError) -> JSONResponse:
+    errors = [
+        {
+            **error,
+            **({"msg": truncate_message(error["msg"])} if isinstance(error.get("msg"), str) else {}),
+            **({"input": truncate_values(error["input"])} if "input" in error else {}),
+        }
+        for error in exc.errors()
+    ]
     return JSONResponse(
         status_code=422,
-        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+        content=jsonable_encoder({"detail": errors, "body": truncate_values(exc.body)}),
     )
+
+
+# NOTE: The routes forward the exception messages as the `detail`, which may echo large inputs back e.g. when
+# failing to decode a base64-encoded image or audio, so the encoded data is truncated
+@app.exception_handler(StarletteHTTPException)
+async def truncated_http_exception_handler(request: Request, exc: StarletteHTTPException) -> Response:
+    if isinstance(exc.detail, str):
+        exc = StarletteHTTPException(exc.status_code, truncate_message(exc.detail), exc.headers)
+    return await http_exception_handler(request, exc)
 
 
 def launch(
