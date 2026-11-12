@@ -198,6 +198,15 @@ model's maximum sequence length are truncated from `truncation_direction` (`righ
 unless `truncate: false` is set, in which case the request fails with HTTP 422. The same
 parameters can also be sent to `/` and `/predict`, either at the top level or within `parameters`.
 
+To score explicit `[query, document]` pairs instead, send `sentences` to `/` or `/predict`,
+either a single pair or a list of pairs, which returns one score per pair (or one list of
+scores per pair for models with more than one label):
+
+```bash
+curl http://localhost:8080/predict -H "Content-Type: application/json" -d '{"sentences":[["What is Deep Learning?","Deep Learning is..."],["What is Deep Learning?","Cheese is tasty"]]}'
+# {"scores":[0.99,0.0001]}
+```
+
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 
 ```bash
