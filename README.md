@@ -104,6 +104,28 @@ docker buildx build --platform linux/arm64 \
   --tag hf-serve:gb10 --load .
 ```
 
+## Request generation parameters
+
+`any-to-any` accepts model-specific options in `parameters`, and
+`automatic-speech-recognition` accepts them in `parameters.generation_parameters`
+(including Whisper options such as `language` and `task`). Both reject
+`custom_generate` and `trust_remote_code` wherever they occur in those parameter
+structures, including nested `generate_kwargs` dictionaries. These keys are
+rejected even when their values are `false` or `null`; other options are passed
+through for the pipeline to handle.
+
+This validation applies to the standard API, the Azure, SageMaker, and Google
+Cloud compatibility routes, and direct Python use of the task schemas and
+predictors. Invalid HTTP request bodies receive a validation error (422);
+direct schema construction raises a Pydantic `ValidationError`. Predictors also
+check parameters before inference to catch payloads modified after validation.
+
+The startup `--trust-remote-code` flag and the predictor constructor's
+`trust_remote_code` argument still control model loading. This change only
+blocks request-level overrides. Text generation, image-text-to-text, and the
+OpenAI-compatible APIs keep their existing parameter schemas. Custom handlers
+remain responsible for validating their own request parameters.
+
 ## Examples
 
 > [!NOTE]
