@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, Field
 
+from hf_serve.devices import default_attn_implementation
 from hf_serve.tasks.predictor import Predictor
 
 
@@ -49,7 +50,8 @@ class AnyToAny(Predictor[AnyToAnyInput, AnyToAnyOutput]):
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device != "auto" else None,
             device_map=device if device == "auto" else None,
-            attn_implementation="kernels-community/flash-attn2@v2" if not torch.mps.is_available() else "eager",
+            # NOTE: passed via `model_kwargs`, as `pipeline` forwards unknown kwargs to `generate`
+            model_kwargs={"attn_implementation": default_attn_implementation(device)},
             trust_remote_code=trust_remote_code,
         )
 

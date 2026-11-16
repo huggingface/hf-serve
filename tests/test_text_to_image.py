@@ -47,6 +47,8 @@ class ResolveDtypeTest(unittest.TestCase):
             ("float32", "cuda", True, True, "float32"),
             (None, "cpu", True, True, None),
             (None, "balanced", False, False, None),
+            (None, "neuron", False, False, "bfloat16"),
+            ("float32", "neuron", False, False, "float32"),
         ]
         for dtype, device, cuda, bf16, expected in cases:
             with (

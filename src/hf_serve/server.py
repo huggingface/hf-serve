@@ -9,6 +9,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
 from fastapi.responses import JSONResponse
 
+from hf_serve.devices import DeviceTypes, resolve_device
 from hf_serve.logging import logger
 from hf_serve.middleware import (
     LoggingMiddleware,
@@ -49,7 +50,7 @@ def launch(
     revision: Union[str, None],
     task: TaskTypes,
     # TODO: maybe we should include `npu` too as supported by `sentence-transformers`?
-    device: Optional[Literal["auto", "balanced", "cuda", "cpu", "mps"]] = "auto",
+    device: Optional[DeviceTypes] = "auto",
     # TODO: maybe the best default is no default, but handling that separately based on the library as it seems
     # that `float32` is the go to for `sentence-transformers`, `float16` for `diffusers`, and `bfloat16` for
     # `transformers` with some models performing better on `float32` or `float16` too
@@ -67,6 +68,9 @@ def launch(
             f"Both {model_id=} and {model_dir=} have been provided but those are mutually exclusive, if both are provided then `--model-dir` has preference over `--model-id`"
         )
         model_id = None
+
+    # NOTE: `neuron` has no `device_map` support, so `auto` is resolved upfront to `neuron` when available
+    device = resolve_device(device or "auto")
 
     if not model_id and not model_dir:
         raise ValueError(

@@ -4,6 +4,7 @@ from typing import get_args
 
 from hf_serve.cli_utils import strtobool
 from hf_serve.compatibility.backwards import ensure_backwards_compatibility
+from hf_serve.devices import DEVICES
 from hf_serve.server import launch
 from hf_serve.types.task import TaskTypes
 
@@ -63,9 +64,9 @@ parser.add_argument(
     "--device",
     type=str,
     default=os.getenv("DEVICE", None) or "auto",
-    choices=["auto", "balanced", "cuda", "cpu", "mps"],
+    choices=DEVICES,
     required=False,
-    help="The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available, otherwise it falls back to the CPU. It can also be set via the environment variable `DEVICE`.",
+    help="The device on which the model weights will be loaded into, defaults to auto that selects an accelerator if available (CUDA, MPS, or AWS Trainium / Inferentia via `neuron`), otherwise it falls back to the CPU. It can also be set via the environment variable `DEVICE`.",
 )
 
 parser.add_argument(
