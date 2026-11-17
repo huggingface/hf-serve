@@ -143,7 +143,7 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
     def __call__(self, payload: AutomaticSpeechRecognitionInput) -> AutomaticSpeechRecognitionOutput:
         parameters = {}
         if payload.parameters:
-            # Recheck mutable payloads supplied by direct Python callers before inference.
+            # NOTE: Validate mutable payloads supplied by direct Python callers before moving on.
             if payload.parameters.generation_parameters is not None:
                 validate_generation_parameters(payload.parameters.generation_parameters.model_dump())
             parameters = payload.parameters.model_dump(exclude_none=True)

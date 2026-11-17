@@ -64,7 +64,7 @@ class AnyToAny(Predictor[AnyToAnyInput, AnyToAnyOutput]):
     def __call__(self, payload: AnyToAnyInput) -> AnyToAnyOutput:
         parameters = {}
         if payload.parameters:
-            # Recheck mutable payloads supplied by direct Python callers before inference.
+            # NOTE: Validate mutable payloads supplied by direct Python callers before moving on.
             parameters = validate_generation_parameters(payload.parameters).copy()
 
         if seed := parameters.pop("seed", None):
