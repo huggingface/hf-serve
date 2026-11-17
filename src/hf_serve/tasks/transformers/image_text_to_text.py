@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, model_validator
 from hf_serve.devices import default_attn_implementation
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.transformers.stopping_criteria import stop_strings_generate_kwargs
 
 
 class ImageTextToTextParameters(BaseModel):
@@ -100,7 +101,11 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
 
         # NOTE: https://huggingface.co/docs/transformers/v4.57.3/en/main_classes/text_generation#transformers.GenerationConfig.stop_strings
         if stop_strings := parameters.pop("stop", None):
-            generate_kwargs["stop_strings"] = stop_strings
+            generate_kwargs.update(
+                stop_strings_generate_kwargs(
+                    stop_strings, self.pipeline.processor.tokenizer, self.pipeline.device.type
+                )
+            )
 
         # NOTE: Removing these here instead of within the schema as otherwise when logging the schema the user
         # might be confused if they see that the schema is different to what they provided despite the warning
@@ -110,8 +115,18 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             )
             parameters.pop(p, None)
 
+        # NOTE: `ImageTextToTextPipeline` only handles `max_new_tokens` and `return_full_text` itself, and forwards any
+        # other keyword argument to the processor, so the remaining generation parameters go via `generate_kwargs`
+        pipeline_kwargs = {
+            p: parameters.pop(p) for p in ("max_new_tokens", "return_full_text") if p in parameters
+        }
+        generate_kwargs.update(parameters)
+
         output = self.pipeline(
-            image=payload.inputs.image, text=payload.inputs.text, generate_kwargs=generate_kwargs, **parameters
+            images=payload.inputs.image,
+            text=payload.inputs.text,
+            generate_kwargs=generate_kwargs,
+            **pipeline_kwargs,
         )
         generated_text = output[0]["generated_text"]
         return ImageTextToTextOutput(generated_text=generated_text)

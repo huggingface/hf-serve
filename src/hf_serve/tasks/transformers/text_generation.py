@@ -5,6 +5,7 @@ from pydantic import AliasChoices, AliasPath, BaseModel, Field, model_validator
 from hf_serve.devices import default_attn_implementation
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.transformers.stopping_criteria import stop_strings_generate_kwargs
 
 
 class TextGenerationParameters(BaseModel):
@@ -95,9 +96,9 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
 
         # NOTE: https://huggingface.co/docs/transformers/v4.57.3/en/main_classes/text_generation#transformers.GenerationConfig.stop_strings
         if stop_strings := parameters.pop("stop", None):
-            generate_kwargs["stop_strings"] = stop_strings
-            # NOTE: `generate` needs the tokenizer to match the stop strings against the generated tokens
-            generate_kwargs["tokenizer"] = self.pipeline.tokenizer
+            generate_kwargs.update(
+                stop_strings_generate_kwargs(stop_strings, self.pipeline.tokenizer, self.pipeline.device.type)
+            )
 
         # NOTE: Removing these here instead of within the schema as otherwise when logging the schema the user
         # might be confused if they see that the schema is different to what they provided despite the warning
