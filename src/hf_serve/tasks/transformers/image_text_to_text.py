@@ -108,8 +108,20 @@ class ImageTextToText(Predictor[ImageTextToTextInput, ImageTextToTextOutput]):
             )
             parameters.pop(p, None)
 
-        output = self.pipeline(
-            image=payload.inputs.image, text=payload.inputs.text, generate_kwargs=generate_kwargs, **parameters
-        )
+        # NOTE: The image is passed within a chat message, as the pipeline requires the prompt to contain the image
+        # token, which the chat template adds
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": payload.inputs.image},
+                    {"type": "text", "text": payload.inputs.text},
+                ],
+            }
+        ]
+        output = self.pipeline(text=messages, generate_kwargs=generate_kwargs, **parameters)
         generated_text = output[0]["generated_text"]
+        # NOTE: With chat inputs and `return_full_text=True` (the pipeline default) the whole conversation is returned
+        if isinstance(generated_text, list):
+            generated_text = generated_text[-1]["content"]
         return ImageTextToTextOutput(generated_text=generated_text)
