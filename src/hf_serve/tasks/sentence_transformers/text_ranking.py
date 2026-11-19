@@ -1,15 +1,19 @@
-from typing import List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
+from annotated_types import Len
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 
+# NOTE: a pair is exactly two texts i.e. the query and the document to score against it
+Pair = Annotated[List[str], Len(min_length=2, max_length=2)]
+
 
 # TODO: it should accept inputs as a list of inputs to match the current Inference API
 class PredictInput(BaseModel):
     # NOTE: this originally allows tuples too, but that's invalid in JSON, hence removed
-    sentences: Union[List[str], List[List[str]]]
+    sentences: Union[Pair, Annotated[List[Pair], Len(min_length=1)]]
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -26,7 +30,8 @@ class PredictInput(BaseModel):
 
 
 class PredictOutput(BaseModel):
-    scores: List[float]
+    # NOTE: one score per pair, or one list of scores per pair for models with more than one label
+    scores: Union[List[float], List[List[float]]]
 
 
 # TODO: it should accept inputs as a list of inputs to match the current Inference API
@@ -154,7 +159,10 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
         match payload:
             case PredictInput():
                 scores = self.pipeline.predict(inputs=payload.sentences, convert_to_tensor=True)
-                if scores.ndim < 2:
+                # NOTE: a single pair is scored without a batch dimension, so it's added back to always return
+                # one entry per pair; this relies on the input shape, as the output shape is ambiguous e.g. `(3,)`
+                # is either three pairs scored by a single-label model, or a single pair scored by a 3-label one
+                if isinstance(payload.sentences[0], str):
                     scores = scores.unsqueeze(dim=0)
                 return PredictOutput(scores=scores.tolist())
 

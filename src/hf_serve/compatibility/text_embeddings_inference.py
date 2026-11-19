@@ -24,6 +24,11 @@ def rerank_router(predictor: TextRanking) -> APIRouter:
     @rerank_router.post("/rerank", response_model=List[Score], response_model_exclude_none=True)
     async def rerank(request: Request, payload: RankInput = Body(...)) -> List[Score]:
         request_id = getattr(request.state, "request_id", None)
+        if not payload.texts:
+            logger.error(f"[{request_id}] Failed validating I/O with: `texts` cannot be empty")
+            return JSONResponse(  # type: ignore
+                status_code=400, content={"error": "`texts` cannot be empty", "error_type": "Empty"}
+            )
         try:
             return predictor(payload=payload).scores  # type: ignore
         except ValueError as e:
