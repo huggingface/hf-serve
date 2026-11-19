@@ -178,6 +178,26 @@ The native vector has 768 dimensions; the model supports shortening it to 512,
 256, or 128. Outputs are L2-normalized after truncation by default. `/predict`
 also accepts `normalize: false` to disable that final normalization.
 
+### 🥇 Run `cross-encoder/ms-marco-MiniLM-L6-v2` with a TEI-compatible `/rerank`
+
+```bash
+uv run hf-serve --model-id cross-encoder/ms-marco-MiniLM-L6-v2 --task text-ranking
+```
+
+Besides `/` and `/predict` (which return `{"scores": [...]}`), `text-ranking` exposes
+`/rerank`, matching the [Text Embeddings Inference (TEI) `/rerank`](https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/rerank)
+request, response, and error formats:
+
+```bash
+curl http://localhost:8080/rerank -H "Content-Type: application/json" -d '{"query":"What is Deep Learning?","texts":["Cheese is tasty","Deep Learning is..."],"return_text":true}'
+# [{"index":1,"score":0.99,"text":"Deep Learning is..."},{"index":0,"score":0.0001,"text":"Cheese is tasty"}]
+```
+
+`raw_scores: true` returns the logits instead of the sigmoid scores. Inputs longer than the
+model's maximum sequence length are truncated from `truncation_direction` (`right` by default),
+unless `truncate: false` is set, in which case the request fails with HTTP 422. The same
+parameters can also be sent to `/` and `/predict`, either at the top level or within `parameters`.
+
 ### 🔵 Run `sentence-transformers/all-MiniLM-L6-v2` on Azure AI
 
 ```bash

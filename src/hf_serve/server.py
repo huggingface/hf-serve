@@ -469,10 +469,14 @@ def launch(
                 )
 
             from hf_serve.compatibility.text_embeddings_inference import (
+                rerank_router,
+            )
+            from hf_serve.compatibility.text_embeddings_inference import (
                 router as text_embeddings_inference_router,
             )
 
             app.include_router(router=text_embeddings_inference_router)
+            app.include_router(router=rerank_router(predictor=predictor))
         # transformers
         case "text-classification":
             from hf_serve.tasks.transformers.text_classification import (
