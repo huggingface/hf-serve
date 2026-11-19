@@ -135,7 +135,7 @@ class GenerationParameterInferenceTests(unittest.TestCase):
         ):
             self.assertEqual(predictor(payload).text, "hello")
         predictor.pipeline.assert_called_once_with(
-            b"audio", return_timestamps=True, chunk_length_s=30, batch_size=1, generate_kwargs=parameters
+            b"audio", return_timestamps=True, chunk_length_s=30, batch_size=1, **parameters
         )
 
     def test_mutated_payloads_are_rejected_before_pipeline_or_audio_loading(self):
@@ -262,10 +262,10 @@ class GenerationParameterHTTPTests(unittest.TestCase):
                 },
             )
         self.assertEqual(response.status_code, 200, response.text)
-        self.assertEqual(
-            predictor.pipeline.call_args.kwargs["generate_kwargs"],
-            {"language": "swedish", "task": "transcribe"},
-        )
+        call_kwargs = predictor.pipeline.call_args.kwargs
+        self.assertEqual(call_kwargs["language"], "swedish")
+        self.assertEqual(call_kwargs["task"], "transcribe")
+        self.assertNotIn("generate_kwargs", call_kwargs)
 
 
 if __name__ == "__main__":

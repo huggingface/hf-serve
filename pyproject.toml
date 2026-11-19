@@ -54,6 +54,8 @@ dependencies = [
     # NOTE: `pydub` is required for `automatic-speech-recognition` to parse the
     # audio bytes and calculate the audio duration in seconds
     "pydub>=0.25.0",
+    # NOTE: `pydub` imports `audioop`, which was removed from the standard library in Python 3.13
+    "audioop-lts>=0.2.1; python_version >= '3.13'",
     "python-multipart>=0.0.20",
     "python-magic>=0.4.27",
     "pandas>=2.3.3",
