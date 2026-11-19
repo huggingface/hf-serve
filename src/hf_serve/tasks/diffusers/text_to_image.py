@@ -39,6 +39,13 @@ def resolve_modular_device(device: str) -> str:
     return "cpu"
 
 
+def resolve_dtype(dtype: Optional[str], device: str) -> Optional[str]:
+    # NOTE: `diffusers` loads weights in float32 when no `torch_dtype` is given, doubling the memory footprint
+    if dtype is not None or device in {"cpu", "mps"} or not torch.cuda.is_available():
+        return dtype
+    return "bfloat16" if torch.cuda.is_bf16_supported() else "float16"
+
+
 def modular_external_components(model_dir: str) -> Dict[str, Dict[str, Any]]:
     """Components that the local `modular_model_index.json` declares in another repository than the one
     `model_dir` is a copy of (e.g. a prompt upsampler), keyed by name with their declared loading spec.
@@ -141,6 +148,7 @@ class TextToImage(Predictor[TextToImageInput, TextToImageOutput]):
         trust_remote_code: bool = False,
     ) -> None:
         super().__init__()
+        dtype = resolve_dtype(dtype, device)
 
         self.is_modular = is_modular_pipeline(model_id, revision=revision)
         if self.is_modular:

@@ -1,15 +1,19 @@
-from typing import List, Literal, Optional, Union
+from typing import Annotated, List, Literal, Optional, Union
 
-from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field
+from annotated_types import Len
+from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, field_validator
 
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+
+# NOTE: a pair is exactly two texts i.e. the query and the document to score against it
+Pair = Annotated[List[str], Len(min_length=2, max_length=2)]
 
 
 # TODO: it should accept inputs as a list of inputs to match the current Inference API
 class PredictInput(BaseModel):
     # NOTE: this originally allows tuples too, but that's invalid in JSON, hence removed
-    sentences: Union[List[str], List[List[str]]]
+    sentences: Union[Pair, Annotated[List[Pair], Len(min_length=1)]]
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -26,7 +30,8 @@ class PredictInput(BaseModel):
 
 
 class PredictOutput(BaseModel):
-    scores: List[float]
+    # NOTE: one score per pair, or one list of scores per pair for models with more than one label
+    scores: Union[List[float], List[List[float]]]
 
 
 # TODO: it should accept inputs as a list of inputs to match the current Inference API
@@ -46,13 +51,27 @@ class RankInput(BaseModel):
             "return_documents", "return_text", AliasPath("parameters", "return_documents")
         ),
     )
-    # NOTE: the parameters below are defined in Text Embeddings Inference (TEI) but unsupported natively within
-    # the `CrossEncoder.rank` method, hence are currently useless
-    raw_scores: bool = Field(default=False, validation_alias=AliasPath("parameters", "raw_scores"))
-    truncate: bool = Field(default=False, validation_alias=AliasPath("parameters", "truncate"))
-    truncation_direction: Literal["left", "right"] = Field(
-        default="right", validation_alias=AliasPath("parameters", "truncation_direction")
+    # NOTE: the parameters below follow the `/rerank` endpoint in Text Embeddings Inference (TEI), and can be
+    # provided either at the top level (as in TEI) or within `parameters`
+    # Reference: https://huggingface.github.io/text-embeddings-inference/#/Text%20Embeddings%20Inference/rerank
+    raw_scores: bool = Field(
+        default=False, validation_alias=AliasChoices("raw_scores", AliasPath("parameters", "raw_scores"))
     )
+    # NOTE: `None` truncates, matching TEI where `truncate` falls back to `--auto-truncate` (enabled by default),
+    # whilst `False` rejects inputs longer than the model's maximum sequence length
+    truncate: Optional[bool] = Field(
+        default=None, validation_alias=AliasChoices("truncate", AliasPath("parameters", "truncate"))
+    )
+    truncation_direction: Literal["left", "right"] = Field(
+        default="right",
+        validation_alias=AliasChoices("truncation_direction", AliasPath("parameters", "truncation_direction")),
+    )
+
+    @field_validator("truncation_direction", mode="before")
+    @classmethod
+    def lowercase_truncation_direction(cls, value: object) -> object:
+        # NOTE: TEI accepts both "Left"/"Right" (as per its OpenAPI schema) and "left"/"right"
+        return value.lower() if isinstance(value, str) else value
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -133,19 +152,40 @@ class TextRanking(Predictor[TextRankingInput, TextRankingOutput]):
             activation_fn=torch.nn.Sigmoid(),
             trust_remote_code=trust_remote_code,
         )
+        # NOTE: used instead of the default `Sigmoid` activation when `raw_scores=True`, to return the logits
+        self.identity = torch.nn.Identity()
 
     def __call__(self, payload: TextRankingInput) -> TextRankingOutput:
         match payload:
             case PredictInput():
                 scores = self.pipeline.predict(inputs=payload.sentences, convert_to_tensor=True)
-                if scores.ndim < 2:
+                # NOTE: a single pair is scored without a batch dimension, so it's added back to always return
+                # one entry per pair; this relies on the input shape, as the output shape is ambiguous e.g. `(3,)`
+                # is either three pairs scored by a single-label model, or a single pair scored by a 3-label one
+                if isinstance(payload.sentences[0], str):
                     scores = scores.unsqueeze(dim=0)
                 return PredictOutput(scores=scores.tolist())
 
             case RankInput():
-                scores = self.pipeline.rank(
-                    query=payload.query,
-                    documents=payload.texts,
-                    return_documents=payload.return_documents,
-                )
+                tokenizer = self.pipeline.tokenizer
+                if payload.truncate is False and payload.texts:
+                    max_length = self.pipeline.max_seq_length
+                    encodings = tokenizer([payload.query] * len(payload.texts), payload.texts)
+                    length = max(len(input_ids) for input_ids in encodings["input_ids"])
+                    if length > max_length:
+                        raise ValueError(f"`inputs` must have less than {max_length} tokens. Given: {length}")
+
+                # NOTE: the tokenizer is shared, so the truncation side is restored after ranking; this is safe as
+                # the routes run the predictor synchronously within the event loop, so requests don't overlap
+                truncation_side = tokenizer.truncation_side
+                tokenizer.truncation_side = payload.truncation_direction
+                try:
+                    scores = self.pipeline.rank(
+                        query=payload.query,
+                        documents=payload.texts,
+                        return_documents=payload.return_documents,
+                        activation_fn=self.identity if payload.raw_scores else None,
+                    )
+                finally:
+                    tokenizer.truncation_side = truncation_side
                 return RankOutput(scores=scores)  # type: ignore

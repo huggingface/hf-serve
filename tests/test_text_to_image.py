@@ -4,6 +4,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
@@ -15,6 +16,7 @@ from hf_serve.tasks.diffusers.text_to_image import (
     TextToImage,
     is_modular_pipeline,
     modular_external_components,
+    resolve_dtype,
 )
 
 
@@ -34,6 +36,25 @@ def modular_text_to_image(pipeline: FakeModularPipeline) -> TextToImage:
     predictor.pipeline = pipeline
     predictor.is_modular = True
     return predictor
+
+
+class ResolveDtypeTest(unittest.TestCase):
+    def test_defaults_to_half_precision_on_cuda(self) -> None:
+        cases = [
+            # (dtype, device, cuda_available, bf16_supported, expected)
+            (None, "balanced", True, True, "bfloat16"),
+            (None, "cuda", True, False, "float16"),
+            ("float32", "cuda", True, True, "float32"),
+            (None, "cpu", True, True, None),
+            (None, "balanced", False, False, None),
+        ]
+        for dtype, device, cuda, bf16, expected in cases:
+            with (
+                self.subTest(dtype=dtype, device=device, cuda=cuda, bf16=bf16),
+                mock.patch("torch.cuda.is_available", return_value=cuda),
+                mock.patch("torch.cuda.is_bf16_supported", return_value=bf16),
+            ):
+                self.assertEqual(resolve_dtype(dtype, device), expected)
 
 
 class IsModularPipelineTest(unittest.TestCase):
