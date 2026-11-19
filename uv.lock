@@ -911,7 +911,7 @@ wheels = [
 
 [[package]]
 name = "hf-serve"
-version = "0.2.0"
+version = "0.2.1"
 source = { editable = "." }
 dependencies = [
     { name = "audioop-lts", marker = "python_full_version >= '3.13' or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cpu' and extra == 'extra-8-hf-serve-neuron') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-128') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda' and extra == 'extra-8-hf-serve-neuron') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-cuda-130') or (extra == 'extra-8-hf-serve-cuda-128' and extra == 'extra-8-hf-serve-neuron') or (extra == 'extra-8-hf-serve-cuda-130' and extra == 'extra-8-hf-serve-neuron') or (extra == 'extra-8-hf-serve-kenlm' and extra == 'extra-8-hf-serve-neuron')" },
