@@ -1,9 +1,13 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional, Union
 
 from pydantic import BaseModel, Field
 
 from hf_serve.devices import default_attn_implementation
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.transformers.generation_parameters import (
+    GenerationParameters,
+    validate_generation_parameters,
+)
 
 
 class AnyToAnyInputs(BaseModel):
@@ -15,7 +19,7 @@ class AnyToAnyInputs(BaseModel):
 
 class AnyToAnyInput(BaseModel):
     inputs: AnyToAnyInputs
-    parameters: Optional[Dict[str, Any]] = Field(default=None)
+    parameters: Optional[GenerationParameters] = Field(default=None)
 
 
 class AnyToAnyOutput(BaseModel):
@@ -62,7 +66,8 @@ class AnyToAny(Predictor[AnyToAnyInput, AnyToAnyOutput]):
     def __call__(self, payload: AnyToAnyInput) -> AnyToAnyOutput:
         parameters = {}
         if payload.parameters:
-            parameters = payload.parameters
+            # NOTE: Validate mutable payloads supplied by direct Python callers before moving on.
+            parameters = validate_generation_parameters(payload.parameters).copy()
 
         if seed := parameters.pop("seed", None):
             from transformers import set_seed

@@ -4,7 +4,7 @@ from io import BytesIO
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from fastapi import Form
-from pydantic import AliasChoices, BaseModel, ConfigDict, Field
+from pydantic import AliasChoices, BaseModel, ConfigDict, Field, model_validator
 
 warnings.filterwarnings("ignore", module="pydub")
 from pydub import AudioSegment
@@ -12,6 +12,7 @@ from pydub import AudioSegment
 from hf_serve.serde.audio import Audio
 from hf_serve.tasks.examples import AUDIO_BASE64
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.transformers.generation_parameters import validate_generation_parameters
 from hf_serve.types import BoolForm, FileForm, FloatForm, IntForm
 
 
@@ -35,6 +36,11 @@ class AutomaticSpeechRecognitionGenerationParameters(BaseModel):
 
     # NOTE: Some models seem to support extra `generation_parameters` e.g., https://huggingface.co/KBLab/kb-whisper-large#hugging-face
     model_config = ConfigDict(extra="allow")
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_remote_code_parameters(cls, data: Any) -> Any:
+        return validate_generation_parameters(data)
 
 
 class AutomaticSpeechRecognitionParameters(BaseModel):
@@ -137,6 +143,9 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
     def __call__(self, payload: AutomaticSpeechRecognitionInput) -> AutomaticSpeechRecognitionOutput:
         parameters = {}
         if payload.parameters:
+            # NOTE: Validate mutable payloads supplied by direct Python callers before moving on.
+            if payload.parameters.generation_parameters is not None:
+                validate_generation_parameters(payload.parameters.generation_parameters.model_dump())
             parameters = payload.parameters.model_dump(exclude_none=True)
 
         # NOTE: Handle different input types: bytes, URL, file path, or base64; no need to handle others given that
