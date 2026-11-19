@@ -90,6 +90,11 @@ class TextRankingTest(unittest.TestCase):
         # NOTE: inputs within the limit are accepted even when truncation is disabled
         self.assertEqual(self.rerank(truncate=False).status_code, 200)
 
+    def test_empty_texts_are_rejected(self) -> None:
+        response = self.client.post("/rerank", json={"query": QUERY, "texts": []})
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {"error": "`texts` cannot be empty", "error_type": "Empty"})
+
     def test_truncation_direction(self) -> None:
         text = " ".join(["cheese tasty"] * 10 + ["deep learning machine"] * 10)
         scores = {}
