@@ -173,7 +173,7 @@ class TextGenerationKwargsTest(unittest.TestCase):
             )
 
         call_kwargs = pipeline.call_args.kwargs
-        self.assertEqual(call_kwargs["images"], "https://example.com/cat.png")
+        self.assertEqual(call_kwargs["text"][0]["content"][0]["image"], "https://example.com/cat.png")
         self.assertEqual(call_kwargs["max_new_tokens"], 4)
         self.assertNotIn("temperature", call_kwargs)
         generate_kwargs = call_kwargs["generate_kwargs"]
