@@ -68,7 +68,7 @@ class SentenceSimilarity(Predictor[SentenceSimilarityInput, SentenceSimilarityOu
         model_id: str,
         revision: Optional[str] = None,
         dtype: Optional[Literal["float32", "float16", "bfloat16"]] = None,
-        device: Optional[Literal["auto", "cpu", "cuda", "mps"]] = None,
+        device: Optional[Literal["auto", "cpu", "cuda", "mps", "neuron"]] = None,
         backend: Literal["torch", "onnx", "openvino"] = "torch",
         attn_implementation: Optional[str] = None,
         # NOTE: specific for sentence similarity

@@ -6,6 +6,7 @@ import torch  # NOTE: `torch` import cannot be lazy since it's used on both `__i
 from PIL.Image import Image as ImageType
 from pydantic import AliasChoices, AliasPath, BaseModel, ConfigDict, Field, RootModel, field_validator
 
+from hf_serve.devices import is_neuron_available
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
 
@@ -36,12 +37,19 @@ def resolve_modular_device(device: str) -> str:
         return "cuda"
     if torch.backends.mps.is_available():
         return "mps"
+    if is_neuron_available():
+        return "neuron"
     return "cpu"
 
 
 def resolve_dtype(dtype: Optional[str], device: str) -> Optional[str]:
     # NOTE: `diffusers` loads weights in float32 when no `torch_dtype` is given, doubling the memory footprint
-    if dtype is not None or device in {"cpu", "mps"} or not torch.cuda.is_available():
+    if dtype is not None or device in {"cpu", "mps"}:
+        return dtype
+    # NOTE: Trainium / Inferentia natively compute in bfloat16
+    if device == "neuron":
+        return "bfloat16"
+    if not torch.cuda.is_available():
         return dtype
     return "bfloat16" if torch.cuda.is_bf16_supported() else "float16"
 

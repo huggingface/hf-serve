@@ -2,8 +2,10 @@ from typing import Optional, Self
 
 from pydantic import AliasChoices, AliasPath, BaseModel, Field, model_validator
 
+from hf_serve.devices import default_attn_implementation
 from hf_serve.logging import logger
 from hf_serve.tasks.predictor import Predictor
+from hf_serve.tasks.transformers.stopping_criteria import stop_strings_generate_kwargs
 
 
 class TextGenerationParameters(BaseModel):
@@ -65,7 +67,8 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
             dtype=getattr(torch, dtype) if dtype is not None else "auto",
             device=device if device != "auto" else None,
             device_map=device if device == "auto" else None,
-            attn_implementation="kernels-community/flash-attn2@v2" if not torch.mps.is_available() else "eager",
+            # NOTE: passed via `model_kwargs`, as `pipeline` forwards unknown kwargs to `generate`
+            model_kwargs={"attn_implementation": default_attn_implementation(device)},
             trust_remote_code=trust_remote_code,
         )
 
@@ -93,7 +96,9 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
 
         # NOTE: https://huggingface.co/docs/transformers/v4.57.3/en/main_classes/text_generation#transformers.GenerationConfig.stop_strings
         if stop_strings := parameters.pop("stop", None):
-            generate_kwargs["stop_strings"] = stop_strings
+            generate_kwargs.update(
+                stop_strings_generate_kwargs(stop_strings, self.pipeline.tokenizer, self.pipeline.device.type)
+            )
 
         # NOTE: Removing these here instead of within the schema as otherwise when logging the schema the user
         # might be confused if they see that the schema is different to what they provided despite the warning
@@ -103,6 +108,8 @@ class TextGeneration(Predictor[TextGenerationInput, TextGenerationOutput]):
             )
             parameters.pop(p, None)
 
-        output = self.pipeline(text_inputs=payload.inputs, generate_kwargs=generate_kwargs, **parameters)
+        # NOTE: `TextGenerationPipeline` takes the generation parameters as keyword arguments, as there's no
+        # `generate_kwargs` argument since Transformers 5.20
+        output = self.pipeline(text_inputs=payload.inputs, **{**generate_kwargs, **parameters})
         generated_text = output[0]["generated_text"]
         return TextGenerationOutput(generated_text=generated_text)

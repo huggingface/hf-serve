@@ -57,6 +57,18 @@ uv sync --active --frozen --extra cuda-130
 >
 > Reference: https://docs.astral.sh/uv/guides/integration/pytorch/#automatic-backend-selection
 
+Or on AWS Trainium (Trn2 / Trn3) via [Torch NeuronX](https://github.com/aws-neuron/torch-neuronx) 2.13+,
+the PyTorch-native Neuron backend that adds the `neuron` device (requires the Neuron driver and runtime,
+already available on the Neuron DLAMIs and Deep Learning Containers):
+
+```bash
+uv sync --active --frozen --extra neuron
+```
+
+On Neuron, `--device auto` resolves to `neuron` (or set `--device neuron` explicitly), and models run in
+PyTorch eager mode. The `neuron` extra requires Python 3.13+, and is not compatible with the `kenlm` extra,
+as `pyctcdecode` pins `numpy<2` whereas `torch-neuronx` requires `numpy>=2`.
+
 ```console
 $ uv run hf-serve --help
 ```

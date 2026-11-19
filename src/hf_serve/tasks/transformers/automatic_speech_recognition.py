@@ -163,12 +163,14 @@ class AutomaticSpeechRecognition(Predictor[AutomaticSpeechRecognitionInput, Auto
             f"Audio length: {audio_length} seconds. batch size set to {int(audio_length // self.chunk_length_s + 1)}"
         )
 
+        # NOTE: `AutomaticSpeechRecognitionPipeline` takes the generation parameters as keyword arguments, as
+        # there's no `generate_kwargs` argument since Transformers 5.20
         result: Dict[str, Any] = self.pipeline(
             audio_bytes,  # type: ignore
             return_timestamps=parameters.get("return_timestamps", None),
             chunk_length_s=self.chunk_length_s,
             batch_size=int(audio_length // self.chunk_length_s + 1),
-            generate_kwargs=parameters.get("generation_parameters", {}),
+            **parameters.get("generation_parameters", {}),
         )
 
         return AutomaticSpeechRecognitionOutput(

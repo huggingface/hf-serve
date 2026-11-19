@@ -11,7 +11,7 @@ maintainers = [
   { name = "Alvaro Bartolome", email = "alvaro.bartolome@huggingface.co" },
   { name = "Juan Julian Cea", email = "juan.moran@huggingface.co" },
 ]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.15"
 dependencies = [
     "uvicorn>=0.34.0",
     "fastapi>=0.115.6",
@@ -20,7 +20,7 @@ dependencies = [
     # would otherwise let a fresh resolve drop back to vulnerable 0.x or 1.0.0.
     "starlette>=1.0.1",
     "prometheus-client>=0.21.1",
-    "torch>=2.11,<2.14",
+    "torch>=2.11,<2.15",
     "torchvision",
     # Sentence Transformers defaults to TorchCodec for video decoding; torchvision
     # removed read_video in 0.26. TorchCodec 0.12+ supports torch 2.11+ through its stable ABI.
@@ -33,7 +33,11 @@ dependencies = [
     # source-only KenLM package. KenLM is available through our optional extra.
     "torchaudio",
     "librosa",
-    "pyctcdecode>=0.4.0",
+    # NOTE: `pyctcdecode` is only needed for CTC decoding with a language model, and every release pins
+    # `numpy<2`, so it's only a core dependency on Python 3.11 / 3.12 to keep those environments unchanged; on
+    # Python 3.13+ it comes with the `kenlm` extra instead, so that `hf-serve` installs next to `numpy>=2`
+    # (e.g. `torch-neuronx`)
+    "pyctcdecode>=0.4.0,<0.6; python_version < '3.13'",
     "phonemizer",
     "pydantic>=2.10.5",
     # NOTE: `optimum[onnxruntime]` seems to have a cap on `transformers<4.53.0`
@@ -50,6 +54,8 @@ dependencies = [
     # NOTE: `pydub` is required for `automatic-speech-recognition` to parse the
     # audio bytes and calculate the audio duration in seconds
     "pydub>=0.25.0",
+    # NOTE: `pydub` imports `audioop`, which was removed from the standard library in Python 3.13
+    "audioop-lts>=0.2.1; python_version >= '3.13'",
     "python-multipart>=0.0.20",
     "python-magic>=0.4.27",
     "pandas>=2.3.3",
@@ -57,16 +63,21 @@ dependencies = [
 
 [project.optional-dependencies]
 # Optional language-model decoding for ASR; requires compiling a C++ extension.
-kenlm = ["kenlm>=0.3.0"]
+kenlm = ["kenlm>=0.3.0", "pyctcdecode>=0.4.0,<0.6"]
 
 # NOTE: `torchaudio` is pinned to `2.11.0` (rather than following the `torch` range below) as that's
 # the only version currently published with CUDA-specific wheels on the PyTorch registries; other
 # versions only ship a single generic PyPI wheel that hardcodes one CUDA build (currently 13.0), which
 # then hard-errors on import against a `torch` built for a different CUDA version.
-cpu = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
-cuda = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
-cuda-128 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
-cuda-130 = ["torch>=2.11,<2.14", "torchvision", "torchaudio==2.11.0"]
+cpu = ["torch>=2.11,<2.15", "torchvision", "torchaudio==2.11.0"]
+cuda = ["torch>=2.11,<2.15", "torchvision", "torchaudio==2.11.0"]
+cuda-128 = ["torch>=2.11,<2.15", "torchvision", "torchaudio==2.11.0"]
+cuda-130 = ["torch>=2.11,<2.15", "torchvision", "torchaudio==2.11.0"]
+# NOTE: AWS Trainium via Torch NeuronX 2.13+, the PyTorch-native Neuron backend that registers the `neuron`
+# device on top of a standard `torch` wheel; the CPU wheels are used to avoid pulling the unused CUDA libraries,
+# and `torch-neuronx` is published on the Neuron registry; requires Python 3.13+, as `torch-neuronx` needs
+# `numpy>=2`, which conflicts with `pyctcdecode` (core dependency on Python 3.11 / 3.12)
+neuron = ["torch>=2.13,<2.15", "torchvision", "torchaudio", "torch-neuronx>=2.13; python_version >= '3.13'"]
 
 # causal-1dconv = ["causal_conv1d==1.5.2"]
 # NOTE: `flash-linear-attention` has a lock on `transformers`<4.5.6.0
@@ -100,6 +111,12 @@ conflicts = [
       { extra = "cuda" },
       { extra = "cuda-128" },
       { extra = "cuda-130" },
+      { extra = "neuron" },
+    ],
+    # NOTE: `pyctcdecode` (via `kenlm`) pins `numpy<2`, whereas `torch-neuronx` requires `numpy>=2`
+    [
+      { extra = "kenlm" },
+      { extra = "neuron" },
     ],
 ]
 required-environments = [
@@ -112,22 +129,32 @@ required-environments = [
 torchcodec = { index = "pytorch-cpu" }
 torch = [
   { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cpu", extra = "neuron" },
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchvision = [
   { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cpu", extra = "neuron" },
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
 torchaudio = [
   { index = "pytorch-cpu", extra = "cpu" },
+  { index = "pytorch-cpu", extra = "neuron" },
   { index = "pytorch-cu126", extra = "cuda" },
   { index = "pytorch-cu128", extra = "cuda-128" },
   { index = "pytorch-cu130", extra = "cuda-130" },
 ]
+torch-neuronx = { index = "neuron" }
+
+[[tool.uv.index]]
+name = "neuron"
+url = "https://pip.repos.neuron.amazonaws.com"
+explicit = true
+
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
