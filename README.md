@@ -89,14 +89,20 @@ environment, run `uv sync --active --frozen --extra cpu` (or your CUDA backend e
 ## Container images
 
 On each push to `main`, CI publishes images to `ghcr.io/<owner>/hf-serve` using
-the first seven characters of the commit SHA as the tag. Images are built on
-native runners for the architectures listed below:
+the first seven characters of the commit SHA as the tag. Pushing a version tag
+(including alpha, beta, and release candidates) also publishes images with that
+exact tag, including the `v` prefix. Images are built once per backend and
+architecture on native runners, then combined into the tags below:
 
-| Tag | Backend | Architectures |
-| --- | --- | --- |
-| `<sha>` | CUDA 12.6 | `linux/amd64`, `linux/arm64` |
-| `<sha>-cu130-arm64` | CUDA 13.0, tested on NVIDIA GB10 / DGX Spark | `linux/arm64` |
-| `<sha>-cpu` | CPU | `linux/amd64`, `linux/arm64` |
+| Commit tags | Version tags (example) | Backend | Architectures |
+| --- | --- | --- | --- |
+| `<sha>`, `<sha>-cuda` | `v0.1.0`, `v0.1.0-cuda` | CUDA 12.6 | `linux/amd64`, `linux/arm64` |
+| `<sha>-cu130-arm64` | `v0.1.0-cu130-arm64` | CUDA 13.0, tested on NVIDIA GB10 / DGX Spark | `linux/arm64` |
+| `<sha>-cpu` | `v0.1.0-cpu` | CPU | `linux/amd64`, `linux/arm64` |
+
+The CUDA tags with and without `-cuda` point to the same image. Build layers are
+cached in GHCR separately for each backend and architecture, and dependency
+installation is cached independently of application source changes.
 
 For example, to pull the CUDA 13.0 image published by the upstream repository:
 

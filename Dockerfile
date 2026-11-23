@@ -60,9 +60,12 @@ ENV VIRTUAL_ENV=/home/huggingface/venv \
     PATH="/home/huggingface/venv/bin:$PATH"
 
 WORKDIR /home/huggingface/app
+COPY --chown=huggingface:huggingface pyproject.toml uv.lock ./
+RUN uv sync --active --frozen --extra "${TORCH_EXTRA}" --no-install-project --no-cache
+
 COPY --chown=huggingface:huggingface . .
 
-RUN uv sync --active --frozen --extra "${TORCH_EXTRA}"
+RUN uv sync --active --frozen --extra "${TORCH_EXTRA}" --no-cache
 
 COPY --chown=huggingface:huggingface entrypoint.sh /home/huggingface/entrypoint.sh
 RUN chmod +x /home/huggingface/entrypoint.sh
