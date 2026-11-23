@@ -4,8 +4,15 @@ on:
   push:
     branches:
       - main
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+[ab][0-9]+"
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 permissions: {}
 
@@ -81,8 +88,8 @@ jobs:
           labels: |
             org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-          cache-from: type=gha,scope=${{ matrix.variant }}-${{ matrix.architecture }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.variant }}-${{ matrix.architecture }}
+          cache-from: type=registry,ref=${{ steps.image.outputs.name }}:buildcache-${{ matrix.variant }}-${{ matrix.architecture }}
+          cache-to: type=registry,mode=max,ref=${{ steps.image.outputs.name }}:buildcache-${{ matrix.variant }}-${{ matrix.architecture }}
 
       - name: Export image digest
         env:
@@ -140,12 +147,27 @@ jobs:
       - name: Publish and verify image
         env:
           IMAGE_SUFFIX: ${{ matrix.variant.suffix }}
+          CUDA_ALIAS: ${{ matrix.variant.name == 'CUDA' }}
           EXPECTED_ARCHITECTURES: ${{ toJSON(matrix.variant.architectures) }}
         working-directory: ${{ runner.temp }}/digests
         shell: bash
         run: |
           image_name="ghcr.io/${GITHUB_REPOSITORY,,}"
-          image_tag="${image_name}:${GITHUB_SHA::7}${IMAGE_SUFFIX}"
+          versions=("${GITHUB_SHA::7}")
+          if [[ "${GITHUB_REF_TYPE}" == "tag" ]]; then
+            versions+=("${GITHUB_REF_NAME}")
+          fi
+          tags=()
+          for version in "${versions[@]}"; do
+            tags+=("${image_name}:${version}${IMAGE_SUFFIX}")
+            if [[ "${CUDA_ALIAS}" == "true" ]]; then
+              tags+=("${image_name}:${version}-cuda")
+            fi
+          done
+          tag_args=()
+          for tag in "${tags[@]}"; do
+            tag_args+=(--tag "${tag}")
+          done
           expected_count="$(jq 'length' <<< "${EXPECTED_ARCHITECTURES}")"
           digests=(*)
           if [[ "${#digests[@]}" -ne "${expected_count}" ]]; then
@@ -156,8 +178,10 @@ jobs:
           for digest in "${digests[@]}"; do
             images+=("${image_name}@sha256:${digest}")
           done
-          docker buildx imagetools create --tag "${image_tag}" "${images[@]}"
-          docker buildx imagetools inspect "${image_tag}"
-          docker buildx imagetools inspect "${image_tag}" --raw |
-            jq -e --argjson expected "${EXPECTED_ARCHITECTURES}" \
-              '[.manifests[].platform | select(.os == "linux") | .architecture] | sort == ($expected | sort)'
+          docker buildx imagetools create "${tag_args[@]}" "${images[@]}"
+          for tag in "${tags[@]}"; do
+            docker buildx imagetools inspect "${tag}"
+            docker buildx imagetools inspect "${tag}" --raw |
+              jq -e --argjson expected "${EXPECTED_ARCHITECTURES}" \
+                '[.manifests[].platform | select(.os == "linux") | .architecture] | sort == ($expected | sort)'
+          done
